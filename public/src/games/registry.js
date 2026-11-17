@@ -103,6 +103,14 @@ export const GAMES = [
     load: () => import('./warden-ui.js')
   },
   {
+    id: 'gloom', title: 'غارهای گِلومهیون', meta: 'تکی · ۱۵–۳۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۱۵–۳۰ دقیقه',
+    art: '/assets/art/noir-leather.jpg',
+    cats: ['solo', 'mind'], tags: ['کارت', 'تاکتیک', 'غار', 'تک‌نفره'],
+    solo: true, badge: 'کارت توانایی', multi: false,
+    load: () => import('./gloom-ui.js')
+  },
+  {
     id: 'duz', title: 'دوز', meta: 'دو نفره · ۵–۱۵ دقیقه',
     playersText: '۲ نفر', timeText: '۵–۱۵ دقیقه',
     art: '/assets/art/notebook-page.jpg',

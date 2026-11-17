@@ -14,11 +14,57 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const css = await readFile(join(ROOT, 'public/styles.css'), 'utf8');
 
 /** آیا این انتخابگر قاعده‌ی overflow-wrap: anywhere دارد؟ */
+/**
+ * همهٔ جفت‌های «انتخابگر ← بدنه» را از CSS بیرون می‌کشد.
+ * چون @media پرانتزهای تودرتو دارد، از اسکن کاراکتری استفاده می‌کنیم نه regex.
+ */
+function cssBlocks() {
+  if (cssBlocks.cache) return cssBlocks.cache;
+  const out = [];
+  let depth = 0, start = 0;
+  for (let i = 0; i < css.length; i++) {
+    const ch = css[i];
+    if (ch === '{') {
+      const sel = css.slice(start, i).trim();
+      if (depth === 0) {
+        // بدنهٔ این بلوک را تا بستن متناظرش برمی‌داریم
+        let d = 1, j = i + 1;
+        while (j < css.length && d > 0) {
+          if (css[j] === '{') d++;
+          else if (css[j] === '}') d--;
+          j++;
+        }
+        out.push({ sel, body: css.slice(i + 1, j - 1) });
+        i = j - 1;
+        start = j;
+        continue;
+      }
+      depth++;
+    } else if (ch === '}') {
+      depth = Math.max(0, depth - 1);
+      start = i + 1;
+    }
+  }
+  cssBlocks.cache = out;
+  return out;
+}
+
 function hasWrapGuard(selector) {
-  const re = new RegExp(`([^{}]*${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^{}]*)\\{([^}]*)\\}`, 'g');
-  let m;
-  while ((m = re.exec(css))) {
-    if (/overflow-wrap:\s*anywhere/.test(m[2])) return true;
+  const blocks = cssBlocks();
+  // ۱) قاعدهٔ اختصاصی خود انتخابگر
+  const esc = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(^|[\\s,>+~])${esc}(?![\\w-])`);
+  for (const b of blocks) {
+    if (b.sel.startsWith('@')) continue;
+    if (re.test(b.sel) && /overflow-wrap:\s*anywhere/.test(b.body)) return true;
+  }
+  // ۲) گارد جهانی با انتخابگر صفت: [class*="gloom-"]
+  const token = (selector.match(/\.([\w-]+)/) || [])[1] || '';
+  if (!token) return false;
+  for (const b of blocks) {
+    if (!/overflow-wrap:\s*anywhere/.test(b.body)) continue;
+    const prefixes = [...b.sel.matchAll(/\[class\*="([^"]+)"\]/g)].map(m => m[1]);
+    if (prefixes.some(pre => token.startsWith(pre))) return true;
   }
   return false;
 }
@@ -76,12 +122,45 @@ test('فونت گوتیک برای حروف و اعداد لاتین تعریف 
   assert.match(css, /@font-face\s*\{[^}]*PirataOne\.woff2/s);
 });
 
+test('کلاس‌های متنی بازی‌های تازه گارد شکستن دارند', () => {
+  const guarded = [
+    '.spot-scene__name', '.spot-end', '.spot-msg', '.spot-caption',
+    '.spot-hero p', '.spot-frame',
+    '.gloom-enemy__name', '.gloom-scenario__name', '.gloom-brief span',
+    '.ability-card', '.ability-card__name', '.ability-card__text',
+    '.gloom-combine__opt', '.gloom-log', '.gloom-log__row',
+    '.gloom-track__verdict', '.gloom-hero p'
+  ];
+  for (const sel of guarded) {
+    assert.ok(hasWrapGuard(sel), `${sel} بدون گارد شکستن کلمه`);
+  }
+});
+
+test('هیچ‌کدام از متن‌های تازه با nowrap سرریز نمی‌کنند', () => {
+  // nowrap فقط برای برچسب‌های بسیار کوتاه مجاز است
+  const lines = css.split('\n');
+  const offenders = [];
+  let inBlock = null;
+  for (const line of lines) {
+    if (/^\.(spot|gloom|ability)/.test(line.trim())) inBlock = line.trim();
+    if (inBlock && /white-space:\s*nowrap/.test(line)) {
+      // تنها استثناها: برچسب هدف صحنه و دور ردیف iniciativa
+      if (!inBlock.includes('spot-scenario__goal') && !inBlock.includes('gloom-scenario__goal')) {
+        offenders.push(inBlock);
+      }
+    }
+    if (line.includes('}')) inBlock = null;
+  }
+  assert.deepEqual(offenders, [], `nowrap بی‌گارد: ${offenders.join(', ')}`);
+});
+
 test('بدون background-size: 100% 100% (کشیدگی ممنوع)', () => {
   assert.equal(/background-size:\s*100%\s+100%/.test(css), false);
 });
 
 test('هر صفحه‌ی بازی دکمه‌ی بازگشت دارد', async () => {
-  const files = ['mafia', 'hokm', 'esmfamil', 'snake', 'quiz', 'riddle', 'iq', 'codenames', 'lowball', 'story', 'warden', 'logic'];
+  const files = ['mafia', 'hokm', 'esmfamil', 'snake', 'quiz', 'riddle', 'iq', 'codenames',
+    'lowball', 'story', 'warden', 'logic', 'duz', 'spot', 'gloom'];
   for (const id of files) {
     const src = await readFile(join(ROOT, `public/src/games/${id}-ui.js`), 'utf8');
     assert.match(src, /gameHeader\(/, `${id}: gameHeader ندارد`);

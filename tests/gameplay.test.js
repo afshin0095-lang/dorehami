@@ -373,3 +373,57 @@ test('تفاوت را پیدا کن: صحنهٔ مقدمه واقعاً انتخ
   assert.ok(titles.length === 1, 'عنوان تابلو نیست');
   cleanup();
 });
+
+test('گِلومهیون: از مقدمه تا کارت‌های دست', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gloom-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('گِلومهیون'), 'عنوان نیامد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('gloom-scenario')).length, 4, 'صحنه‌ها');
+  assert.equal(walk(host).filter(n => n.classList?.contains('level-card')).length, 3, 'سطوح');
+
+  btnWith(host, 'شروع').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('ability-card')).length, 8, 'کارت‌های دست');
+  assert.ok(walk(host).filter(n => n.classList?.contains('gloom-enemy')).length >= 1, 'دشمنان');
+  cleanup();
+});
+
+test('گِلومهیون: انتخاب دو کارت و اجرای نوبت', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gloom-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع').click();
+
+  walk(host).filter(n => n.classList?.contains('ability-card'))[0].click();
+  walk(host).filter(n => n.classList?.contains('ability-card'))[1].click();
+
+  assert.equal(walk(host).filter(n => n.classList?.contains('ability-card') && n.classList?.contains('is-on')).length, 2, 'دو کارت انتخاب نشد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('gloom-combine')).length, 1, 'ترکیب نیامد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('gloom-combine__opt')).length, 2, 'دو ترکیب باید باشد');
+
+  btnWith(host, 'اجرای نوبت').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('ability-card')).length, 6, 'کارت‌ها کم نشد');
+  assert.ok(walk(host).filter(n => n.classList?.contains('gloom-log__row')).length > 0, 'گزارش خالی است');
+  cleanup();
+});
+
+test('گِلومهیون: بیش از دو کارت انتخاب نمی‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gloom-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع').click();
+
+  walk(host).filter(n => n.classList?.contains('ability-card'))[0].click();
+  walk(host).filter(n => n.classList?.contains('ability-card'))[1].click();
+  walk(host).filter(n => n.classList?.contains('ability-card'))[2].click();
+
+  assert.equal(
+    walk(host).filter(n => n.classList?.contains('ability-card') && n.classList?.contains('is-on')).length,
+    2, 'بیش از دو کارت انتخاب شد'
+  );
+  cleanup();
+});

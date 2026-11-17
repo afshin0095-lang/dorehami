@@ -2107,9 +2107,9 @@ small { font-size: .8rem; color: var(--ink-soft); }
   color: rgba(120,95,55,.4); font-size: 1rem;
 }
 .spot-hero__text { position: relative; z-index: 1; padding: .2rem .3rem; }
-.spot-hero__kicker { font-size: .72rem; letter-spacing: .16em; color: var(--ink-soft); }
-.spot-hero h1 { font-size: clamp(1.5rem, 6.4vw, 2.2rem); margin: .25rem 0 .45rem; }
-.spot-hero p { margin: 0; max-width: 34ch; line-height: 1.75; font-size: .88rem; color: var(--ink-soft); }
+.spot-hero__kicker { font-size: .72rem; letter-spacing: .16em; color: var(--ink-soft); overflow-wrap: anywhere; }
+.spot-hero h1 { font-size: clamp(1.5rem, 6.4vw, 2.2rem); margin: .25rem 0 .45rem; overflow-wrap: anywhere; }
+.spot-hero p { margin: 0; max-width: 34ch; line-height: 1.75; font-size: .88rem; color: var(--ink-soft); overflow-wrap: anywhere; }
 
 .spot-scenes { display: grid; gap: .35rem; }
 .spot-scene {
@@ -2128,9 +2128,9 @@ small { font-size: .8rem; color: var(--ink-soft); }
   box-shadow: inset 0 0 0 1px rgba(176,141,87,.5);
 }
 .spot-scene.is-on .spot-scene__name { font-weight: 700; }
-.spot-scene__name { font-size: .8rem; color: var(--ink); }
-.spot-scene__period { font-size: .62rem; color: var(--ink-soft); }
-.spot-note { margin: .5rem 0 0; font-size: .72rem; color: var(--ink-soft); }
+.spot-scene__name { font-size: .8rem; color: var(--ink); overflow-wrap: anywhere; }
+.spot-scene__period { font-size: .62rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.spot-note { margin: .5rem 0 0; font-size: .72rem; color: var(--ink-soft); overflow-wrap: anywhere; }
 
 /* قاب تابلو */
 .spot-frame {
@@ -2156,7 +2156,7 @@ small { font-size: .8rem; color: var(--ink-soft); }
 .spot-hit-layer { cursor: crosshair; }
 .spot-panel__cap {
   font-size: .58rem; text-align: center; color: #d8c9a8;
-  letter-spacing: .06em;
+  letter-spacing: .06em; overflow-wrap: anywhere;
 }
 .spot-ring { animation: spot-pop .35s var(--ease-paper); }
 .spot-hint { animation: pulse-glow 1.6s infinite; }
@@ -2168,8 +2168,8 @@ small { font-size: .8rem; color: var(--ink-soft); }
   color: #c9b994;
   overflow-wrap: anywhere;
 }
-.spot-caption__title { font-size: .76rem; }
-.spot-caption__period { font-size: .62rem; opacity: .7; }
+.spot-caption__title { font-size: .76rem; overflow-wrap: anywhere; }
+.spot-caption__period { font-size: .62rem; opacity: .7; overflow-wrap: anywhere; }
 
 /* پیشرفت */
 .spot-progress {
@@ -2214,11 +2214,11 @@ small { font-size: .8rem; color: var(--ink-soft); }
   border-radius: 50%; border: 2px solid var(--gold, #b08d57);
   color: var(--ink); font-size: 1.2rem;
 }
-.spot-end h2 { margin: 0 0 .4rem; font-size: 1.05rem; }
+.spot-end h2 { margin: 0 0 .4rem; font-size: 1.05rem; overflow-wrap: anywhere; }
 .spot-end__stats {
   display: flex; flex-wrap: wrap; gap: .3rem .7rem;
   justify-content: center; font-size: .72rem; color: var(--ink-soft);
-  margin-bottom: .55rem;
+  margin-bottom: .55rem; overflow-wrap: anywhere;
 }
 .spot-end__score { font-weight: 700; color: var(--ink); }
 .spot-end .btn-row { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
@@ -2232,6 +2232,201 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .spot-pair { gap: .25rem; }
   .spot-frame { padding: .35rem; }
   .spot-caption__title { font-size: .68rem; }
+}
+
+
+/* گارد جهانی سرریز برای همهٔ عناصر بازی‌های تازه */
+[class*="spot-"], [class*="gloom-"], [class*="ability-"] {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* ============================================================
+   غارهای گِلومهیون — کارت توانایی، دشمن مهره‌ای
+   ============================================================ */
+.gloom-hero {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1rem 1.2rem;
+  background-color: #2b2419;
+  background-image: url('/assets/art/noir-leather.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  color: #e8dcc2;
+}
+.gloom-hero__frame {
+  position: absolute; inset: 8px;
+  border: 1px solid rgba(200,168,110,.28);
+  border-radius: 2px; pointer-events: none;
+}
+.gloom-hero__frame span {
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+  padding: 0 .4rem; color: rgba(200,168,110,.45); font-size: 1rem;
+}
+.gloom-hero__text { position: relative; z-index: 1; padding: .2rem .3rem; }
+.gloom-hero__kicker { font-size: .7rem; letter-spacing: .14em; color: #c0a978; overflow-wrap: anywhere; }
+.gloom-hero h1 { font-size: clamp(1.35rem, 5.8vw, 1.95rem); margin: .25rem 0 .45rem; color: #f2e7cc; overflow-wrap: anywhere; }
+.gloom-hero p { margin: 0; max-width: 36ch; line-height: 1.8; font-size: .85rem; color: #cfc0a0; overflow-wrap: anywhere; }
+
+.gloom-scenarios { display: grid; gap: .35rem; }
+.gloom-scenario {
+  display: flex; justify-content: space-between; align-items: baseline; gap: .4rem;
+  overflow-wrap: anywhere;
+  padding: .5rem .6rem;
+  background: rgba(255,252,244,.7);
+  border: 1px solid rgba(120,95,55,.22); border-radius: 2px;
+  font-family: inherit; cursor: pointer; overflow-wrap: anywhere;
+  text-align: start;
+}
+.gloom-scenario.is-on { background: rgba(176,141,87,.2); border-color: var(--gold, #b08d57); }
+.gloom-scenario__name { font-size: .82rem; }
+.gloom-scenario.is-on .gloom-scenario__name { font-weight: 700; }
+.gloom-scenario__goal { font-size: .64rem; color: var(--ink-soft); white-space: nowrap; overflow-wrap: anywhere; }
+
+.gloom-brief {
+  display: grid; gap: .2rem;
+  margin: .55rem 0 .1rem; padding: .55rem .65rem;
+  background: rgba(47,111,104,.08);
+  border-right: 3px solid var(--teal);
+  overflow-wrap: anywhere;
+}
+.gloom-brief strong { font-size: .82rem; overflow-wrap: anywhere; }
+.gloom-brief span { font-size: .74rem; color: var(--ink-soft); line-height: 1.7; }
+
+/* دشمنان */
+.gloom-enemies { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: .35rem; }
+.gloom-enemy {
+  display: grid; gap: .05rem; justify-items: center;
+  overflow-wrap: anywhere;
+  padding: .45rem .3rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid rgba(120,95,55,.25);
+  border-top: 3px solid var(--enemy, #8a5a3b);
+  border-radius: 2px; font-family: inherit; cursor: pointer;
+  overflow-wrap: anywhere; transition: transform .18s, box-shadow .18s;
+}
+.gloom-enemy__glyph { font-size: 1.25rem; color: var(--enemy, #8a5a3b); line-height: 1; }
+.gloom-enemy__name { font-size: .7rem; overflow-wrap: anywhere; }
+.gloom-enemy__hp { font-size: .64rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.gloom-enemy__atk { font-size: .58rem; color: var(--rust); overflow-wrap: anywhere; }
+.gloom-enemy.is-target { box-shadow: 0 0 0 2px var(--gold, #b08d57); transform: translateY(-1px); }
+.gloom-enemy.is-dead { opacity: .42; filter: grayscale(1); cursor: default; }
+
+/* ردیف iniciativa */
+.gloom-track {
+  display: flex; align-items: center; gap: .35rem;
+  margin: .5rem 0 .1rem; flex-wrap: wrap;
+}
+.gloom-track__slot {
+  display: grid; justify-items: center; gap: .05rem;
+  overflow-wrap: anywhere;
+  min-width: 56px; padding: .3rem .45rem;
+  background: rgba(255,252,244,.9);
+  border: 1px solid rgba(120,95,55,.25); border-radius: 2px;
+}
+.gloom-track__slot.is-enemy { border-color: rgba(163,61,44,.35); }
+.gloom-track__label { font-size: .55rem; color: var(--ink-soft); letter-spacing: .08em; overflow-wrap: anywhere; }
+.gloom-track__val { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gloom-track__verdict {
+  flex: 1; min-width: 84px; text-align: center;
+  font-size: .68rem; padding: .3rem .4rem;
+  background: rgba(176,141,87,.16); border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* دست کارت‌ها */
+.gloom-hand {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: .4rem; margin-top: .45rem;
+}
+.ability-card {
+  position: relative;
+  display: grid; gap: .15rem;
+  padding: .45rem .4rem .5rem;
+  background-color: #f4ead4;
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: 1px solid rgba(120,95,55,.35);
+  border-radius: 3px;
+  font-family: inherit; text-align: start; cursor: pointer;
+  overflow-wrap: anywhere;
+  box-shadow: var(--lift-1);
+  transition: transform .16s var(--ease-paper), box-shadow .16s;
+}
+.ability-card.is-on {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--gold, #b08d57), var(--lift-2);
+}
+.ability-card__init {
+  position: absolute; top: .3rem; inset-inline-end: .35rem;
+  overflow-wrap: anywhere;
+  width: 1.35rem; height: 1.35rem; display: grid; place-items: center;
+  border: 1px solid rgba(120,95,55,.4); border-radius: 50%;
+  font-size: .62rem; font-weight: 700; color: #5a4527;
+  background: rgba(255,255,255,.5);
+}
+.ability-card__name { font-size: .74rem; font-weight: 700; padding-inline-end: 1.5rem; overflow-wrap: anywhere; }
+.ability-card__half {
+  display: grid; gap: .02rem;
+  overflow-wrap: anywhere;
+  padding: .25rem .3rem;
+  border-radius: 2px;
+}
+.ability-card__half--top { background: rgba(176,141,87,.14); }
+.ability-card__half--bottom {
+  background: rgba(47,111,104,.1);
+  border-top: 1px dashed rgba(120,95,55,.28);
+}
+.ability-card__tag { font-size: .5rem; letter-spacing: .1em; color: var(--ink-soft); overflow-wrap: anywhere; }
+.ability-card__text { font-size: .62rem; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; }
+.ability-card__lost {
+  position: absolute; bottom: .15rem; inset-inline-start: .3rem;
+  overflow-wrap: anywhere;
+  font-size: .46rem; color: var(--rust); letter-spacing: .05em;
+}
+
+/* ترکیب */
+.gloom-combine {
+  margin-top: .5rem; padding: .5rem .55rem;
+  border: 1px solid rgba(120,95,55,.25);
+  background: rgba(255,252,244,.85);
+  overflow-wrap: anywhere;
+}
+.gloom-combine h3 { margin: 0 0 .35rem; font-size: .76rem; overflow-wrap: anywhere; }
+.gloom-combine__opt {
+  display: block; width: 100%; margin-bottom: .3rem;
+  padding: .45rem .5rem;
+  background: rgba(255,255,255,.6);
+  border: 1px solid rgba(120,95,55,.22); border-radius: 2px;
+  font-family: inherit; font-size: .68rem; text-align: start;
+  cursor: pointer; overflow-wrap: anywhere;
+}
+.gloom-combine__opt.is-on {
+  background: rgba(176,141,87,.2);
+  border-color: var(--gold, #b08d57);
+  font-weight: 700;
+}
+
+/* گزارش */
+.gloom-log {
+  margin-top: .7rem; padding: .5rem .55rem;
+  background: rgba(43,36,25,.055);
+  border: 1px solid rgba(120,95,55,.18);
+  max-height: 180px; overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.gloom-log h3 { margin: 0 0 .3rem; font-size: .7rem; color: var(--ink-soft); letter-spacing: .1em; overflow-wrap: anywhere; }
+.gloom-log__row {
+  display: flex; gap: .35rem; margin: 0 0 .2rem;
+  font-size: .64rem; line-height: 1.6; color: var(--ink-soft);
+}
+.gloom-log__round {
+  flex: 0 0 auto; font-variant-numeric: tabular-nums;
+  color: var(--gold, #b08d57); font-weight: 700; overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .gloom-hand { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+  .ability-card__text { font-size: .58rem; }
+  .gloom-enemy__name { font-size: .64rem; }
 }
 
 /* ============================ انیمیشن‌ها ============================ */

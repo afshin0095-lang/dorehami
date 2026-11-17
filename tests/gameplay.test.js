@@ -36,7 +36,11 @@ class N {
   appendChild(c) { this.append(c); return c; }
   replaceChildren(...n) { this.children = []; this.append(...n); }
   remove() { if (this.parentElement) this.parentElement.children = this.parentElement.children.filter(c => c !== this); }
-  setAttribute(k, v) { this.attrs[k] = String(v); if (k === 'class') this.className = v; if (k === 'disabled') this.disabled = true; }
+  setAttribute(k, v) {
+    this.attrs[k] = String(v);
+    if (k === 'class') this.className = v;
+    if (k === 'disabled') this.disabled = true;
+  }
   getAttribute(k) { return this.attrs[k]; }
   addEventListener(t, f) { (this.listeners[t] ||= []).push(f); }
   removeEventListener() {}
@@ -57,6 +61,7 @@ function installDom() {
   globalThis.document = {
     body: new N('body'), documentElement: new N('html'), title: '', hidden: false,
     createElement: t => new N(t),
+    createElementNS: (ns, t) => new N(t),
     createTextNode: t => { const n = new N('#text'); n.nodeType = 3; n.textContent = t; return n; },
     createDocumentFragment: () => new N('frag'),
     getElementById: id => ({ app, 'modal-root': modal, toast, desk }[id] || null),
@@ -219,4 +224,152 @@ test('مهره‌چین: از منو تا صفحه‌ی بازی', async () => {
   const cells = board.children.filter(c => c.tagName === 'BUTTON');
   cells[0].click();
   assert.ok(byClass(host, 'logic-piece').length >= 1, 'مهره روی صفحه ننشست');
+});
+
+test('دوز: از منو تا تخته و نشستن مهره', async () => {
+  installDom();
+  const mod = await import('../public/src/games/duz-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('دوز'), 'عنوان نیامد');
+  assert.ok(textOf(host).includes('آسیاب'), 'توضیح قواعد نیامد');
+
+  const start = btnWith(host, 'شروع بازی');
+  assert.ok(start, 'دکمهٔ شروع نیست');
+  start.click();
+
+  // تخته باید با SVG ساخته شود
+  const svg = walk(host).find(n => n.tagName === 'SVG' || n.tagName === 'svg');
+  assert.ok(svg, 'تختهٔ SVG رندر نشد');
+
+  // ۲۴ نقطه باید باشد
+  const nodes = walk(host).filter(n => n.attrs && n.attrs['data-node'] !== undefined);
+  assert.equal(nodes.length, 24, `تعداد نقطهٔ تخته: ${nodes.length}`);
+
+  // یک نقطهٔ خالی را انتخاب کن — بازی باید پیش برود
+  const empty = nodes.find(n => n.classList?.contains('is-target')) || nodes[0];
+  empty.click();
+
+  // بعد از کلیک، خطایی نباید رخ دهد و صفحه باید سالم بماند
+  assert.ok(walk(host).length > 20, 'درخت DOM پس از کلیک خالی شد');
+  cleanup();
+});
+
+test('دوز: تخته پس از هر حرکت دوباره ساخته می‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/duz-ui.js');
+  const host = new N('div');
+  mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع بازی').click();
+
+  const countNodes = () => walk(host).filter(n => n.attrs && n.attrs['data-node'] !== undefined).length;
+  assert.equal(countNodes(), 24);
+
+  // چند کلیک روی نقاط خالی
+  for (let i = 0; i < 4; i++) {
+    const nodes = walk(host).filter(n => n.attrs && n.attrs['data-node'] !== undefined);
+    const target = nodes.find(n => n.classList?.contains('is-target')) || nodes[i];
+    if (target) target.click();
+  }
+
+  assert.equal(countNodes(), 24, 'تخته باید همیشه ۲۴ نقطه داشته باشد');
+  assert.ok(textOf(host).includes('دوز'), 'سرصفحه گم شد');
+});
+
+test('دوز: حالت دو نفره هم باز می‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/duz-ui.js');
+  const host = new N('div');
+  mod.mountGame(host, { onExit: () => {} });
+
+  const duoBtn = walk(host).find(n => n.tagName === 'BUTTON' && n.textContent.includes('دو نفره'));
+  assert.ok(duoBtn, 'گزینهٔ دو نفره نیست');
+  duoBtn.click();
+  btnWith(host, 'شروع بازی').click();
+
+  assert.ok(textOf(host).includes('بازیکن ۲'), 'حالت دو نفره نام بازیکن دوم را نشان نمی‌دهد');
+});
+
+test('تفاوت را پیدا کن: از منو تا دو تابلو', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spot-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('تفاوت را پیدا کن'), 'عنوان نیامد');
+  const start = btnWith(host, 'شروع');
+  assert.ok(start, 'دکمهٔ شروع نیست');
+  start.click();
+
+  // دو تابلو باید رندر شوند — با کلاس spot-svg شناسایی می‌شوند
+  const svgs = walk(host).filter(n => n.classList?.contains('spot-svg'));
+  assert.equal(svgs.length, 2, `تعداد تابلو: ${svgs.length}`);
+
+  // هر تابلو لایهٔ کلیک دارد
+  const layers = walk(host).filter(n => n.classList?.contains('spot-hit-layer'));
+  assert.equal(layers.length, 2, `لایهٔ کلیک: ${layers.length}`);
+
+  // چند نشانگر پیشرفت
+  const pips = walk(host).filter(n => n.classList?.contains('spot-pip'));
+  assert.ok(pips.length >= 3, `نشانگر پیشرفت کم است: ${pips.length}`);
+  cleanup();
+});
+
+test('تفاوت را پیدا کن: کلیک روی تابلو خطا نمی‌دهد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spot-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع').click();
+
+  const layer = walk(host).find(n => n.classList?.contains('spot-hit-layer'));
+  assert.ok(layer, 'لایهٔ کلیک نیست');
+  // کلیک بدون مختصات واقعی — نباید بترکد
+  layer.click();
+  assert.ok(walk(host).length > 30, 'DOM پس از کلیک خالی شد');
+  assert.ok(textOf(host).includes('تفاوت'), 'سرصفحه گم شد');
+  cleanup();
+});
+
+test('تفاوت را پیدا کن: راهنما و تابلو تازه کار می‌کنند', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spot-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع').click();
+
+  const hintBtn = btnWith(host, 'راهنما');
+  assert.ok(hintBtn, 'دکمهٔ راهنما نیست');
+  hintBtn.click();
+  assert.ok(walk(host).some(n => n.classList?.contains('spot-hint')), 'حلقهٔ راهنما رسم نشد');
+
+  const fresh = btnWith(host, 'تابلوی تازه');
+  assert.ok(fresh, 'دکمهٔ تابلوی تازه نیست');
+  fresh.click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('spot-hit-layer')).length, 2, 'تابلوی تازه رندر نشد');
+  cleanup();
+});
+
+test('تفاوت را پیدا کن: صحنهٔ مقدمه واقعاً انتخاب می‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spot-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  const scenes = walk(host).filter(n => n.classList?.contains('spot-scene'));
+  assert.equal(scenes.length, 3, `تعداد صحنه: ${scenes.length}`);
+  assert.ok(scenes[0].classList.contains('is-on'), 'صحنهٔ پیش‌فرض فعال نیست');
+
+  // انتخاب صحنهٔ دوم باید حالت را عوض کند
+  scenes[1].click();
+  const after = walk(host).filter(n => n.classList?.contains('spot-scene'));
+  assert.ok(after[1].classList.contains('is-on'), 'صحنهٔ دوم فعال نشد');
+  assert.ok(!after[0].classList.contains('is-on'), 'صحنهٔ اول هنوز فعال است');
+
+  // و شروع باید همان صحنه را بسازد
+  btnWith(host, 'شروع').click();
+  const titles = walk(host).filter(n => n.classList?.contains('spot-caption__title'));
+  assert.ok(titles.length === 1, 'عنوان تابلو نیست');
+  cleanup();
 });

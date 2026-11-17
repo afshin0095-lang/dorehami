@@ -1930,6 +1930,310 @@ small { font-size: .8rem; color: var(--ink-soft); }
 .tbl-over p { margin: 0 0 .5rem; font-size: .82rem; color: var(--ink-soft); }
 .tbl-over .btn-row { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
 
+
+/* ============================================================
+   دوز — تختهٔ کهن با نقش‌مایهٔ چینی
+   ============================================================ */
+.duz-hero {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1rem 1.2rem;
+  background-color: #d9d3bd;
+  background-image: url('/assets/art/notebook-page.jpg');
+  background-size: cover; background-position: center;
+  background-blend-mode: multiply;
+}
+.duz-hero__deco {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: 7rem; color: rgba(60,50,35,.07);
+  pointer-events: none;
+}
+.duz-hero__text { position: relative; z-index: 1; }
+.duz-hero__kicker { font-size: .72rem; letter-spacing: .16em; color: var(--ink-soft); }
+.duz-hero h1 { font-size: clamp(1.7rem, 7vw, 2.5rem); margin: .25rem 0 .45rem; }
+.duz-hero p { margin: 0; max-width: 34ch; line-height: 1.75; font-size: .9rem; color: var(--ink-soft); }
+
+.duz-rules { margin: 0; padding-inline-start: 1.1rem; display: grid; gap: .35rem; }
+.duz-rules li { font-size: .82rem; line-height: 1.7; }
+
+/* نوار بازیکن‌ها */
+.duz-status { display: flex; align-items: stretch; gap: .4rem; margin-bottom: .55rem; }
+.duz-player {
+  flex: 1; position: relative;
+  display: grid; grid-template-columns: auto 1fr; gap: .1rem .4rem;
+  align-items: center;
+  padding: .4rem .5rem;
+  background: rgba(255,252,244,.78);
+  border: 1px solid rgba(120,95,55,.22);
+  border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.duz-player.is-turn {
+  background: rgba(176,141,87,.16);
+  box-shadow: inset 0 0 0 2px var(--gold, #b08d57);
+}
+.duz-player__dot {
+  width: 13px; height: 13px; border-radius: 50%;
+  grid-row: 1 / 3;
+}
+.duz-player__dot.is-A { background: #2b2620; box-shadow: inset 0 0 0 2px #4a4038, 0 1px 2px rgba(0,0,0,.4); }
+.duz-player__dot.is-B { background: #f2ead6; box-shadow: inset 0 0 0 2px #b9a98a, 0 1px 2px rgba(0,0,0,.25); }
+.duz-player__name { font-size: .72rem; font-weight: 600; }
+.duz-player__count {
+  font-family: 'Pirata One', serif; font-size: 1.05rem; line-height: 1;
+}
+.duz-player__meta { font-size: .58rem; color: var(--ink-soft); grid-column: 2; }
+.duz-player__turn {
+  position: absolute; top: -7px; inset-inline-start: 8px;
+  font-size: .5rem; padding: 0 .3rem; border-radius: 999px;
+  background: var(--gold, #b08d57); color: #241a10;
+}
+.duz-vs { display: grid; place-items: center; font-size: .95rem; opacity: .4; }
+
+/* تخته */
+.duz-board {
+  padding: .35rem;
+  background-color: #cfc9ae;
+  background-image: url('/assets/art/notebook-page.jpg');
+  background-size: cover; background-position: center;
+  background-blend-mode: multiply;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.duz-svg { display: block; width: 100%; height: auto; }
+
+.duz-cloud { fill: rgba(90,75,50,.05); }
+.duz-line {
+  fill: none;
+  stroke: rgba(58,46,32,.62);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.duz-node { cursor: pointer; outline: none; }
+.duz-node:focus-visible .duz-hit { stroke: var(--teal-deep); stroke-width: 2.5; }
+.duz-hit { fill: transparent; stroke: transparent; stroke-width: 1; transition: stroke .15s ease, fill .15s ease; }
+.duz-node.is-target .duz-hit { fill: rgba(47,111,104,.14); stroke: rgba(47,111,104,.4); stroke-dasharray: 3 3; }
+.duz-dot { fill: rgba(58,46,32,.5); transition: fill .15s ease; }
+.duz-node.is-target .duz-dot { fill: var(--teal-deep); }
+.duz-piece { stroke: rgba(0,0,0,.28); stroke-width: 1; }
+.duz-node.is-A .duz-piece { fill: url(#none) #2b2620; }
+.duz-node.is-A .duz-piece { fill: #2b2620; }
+.duz-node.is-B .duz-piece { fill: #f4ecd8; }
+.duz-piece-mark {
+  fill: none; stroke: rgba(240,225,190,.5); stroke-width: 1.1;
+  stroke-linecap: round; pointer-events: none;
+}
+.duz-node.is-B .duz-piece-mark { stroke: rgba(60,48,32,.4); }
+.duz-selected {
+  fill: none; stroke: var(--gold, #b08d57); stroke-width: 2.5;
+  stroke-dasharray: 4 3;
+  animation: spin-slow 8s linear infinite;
+  transform-origin: center;
+}
+
+/* پیام و راهنما */
+.duz-msg {
+  margin-top: .5rem; padding: .45rem .55rem;
+  font-size: .78rem; line-height: 1.6;
+  background: rgba(47,111,104,.1);
+  border-right: 3px solid var(--teal);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.duz-msg.is-err {
+  background: rgba(163,61,44,.1);
+  border-right-color: var(--rust);
+  color: var(--rust);
+}
+.duz-hint {
+  display: flex; align-items: center; gap: .35rem;
+  margin-top: .5rem; padding: .45rem .55rem;
+  font-size: .76rem; color: var(--ink-soft);
+  background: rgba(255,252,244,.7);
+  border: 1px dashed rgba(120,95,55,.25);
+  overflow-wrap: anywhere;
+}
+
+/* پایان */
+.duz-end {
+  margin-top: .7rem; padding: .9rem .8rem; text-align: center;
+  border: 1px solid rgba(120,95,55,.28);
+  background: rgba(255,252,244,.88);
+  overflow-wrap: anywhere;
+}
+.duz-end.is-win { border-color: var(--teal); box-shadow: inset 0 0 20px rgba(47,111,104,.12); }
+.duz-end.is-lose { border-color: rgba(163,61,44,.45); }
+.duz-end__seal {
+  width: 50px; height: 50px; margin: 0 auto .4rem;
+  display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--gold, #b08d57);
+  font-size: 1.35rem; color: var(--ink);
+}
+.duz-end__stats {
+  display: flex; flex-wrap: wrap; gap: .3rem .7rem;
+  justify-content: center; font-size: .72rem; color: var(--ink-soft);
+  margin-bottom: .6rem;
+}
+.duz-end .btn-row { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
+
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+@media (max-width: 380px) {
+  .duz-player__count { font-size: .92rem; }
+  .duz-player__meta { display: none; }
+}
+
+
+/* ============================================================
+   تفاوت را پیدا کن — دو تابلوی قاب‌دار
+   ============================================================ */
+.spot-hero {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1rem 1.2rem;
+  background-color: #e2d6bd;
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+}
+.spot-hero__frame {
+  position: absolute; inset: 8px;
+  border: 2px double rgba(120,95,55,.28);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.spot-hero__frame span {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: inherit; padding: 0 .4rem;
+  color: rgba(120,95,55,.4); font-size: 1rem;
+}
+.spot-hero__text { position: relative; z-index: 1; padding: .2rem .3rem; }
+.spot-hero__kicker { font-size: .72rem; letter-spacing: .16em; color: var(--ink-soft); }
+.spot-hero h1 { font-size: clamp(1.5rem, 6.4vw, 2.2rem); margin: .25rem 0 .45rem; }
+.spot-hero p { margin: 0; max-width: 34ch; line-height: 1.75; font-size: .88rem; color: var(--ink-soft); }
+
+.spot-scenes { display: grid; gap: .35rem; }
+.spot-scene {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .05rem;
+  padding: .45rem .55rem;
+  background: rgba(255,252,244,.7);
+  border: 1px solid rgba(120,95,55,.22);
+  border-radius: 2px;
+  text-align: start; cursor: default;
+  font-family: inherit;
+  overflow-wrap: anywhere;
+}
+.spot-scene.is-on {
+  background: rgba(176,141,87,.18);
+  border-color: var(--gold, #b08d57);
+  box-shadow: inset 0 0 0 1px rgba(176,141,87,.5);
+}
+.spot-scene.is-on .spot-scene__name { font-weight: 700; }
+.spot-scene__name { font-size: .8rem; color: var(--ink); }
+.spot-scene__period { font-size: .62rem; color: var(--ink-soft); }
+.spot-note { margin: .5rem 0 0; font-size: .72rem; color: var(--ink-soft); }
+
+/* قاب تابلو */
+.spot-frame {
+  padding: .5rem;
+  background-color: #3a2f22;
+  background-image: url('/assets/art/noir-leather.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 3px rgba(176,141,87,.45), var(--lift-2);
+  overflow-wrap: anywhere;
+}
+.spot-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
+.spot-panel { margin: 0; display: grid; gap: .2rem; }
+.spot-panel__art {
+  position: relative;
+  border: 2px solid #b08d57;
+  border-radius: 1px;
+  overflow: hidden;
+  background: #c8bfa8;
+  box-shadow: inset 0 0 12px rgba(60,45,25,.35);
+}
+.spot-svg { display: block; width: 100%; height: auto; }
+.spot-hit-layer { cursor: crosshair; }
+.spot-panel__cap {
+  font-size: .58rem; text-align: center; color: #d8c9a8;
+  letter-spacing: .06em;
+}
+.spot-ring { animation: spot-pop .35s var(--ease-paper); }
+.spot-hint { animation: pulse-glow 1.6s infinite; }
+
+.spot-caption {
+  display: flex; flex-wrap: wrap; gap: .2rem .5rem; align-items: baseline;
+  justify-content: center;
+  margin-top: .45rem;
+  color: #c9b994;
+  overflow-wrap: anywhere;
+}
+.spot-caption__title { font-size: .76rem; }
+.spot-caption__period { font-size: .62rem; opacity: .7; }
+
+/* پیشرفت */
+.spot-progress {
+  display: flex; gap: .25rem; justify-content: center;
+  margin-top: .6rem; flex-wrap: wrap;
+}
+.spot-pip {
+  width: 18px; height: 6px; border-radius: 999px;
+  background: rgba(120,95,55,.22);
+  transition: background .25s ease, transform .25s ease;
+}
+.spot-pip.is-found { background: var(--gold, #b08d57); transform: scaleY(1.4); }
+
+.spot-msg {
+  margin-top: .5rem; padding: .4rem .55rem;
+  font-size: .76rem; text-align: center;
+  background: rgba(47,111,104,.1);
+  border-right: 3px solid var(--teal);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.spot-msg.is-err {
+  background: rgba(163,61,44,.1);
+  border-right-color: var(--rust);
+  color: var(--rust);
+}
+.spot-actions {
+  display: flex; gap: .4rem; margin-top: .55rem; flex-wrap: wrap;
+}
+.spot-actions .btn { flex: 1; min-width: 92px; }
+
+/* پایان */
+.spot-end {
+  margin-top: .7rem; padding: .9rem .8rem; text-align: center;
+  border: 1px solid rgba(120,95,55,.28);
+  background: rgba(255,252,244,.9);
+  overflow-wrap: anywhere;
+}
+.spot-end__seal {
+  width: 48px; height: 48px; margin: 0 auto .35rem;
+  display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--gold, #b08d57);
+  color: var(--ink); font-size: 1.2rem;
+}
+.spot-end h2 { margin: 0 0 .4rem; font-size: 1.05rem; }
+.spot-end__stats {
+  display: flex; flex-wrap: wrap; gap: .3rem .7rem;
+  justify-content: center; font-size: .72rem; color: var(--ink-soft);
+  margin-bottom: .55rem;
+}
+.spot-end__score { font-weight: 700; color: var(--ink); }
+.spot-end .btn-row { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
+
+@keyframes spot-pop {
+  from { opacity: 0; transform: scale(.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 380px) {
+  .spot-pair { gap: .25rem; }
+  .spot-frame { padding: .35rem; }
+  .spot-caption__title { font-size: .68rem; }
+}
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

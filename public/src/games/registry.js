@@ -103,6 +103,22 @@ export const GAMES = [
     load: () => import('./warden-ui.js')
   },
   {
+    id: 'duz', title: 'دوز', meta: 'دو نفره · ۵–۱۵ دقیقه',
+    playersText: '۲ نفر', timeText: '۵–۱۵ دقیقه',
+    art: '/assets/art/notebook-page.jpg',
+    cats: ['duo', 'mind'], tags: ['تخته', 'چینی', 'کهن', 'استراتژی'],
+    solo: false, badge: 'تختهٔ کهن', multi: true,
+    load: () => import('./duz-ui.js')
+  },
+  {
+    id: 'spot', title: 'تفاوت را پیدا کن', meta: 'تکی · ۳–۱۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۳–۱۰ دقیقه',
+    art: '/assets/art/notebook-page.jpg',
+    cats: ['solo', 'mind'], tags: ['تابلو', 'اروپایی', 'دقت', 'تک‌نفره'],
+    solo: true, badge: 'تابلوی قدیمی', multi: false,
+    load: () => import('./spot-ui.js')
+  },
+  {
     id: 'dream', title: 'دروازه‌های رؤیا', meta: 'تکی · ۱۰–۲۰ دقیقه',
     playersText: '۱ نفر', timeText: '۱۰–۲۰ دقیقه',
     art: '/assets/art/notebook-page.jpg',

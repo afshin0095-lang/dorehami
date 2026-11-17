@@ -2598,6 +2598,175 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .siege-card__body { font-size: .7rem; }
 }
 
+
+/* ============================================================
+   جزیرهٔ گم‌شده — بقا، ساخت‌وساز، کارت ماجرا
+   ============================================================ */
+[class*="island-"] { overflow-wrap: anywhere; min-width: 0; }
+
+.island-hero {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1rem 1.2rem;
+  background-color: #2f3a38;
+  background-image: url('/assets/art/velvet-board.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  color: #e4e0cf;
+}
+.island-hero__frame {
+  position: absolute; inset: 8px;
+  border: 1px solid rgba(180,190,160,.26);
+  border-radius: 2px; pointer-events: none;
+}
+.island-hero__frame span {
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+  padding: 0 .4rem; color: rgba(180,190,160,.45); font-size: 1rem;
+}
+.island-hero__text { position: relative; z-index: 1; padding: .2rem .3rem; }
+.island-hero__kicker { font-size: .7rem; letter-spacing: .14em; color: #aab89a; }
+.island-hero h1 { font-size: clamp(1.35rem, 5.8vw, 1.9rem); margin: .25rem 0 .45rem; color: #eff1e0; overflow-wrap: anywhere; }
+.island-hero p { margin: 0; max-width: 36ch; line-height: 1.8; font-size: .85rem; color: #c2cbb4; overflow-wrap: anywhere; }
+
+.island-brief {
+  display: grid; gap: .18rem;
+  margin: .55rem 0 .1rem; padding: .55rem .65rem;
+  background: rgba(47,111,104,.08);
+  border-right: 3px solid var(--teal);
+}
+.island-brief strong { font-size: .8rem; }
+.island-brief__row { display: flex; justify-content: space-between; gap: .4rem; font-size: .7rem; }
+.island-brief__name { font-weight: 700; }
+.island-brief__eff { color: var(--ink-soft); font-size: .64rem; text-align: end; }
+
+/* منابع */
+.island-res {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+  gap: .3rem; margin-bottom: .4rem;
+}
+.island-res__item {
+  display: grid; justify-items: center; gap: .02rem;
+  padding: .35rem .2rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid rgba(120,95,55,.22);
+  border-top: 2px solid var(--res, #6b4a2f);
+  border-radius: 2px;
+}
+.island-res__glyph { font-size: .95rem; color: var(--res, #6b4a2f); line-height: 1; }
+.island-res__num { font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.island-res__name { font-size: .54rem; color: var(--ink-soft); }
+
+/* نوارها */
+.island-bars { display: grid; gap: .22rem; margin-bottom: .45rem; }
+.island-bar { display: grid; grid-template-columns: 3.2rem 1fr 2.6rem; align-items: center; gap: .35rem; }
+.island-bar__label { font-size: .6rem; color: var(--ink-soft); }
+.island-bar__track {
+  height: 6px; background: rgba(120,95,55,.16);
+  border-radius: 999px; overflow: hidden;
+}
+.island-bar__fill {
+  display: block; height: 100%; background: var(--bar, #7d9b6a);
+  transition: width .35s var(--ease-paper);
+}
+.island-bar__fill.is-inv { background: linear-gradient(90deg, #b08d57, #a33d2c); }
+.island-bar__num {
+  font-size: .58rem; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; text-align: end;
+}
+
+/* ساخته‌شده‌ها */
+.island-built { display: flex; flex-wrap: wrap; gap: .22rem; margin-bottom: .4rem; }
+.island-built__chip {
+  display: inline-flex; align-items: center; gap: .2rem;
+  padding: .12rem .4rem; font-size: .56rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid var(--built, #6b5a3a);
+  border-radius: 999px; color: var(--ink-soft);
+}
+
+/* کارت ماجرا */
+.island-card {
+  margin: .35rem 0 .45rem; padding: .6rem .55rem;
+  background-color: #e8e4d2;
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: 1px solid rgba(120,95,55,.35);
+  border-inline-start: 3px solid var(--teal);
+  border-radius: 3px;
+  box-shadow: var(--lift-1);
+}
+.island-card.is-peril { border-inline-start-color: var(--rust); }
+.island-card__kind {
+  display: inline-block; margin-bottom: .22rem;
+  font-size: .52rem; letter-spacing: .14em;
+  padding: .08rem .35rem; border-radius: 2px;
+  background: rgba(47,111,104,.16); color: #245b55;
+}
+.island-card.is-peril .island-card__kind { background: rgba(163,61,44,.16); color: var(--rust); }
+.island-card__title { margin: 0 0 .2rem; font-size: .88rem; }
+.island-card__body { margin: 0 0 .35rem; font-size: .72rem; line-height: 1.75; color: var(--ink-soft); }
+.island-card__effects { display: flex; flex-wrap: wrap; gap: .22rem; }
+.island-eff {
+  font-size: .56rem; padding: .06rem .34rem;
+  border-radius: 999px; background: rgba(47,111,104,.14); color: #245b55;
+}
+.island-eff.is-neg { background: rgba(163,61,44,.14); color: var(--rust); }
+
+/* کنش‌ها */
+.island-actions { display: grid; gap: .3rem; }
+.island-actions__title { margin: .15rem 0 .1rem; font-size: .7rem; letter-spacing: .1em; color: var(--ink-soft); }
+.island-action {
+  display: grid; gap: .04rem;
+  padding: .42rem .55rem;
+  background: rgba(255,252,244,.9);
+  border: 1px solid rgba(120,95,55,.25);
+  border-radius: 2px; text-align: start;
+  font-family: inherit; cursor: pointer;
+}
+.island-action:disabled { opacity: .4; cursor: not-allowed; }
+.island-action.is-build { border-style: dashed; }
+.island-action__name { font-size: .78rem; font-weight: 700; }
+.island-action__desc { font-size: .63rem; color: var(--ink-soft); }
+.island-action__diff { font-size: .55rem; color: var(--mustard-deep, #a87b1a); }
+
+/* ساخت */
+.island-builds { display: grid; gap: .3rem; margin-top: .4rem; }
+.island-build {
+  display: grid; gap: .05rem;
+  padding: .45rem .55rem;
+  background: rgba(255,252,244,.92);
+  border: 1px solid rgba(120,95,55,.28);
+  border-radius: 2px; text-align: start;
+  font-family: inherit; cursor: pointer;
+}
+.island-build.is-locked { opacity: .4; cursor: not-allowed; }
+.island-build.is-done { opacity: .6; border-color: var(--teal); }
+.island-build__name { font-size: .76rem; font-weight: 700; }
+.island-build__eff { font-size: .63rem; color: var(--ink-soft); }
+.island-build__cost { font-size: .56rem; color: var(--mustard-deep, #a87b1a); }
+
+/* گزارش */
+.island-log {
+  margin-top: .6rem; padding: .5rem .55rem;
+  background: rgba(47,58,56,.05);
+  border: 1px solid rgba(120,95,55,.18);
+  max-height: 160px; overflow-y: auto;
+}
+.island-log h3 { margin: 0 0 .28rem; font-size: .68rem; letter-spacing: .1em; color: var(--ink-soft); }
+.island-log__row {
+  display: flex; gap: .35rem; margin: 0 0 .18rem;
+  font-size: .62rem; line-height: 1.6; color: var(--ink-soft);
+}
+.island-log__round { flex: 0 0 auto; font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; }
+
+.island-endbuilt {
+  margin: .25rem auto .55rem; max-width: 32ch;
+  font-size: .68rem; color: var(--ink-soft);
+}
+
+@media (max-width: 380px) {
+  .island-res { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
+  .island-bar { grid-template-columns: 2.6rem 1fr 2.2rem; }
+}
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

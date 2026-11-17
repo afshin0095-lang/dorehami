@@ -477,3 +477,53 @@ test('شب‌های محاصره: کار بدون منابع غیرفعال اس
   }
   cleanup();
 });
+
+test('جزیرهٔ گم‌شده: از مقدمه تا کنش‌ها', async () => {
+  installDom();
+  const mod = await import('../public/src/games/island-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('جزیرهٔ گم‌شده'), 'عنوان نیامد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('level-card')).length, 3, 'سطوح');
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-brief__row')).length, 4, 'ساخت‌وسازها');
+
+  btnWith(host, 'پیاده شدن').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-res__item')).length, 4, 'منابع');
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-bar')).length, 3, 'نوارها');
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-action')).length, 5, 'کنش‌ها');
+  cleanup();
+});
+
+test('جزیرهٔ گم‌شده: کنش اجرا می‌شود و دور عوض می‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/island-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'پیاده شدن').click();
+
+  const before = walk(host).filter(n => n.classList?.contains('island-log__row')).length;
+  walk(host).filter(n => n.classList?.contains('island-action') && !n.disabled)[0].click();
+  assert.ok(walk(host).filter(n => n.classList?.contains('island-log__row')).length >= before, 'گزارش');
+
+  // دو کنش = دور بعد
+  const acts = walk(host).filter(n => n.classList?.contains('island-action') && !n.disabled);
+  if (acts.length) acts[0].click();
+  assert.ok(textOf(host).includes('دور'), 'سرصفحهٔ دور گم شد');
+  cleanup();
+});
+
+test('جزیرهٔ گم‌شده: پنل ساخت باز و بسته می‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/island-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'پیاده شدن').click();
+
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-build')).length, 0, 'پنل نباید باز باشد');
+  btnWith(host, 'ساخت‌وسازی').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-build')).length, 4, 'پنل باز نشد');
+  btnWith(host, 'ساخت‌وسازی').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('island-build')).length, 0, 'پنل بسته نشد');
+  cleanup();
+});

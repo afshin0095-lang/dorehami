@@ -103,6 +103,14 @@ export const GAMES = [
     load: () => import('./warden-ui.js')
   },
   {
+    id: 'island', title: 'جزیرهٔ گم‌شده', meta: 'تکی · ۲۰–۳۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۲۰–۳۰ دقیقه',
+    art: '/assets/art/velvet-board.jpg',
+    cats: ['solo', 'mind'], tags: ['بقا', 'ساخت‌وساز', 'اکتشاف', 'تک‌نفره'],
+    solo: true, badge: 'جزیره', multi: false,
+    load: () => import('./island-ui.js')
+  },
+  {
     id: 'siege', title: 'شب‌های محاصره', meta: 'تکی · ۱۵–۲۵ دقیقه',
     playersText: '۱ نفر', timeText: '۱۵–۲۵ دقیقه',
     art: '/assets/art/notebook-page.jpg',

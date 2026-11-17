@@ -27,6 +27,8 @@ const allJs = [
   'public/src/content-extra.js', 'public/src/content-more.js',
   'public/src/ui/kit.js', 'public/src/ui/screens.js', 'public/src/ui/settings.js',
   'public/src/net/sync.js',
+  'tests/core.test.js', 'tests/mafia.test.js', 'tests/hokm.test.js', 'tests/games.test.js',
+  'tests/net.test.js', 'tests/server.test.js', 'tests/ui-smoke.test.js', 'tests/ui-crawl.test.js',
   'public/src/games/registry.js', 'public/src/games/mafia-ui.js', 'public/src/games/hokm-ui.js',
   'public/src/games/esmfamil-ui.js', 'public/src/games/quiz-ui.js', 'public/src/games/riddle-ui.js',
   'public/src/games/iq-ui.js', 'public/src/games/snake-ui.js', 'public/src/games/codenames-ui.js',

@@ -363,6 +363,18 @@ export function AdminScreen({ onBack }) {
           }
         })
       ) }),
+      sheet({ title: 'نسخه و کش', iconName: 'refresh', children: h('div', { style: { display: 'grid', gap: '.5rem' } },
+        h('p', { style: { fontSize: '.8rem', margin: 0 } },
+          'اگر بازی را به‌روز کردی و تغییرها را ندیدی، مرورگر نسخه‌ی قدیمی را از کش سرو می‌کند. این دکمه کش و سرویس‌ورکر را پاک می‌کند — آمار و تنظیمات دست‌نخورده می‌مانند.'),
+        btn('بازنشانی نسخه و کش', {
+          variant: 'btn--primary btn--block',
+          onClick: () => {
+            log('بازنشانی نسخه و کش');
+            toast('کش پاک شد — صفحه تازه می‌شود', 'ok');
+            document.dispatchEvent(new CustomEvent('dy:hard-reload'));
+          }
+        })
+      ) }),
       callout('همه‌ی داده‌ها فقط روی همین دستگاه هستند. پشتیبان را جای امن نگه دار.', 'lock')
     );
 

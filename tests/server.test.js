@@ -70,11 +70,17 @@ test('هدرهای امنیتی روی HTML هست', async () => {
   assert.equal(r.headers.get('cache-control'), 'no-cache');
 });
 
-test('دارایی‌ها کش طولانی دارند و HTML نه', async () => {
-  const asset = await get('/styles.css');
-  assert.match(asset.headers.get('cache-control') || '', /max-age=\d+/);
+test('تصویرها کش می‌شوند، HTML و کد نه', async () => {
+  // تصویرها محتوای ثابت‌اند و می‌توانند کش شوند
+  const img = await get('/assets/art/paper-cream.jpg');
+  assert.match(img.headers.get('cache-control') || '', /max-age=\d+/);
+
+  // کد باید تازه‌سازی شود، وگرنه کاربر نسخه‌ی قدیمی می‌بیند
+  const css = await get('/styles.css');
+  assert.match(css.headers.get('cache-control') || '', /no-cache|no-store/);
+
   const html = await get('/');
-  assert.equal(html.headers.get('cache-control'), 'no-cache');
+  assert.match(html.headers.get('cache-control') || '', /no-cache/);
 });
 
 test('health نسخه را برمی‌گرداند', async () => {
@@ -93,4 +99,24 @@ test('مسیر بدون پسوند به index برمی‌گردد (SPA)', async 
   const r = await get('/games/mafia');
   assert.equal(r.status, 200);
   assert.match(await r.text(), /<div id="app"/);
+});
+
+test('sw.js هرگز کش مرورگر نمی‌شود', async () => {
+  const r = await get('/sw.js');
+  assert.equal(r.status, 200);
+  const cc = r.headers.get('cache-control') || '';
+  assert.match(cc, /no-cache|no-store/, `sw.js نباید کش شود، ولی: ${cc}`);
+});
+
+test('کد و استایل تازه‌سازی اجباری دارند، تصویر کش بلندمدت', async () => {
+  for (const p of ['/src/main.js', '/src/games/registry.js', '/styles.css']) {
+    const r = await get(p);
+    const cc = r.headers.get('cache-control') || '';
+    assert.match(cc, /no-cache|no-store/, `${p} باید no-cache باشد، ولی: ${cc}`);
+  }
+  // تصویرها می‌توانند کش شوند
+  const img = await get('/assets/art/paper-cream.jpg');
+  assert.equal(img.status, 200);
+  const icc = img.headers.get('cache-control') || '';
+  assert.match(icc, /max-age=/, `تصویر باید max-age داشته باشد، ولی: ${icc}`);
 });

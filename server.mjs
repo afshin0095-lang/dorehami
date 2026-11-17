@@ -381,9 +381,26 @@ const server = createServer(async (req, res) => {
 
     const ext = extname(full).toLowerCase();
     const isHtml = ext === '.html';
+    /**
+     * sw.js هرگز نباید کش مرورگر شود: اگر مرورگر نسخهٔ قدیمی sw.js را
+     * نگه دارد، نسخهٔ تازه هرگز نصب نمی‌شود و همهٔ اصلاح‌ها پشت کش
+     * cache-first فایل‌های /src/ پنهان می‌مانند — کاربر «هیچ تغییری»
+     * نمی‌بیند. کد و استایل هم revalidate می‌شوند تا تغییر فوری دیده شود.
+     */
+    const isServiceWorker = pathname === '/sw.js';
+    const isCode = isServiceWorker
+      || ext === '.js' || ext === '.mjs' || ext === '.css'
+      || ext === '.webmanifest';
+    const cacheControl = isServiceWorker
+      ? 'no-cache, no-store, must-revalidate'
+      : isHtml
+        ? 'no-cache'
+        : isCode
+          ? 'no-cache'
+          : 'public, max-age=300';
     res.writeHead(200, {
       'content-type': MIME[ext] || 'application/octet-stream',
-      'cache-control': isHtml ? 'no-cache' : 'public, max-age=3600',
+      'cache-control': cacheControl,
       'x-content-type-options': 'nosniff',
       'referrer-policy': 'no-referrer',
       'x-frame-options': 'SAMEORIGIN',

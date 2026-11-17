@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v7';
+const CACHE = 'dorehami-shell-v8';
 
 const SHELL = [
   '/',
@@ -71,6 +71,10 @@ const SHELL = [
   '/assets/fonts/Vazirmatn-Bold.woff2'
 ];
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
@@ -111,16 +115,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  /**
+   * stale-while-revalidate: نسخهٔ کش‌شده فوراً می‌آید و *همان لحظه*
+   * نسخهٔ تازه در پس‌زمینه گرفته و جایگزین می‌شود. با cache-first خالص،
+   * یک نسخهٔ قدیمی می‌توانست تا ابد بماند و کاربر هیچ تغییری نبیند.
+   */
   event.respondWith(
     caches.match(req).then(hit => {
-      if (hit) return hit;
-      return fetch(req).then(res => {
+      const network = fetch(req).then(res => {
         if (res.ok && (url.pathname.startsWith('/src/') || url.pathname.startsWith('/assets/'))) {
           const copy = res.clone();
-          caches.open(CACHE).then(c => c.put(req, copy));
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => caches.match('/index.html').then(r => r || Response.error()));
+      }).catch(() => null);
+
+      if (hit) {
+        // تازه‌سازی در پس‌زمینه؛ پاسخ فوری از کش
+        event.waitUntil ? event.waitUntil(network) : void network;
+        return hit;
+      }
+      return network.then(res => res || caches.match('/index.html')).then(r => r || Response.error());
     })
   );
 });

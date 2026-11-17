@@ -142,6 +142,47 @@ render();
 // سرویس‌ورکر برای اجرای آفلاین (در صورت پشتیبانی)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => { /* آفلاین غیرفعال، بازی کار می‌کند */ });
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      // اگر نسخهٔ تازه‌ای پیدا شد، آماده‌اش کن و بی‌درنگ فعال کن
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener('statechange', () => {
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            sw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+      // نسخهٔ تازه فعال شد → یک بار تازه‌سازی، تا کد قدیمی نماند
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+      // هر بار بازگشت به برنامه، کش را بررسی کن
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reg.update().catch(() => {});
+      });
+    }).catch(() => { /* آفلاین غیرفعال، بازی کار می‌کند */ });
   });
 }
+
+/**
+ * «بازنشانی نسخه» — برای وقتی که مرورگر نسخهٔ قدیمی را نگه داشته است.
+ * با dy:hard-reload از پنل مدیریت یا هر جای دیگر صدا زده می‌شود.
+ */
+export async function hardReload() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if (globalThis.caches?.keys) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch { /* بی‌اهمیت */ }
+  location.reload();
+}
+document.addEventListener('dy:hard-reload', () => { void hardReload(); });

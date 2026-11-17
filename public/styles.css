@@ -1725,6 +1725,153 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .dream-chain .dream-card { flex: 0 0 52px; width: 52px; }
 }
 
+
+/* ============================================================
+   میز شبکه‌ای — صندلی‌ها، حکم، دست من
+   ============================================================ */
+.tbl-status {
+  display: flex; align-items: stretch; gap: .4rem; margin-bottom: .6rem;
+}
+.tbl-team {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: .05rem;
+  padding: .4rem .3rem;
+  background: rgba(255,252,244,.75);
+  border: 1px solid rgba(120,95,55,.22);
+  border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.tbl-team__name { font-size: .62rem; color: var(--ink-soft); }
+.tbl-team__score {
+  font-family: 'Pirata One', serif; font-size: 1.35rem; line-height: 1;
+  color: var(--ink);
+}
+.tbl-team__pts { font-size: .56rem; color: var(--ink-soft); }
+.tbl-trump {
+  flex: 0 0 auto; min-width: 62px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: .3rem .45rem;
+  background: rgba(74,31,26,.9);
+  color: #f0e2c4;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(240,220,180,.2);
+}
+.tbl-trump__glyph { font-size: 1.3rem; line-height: 1; }
+.tbl-trump__glyph.is-red { color: #e08a72; }
+.tbl-trump__label { font-size: .58rem; opacity: .8; }
+
+/* میز دایره‌ای */
+.tbl-board {
+  position: relative;
+  padding: .6rem;
+  background-color: #d8c9a8;
+  background-image: url('/assets/art/noir-leather.jpg');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply;
+  overflow: hidden;
+}
+.tbl-ring {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: .35rem;
+  min-height: 240px;
+  align-items: center; justify-items: center;
+}
+.tbl-seat {
+  display: flex; flex-direction: column; align-items: center; gap: .12rem;
+  padding: .3rem .35rem;
+  border-radius: 3px;
+  background: rgba(20,14,11,.55);
+  border: 1px solid rgba(200,170,120,.18);
+  color: #e2d3b8;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  transition: box-shadow .2s ease, background .2s ease;
+}
+.tbl-seat--top    { grid-column: 2; grid-row: 1; }
+.tbl-seat--left   { grid-column: 1; grid-row: 2; }
+.tbl-seat--right  { grid-column: 3; grid-row: 2; }
+.tbl-seat--bottom { grid-column: 2; grid-row: 3; }
+.tbl-seat.is-turn {
+  background: rgba(176,141,87,.35);
+  box-shadow: 0 0 0 2px var(--gold, #b08d57), 0 0 14px rgba(176,141,87,.4);
+}
+.tbl-seat.is-mine { border-color: rgba(90,190,170,.55); }
+.tbl-seat.is-partner .tbl-seat__name::after { content: ' · شریک'; opacity: .6; font-size: .85em; }
+.tbl-seat__avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(240,220,180,.2);
+  font-size: .68rem;
+}
+.tbl-seat__name { font-size: .62rem; text-align: center; line-height: 1.3; }
+.tbl-seat__cards { display: block; }
+.tbl-seat__cards .pcard { width: 34px; }
+.tbl-seat__empty { display: block; height: 12px; }
+.tbl-seat__turn {
+  font-size: .52rem; padding: 0 .3rem; border-radius: 999px;
+  background: var(--gold, #b08d57); color: #241a10;
+}
+.tbl-center {
+  grid-column: 2; grid-row: 2;
+  display: grid; place-items: center;
+  width: 54px; height: 54px; border-radius: 50%;
+  border: 1px dashed rgba(240,220,180,.3);
+  color: rgba(240,220,180,.45);
+  font-size: 1.1rem;
+}
+
+.tbl-notice {
+  margin: .5rem 0 0;
+  padding: .4rem .55rem;
+  font-size: .74rem;
+  background: rgba(47,111,104,.1);
+  border-right: 3px solid var(--teal);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.tbl-last {
+  display: flex; align-items: center; gap: .35rem;
+  margin-top: .45rem; padding: .4rem .5rem;
+  font-size: .72rem; color: var(--ink-soft);
+  background: rgba(255,252,244,.7);
+  border: 1px dashed rgba(120,95,55,.25);
+  overflow-wrap: anywhere;
+}
+
+/* دست من */
+.tbl-hand {
+  display: flex; gap: .3rem; flex-wrap: wrap;
+  justify-content: center;
+  padding: .3rem 0;
+}
+.tbl-hand__card {
+  width: 46px;
+  cursor: default;
+  transition: transform .16s var(--ease-paper), box-shadow .16s ease, filter .16s ease;
+}
+.tbl-hand__card.is-playable {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--teal), var(--lift-1);
+}
+.tbl-hand__card.is-playable:hover,
+.tbl-hand__card.is-playable:focus-visible {
+  transform: translateY(-8px);
+  box-shadow: 0 0 0 2px var(--teal), var(--lift-2);
+}
+.tbl-hand__card.is-blocked { filter: grayscale(.45) brightness(.94); opacity: .72; }
+
+@media (max-width: 400px) {
+  .tbl-ring { min-height: 210px; gap: .25rem; }
+  .tbl-seat__cards .pcard { width: 28px; }
+  .tbl-seat__name { font-size: .56rem; }
+  .tbl-hand__card { width: 40px; }
+  .tbl-center { width: 42px; height: 42px; font-size: .9rem; }
+}
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

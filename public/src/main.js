@@ -7,7 +7,7 @@ import { HomeScreen, GamesScreen, LibraryScreen, ProfileScreen } from './ui/scre
 import { navbar } from './ui/kit.js';
 import { applyPrefs, getPrefs } from './ui/settings.js';
 import { AdminScreen } from './ui/admin.js';
-import { LobbyScreen } from './net/table.js';
+import { TableScreen } from './net/table-screen.js';
 import { byId, GAMES } from './games/registry.js';
 
 const app = document.getElementById('app');
@@ -103,14 +103,14 @@ function render() {
 /* ---------------- لابی چندگوشی: تمام‌صفحه، مستقل از روتر ---------------- */
 let lobbyDispose = null;
 document.addEventListener('dy:lobby', (ev) => {
-  const { gameId, title, maxSeats } = ev.detail || {};
+  const { gameId, title, maxSeats, minSeats } = ev.detail || {};
   clearScreen();
-  const lobby = LobbyScreen({
-    gameId, title, maxSeats,
-    onBack: () => { lobbyDispose = null; navigate('games'); }
+  const screen = TableScreen({
+    gameId, title, maxSeats, minSeats,
+    onBack: () => { try { screen.dispose?.(); } catch { /* */ } lobbyDispose = null; navigate('games'); }
   });
-  lobbyDispose = lobby.dispose;
-  mount(app, lobby.node);
+  lobbyDispose = () => screen.dispose?.();
+  mount(app, screen.node);
   document.querySelector('.navbar')?.remove();
 });
 window.addEventListener('pagehide', () => { try { lobbyDispose?.(); } catch { /* */ } });

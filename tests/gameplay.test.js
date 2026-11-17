@@ -138,8 +138,15 @@ test('دروازه‌های رؤیا: دور انداختن هم کار می‌�
   assert.ok(discard, 'دکمه‌ی دور انداختن نیست');
   discard.click();
 
-  const after = byClass(host, 'dream-hand')[0].children.length;
-  assert.equal(after, before, 'دست باید پر بماند');
+  // اگر کابوس وسط پر کردن دست بیاید، دست ناقص می‌ماند و پنجره‌ی کابوس باز می‌شود —
+  // این رفتار درست موتور است، پس هر دو حالت پذیرفته می‌شود.
+  const nightmareOpen = byClass(host, 'dream-nightmare').length > 0;
+  if (nightmareOpen) {
+    assert.ok(byClass(host, 'dream-opt').length > 0, 'کابوس باید گزینه داشته باشد');
+  } else {
+    const after = byClass(host, 'dream-hand')[0].children.length;
+    assert.equal(after, before, 'دست باید پر بماند');
+  }
   // زنجیره نباید عوض شده باشد
   const chain = byClass(host, 'dream-chain')[0];
   assert.ok(!chain.children.some(c => c.classList.contains('dream-card')), 'دور انداختن نباید کارت روی میز بگذارد');

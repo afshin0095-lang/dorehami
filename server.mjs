@@ -194,11 +194,17 @@ function broadcast(room, obj, except = null) {
   }
 }
 
+/** انواع پیام مجاز روی رله — با net/sync.js هم‌خوان */
+export const RELAY_TYPES = new Set([
+  'hello', 'welcome', 'state', 'action', 'ack', 'ping', 'pong', 'bye', 'error',
+  'presence', 'seat', 'start', 'move', 'sync'
+]);
+
 /** بررسی قالب پیام — همان قرارداد کلاینت */
 function validateRelayMessage(raw) {
   if (!raw || typeof raw !== 'object') return { ok: false };
   const { v, type, roomId, from, payload } = raw;
-  const allowedTypes = new Set(['hello', 'welcome', 'state', 'action', 'ack', 'ping', 'pong', 'bye', 'error', 'presence']);
+  const allowedTypes = RELAY_TYPES;
   if (v !== 1) return { ok: false };
   if (typeof type !== 'string' || !allowedTypes.has(type)) return { ok: false };
   if (typeof roomId !== 'string' || !/^[A-Z0-9]{4,8}$/.test(roomId)) return { ok: false };

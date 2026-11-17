@@ -14,7 +14,8 @@ export const PROTOCOL_VERSION = 1;
 
 /* ------------------------------ اعتبارسنجی پیام ------------------------------ */
 const ALLOWED_TYPES = new Set([
-  'hello', 'welcome', 'state', 'action', 'ack', 'ping', 'pong', 'bye', 'error'
+  'hello', 'welcome', 'state', 'action', 'ack', 'ping', 'pong', 'bye', 'error',
+  'presence', 'seat', 'start', 'move', 'sync'
 ]);
 
 /**

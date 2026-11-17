@@ -20,7 +20,14 @@ export function visibleGames() {
 
 /** باز کردن لابی چندگوشی یک بازی، تمام‌صفحه */
 export function openLobby(game, navigate) {
-  document.dispatchEvent(new CustomEvent('dy:lobby', { detail: { gameId: game.id, title: game.title, maxSeats: game.id === 'mafia' ? 10 : 4 } }));
+  document.dispatchEvent(new CustomEvent('dy:lobby', {
+    detail: {
+      gameId: game.id,
+      title: game.title,
+      maxSeats: game.id === 'mafia' ? 10 : 4,
+      minSeats: 2
+    }
+  }));
   void navigate;
 }
 

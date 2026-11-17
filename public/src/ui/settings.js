@@ -5,10 +5,17 @@
 import { h, store, soundPrefs, playSound, toast } from '../core.js';
 import { overlay, closeOverlay, icon, btn } from './kit.js';
 
-const DEFAULTS = { sound: true, reduceMotion: false, largeText: false };
+const DEFAULTS = { sound: true, reduceMotion: false, largeText: false, highContrast: false, hiddenGames: [] };
 
 export function getPrefs() {
   return { ...DEFAULTS, ...store.get('settings', {}) };
+}
+
+/** نوشتن تنظیمات — تنها راه تغییر مجاز (پنل‌ها از این استفاده می‌کنند) */
+export function setPrefs(patch = {}) {
+  const next = { ...getPrefs(), ...patch };
+  store.set('settings', next);
+  return next;
 }
 
 export function applyPrefs() {
@@ -16,6 +23,7 @@ export function applyPrefs() {
   soundPrefs.enabled = p.sound;
   document.body.classList.toggle('reduce-motion', p.reduceMotion);
   document.body.classList.toggle('text-lg', p.largeText);
+  document.body.classList.toggle('high-contrast', Boolean(p.highContrast));
 }
 
 export function openSettings() {

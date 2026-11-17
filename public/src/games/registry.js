@@ -92,7 +92,29 @@ export const GAMES = [
     cats: ['duo', 'words'], tags: ['داستان', 'خلاقیت', 'نوبتی'],
     solo: false, badge: 'خلاقیت', multi: true,
     load: () => import('./story-ui.js')
+  },
+  {
+    id: 'warden', title: 'پرونده‌ی وِردِن', meta: 'تکی · ۲۵–۴۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۲۵–۴۰ دقیقه',
+    art: '/assets/art/noir-leather.jpg',
+    cats: ['solo', 'cards', 'mind'], tags: ['داستانی', 'ترسناک', 'کارتی', 'معمایی'],
+    solo: true, badge: 'پرونده‌ی محقق', multi: false,
+    load: () => import('./warden-ui.js')
+  },
+  {
+    id: 'logic', title: 'مهره‌چین', meta: 'تکی · ۵–۱۵ دقیقه',
+    playersText: '۱ نفر', timeText: '۵–۱۵ دقیقه',
+    art: '/assets/art/notebook-page.jpg',
+    cats: ['solo', 'mind'], tags: ['منطق', 'معما', 'استدلال'],
+    solo: true, badge: 'معمای منطقی', multi: false,
+    load: () => import('./logic-ui.js')
   }
 ];
 
 export const byId = id => GAMES.find(g => g.id === id);
+
+/** فهرست با احترام به بازی‌های پنهان‌شده در پنل مدیریت */
+export function visibleGames(hiddenIds = []) {
+  const hidden = new Set(hiddenIds);
+  return GAMES.filter(g => !hidden.has(g.id));
+}

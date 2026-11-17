@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v2';
+const CACHE = 'dorehami-shell-v5';
 
 const SHELL = [
   '/',
@@ -12,6 +12,8 @@ const SHELL = [
   '/manifest.webmanifest',
   '/src/main.js',
   '/src/net/sync.js',
+  '/src/net/ws.js',
+  '/src/net/table.js',
   '/src/core.js',
   '/src/content.js',
   '/src/content-extra.js',
@@ -19,6 +21,8 @@ const SHELL = [
   '/src/ui/kit.js',
   '/src/ui/screens.js',
   '/src/ui/settings.js',
+  '/src/ui/admin.js',
+  '/src/ui/cardkit.js',
   '/src/games/registry.js',
   '/src/games/mafia-ui.js',
   '/src/games/hokm-ui.js',
@@ -30,6 +34,8 @@ const SHELL = [
   '/src/games/codenames-ui.js',
   '/src/games/lowball-ui.js',
   '/src/games/story-ui.js',
+  '/src/games/warden-ui.js',
+  '/src/games/logic-ui.js',
   '/src/engines/mafia.js',
   '/src/engines/hokm.js',
   '/src/engines/snake.js',
@@ -37,6 +43,8 @@ const SHELL = [
   '/src/engines/quiz.js',
   '/src/engines/codenames.js',
   '/src/engines/lowball.js',
+  '/src/engines/v10.js',
+  '/src/engines/logic.js',
   '/offline.html',
   '/assets/icon-192.png',
   '/assets/icon-512.png',
@@ -46,6 +54,12 @@ const SHELL = [
   '/assets/art/noir-leather.jpg',
   '/assets/art/persian-gold.jpg',
   '/assets/art/velvet-board.jpg',
+  '/assets/art/cards/king-red.jpg',
+  '/assets/art/cards/queen-red.jpg',
+  '/assets/art/cards/jack-red.jpg',
+  '/assets/art/cards/king-black.jpg',
+  '/assets/art/cards/queen-black.jpg',
+  '/assets/art/cards/jack-black.jpg',
   '/assets/art/mafia-role.jpg',
   '/assets/art/citizen-role.jpg',
   '/assets/art/doctor-role.jpg',

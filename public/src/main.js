@@ -6,6 +6,8 @@ import { h, mount, playSound, store, toast } from './core.js';
 import { HomeScreen, GamesScreen, LibraryScreen, ProfileScreen } from './ui/screens.js';
 import { navbar } from './ui/kit.js';
 import { applyPrefs, getPrefs } from './ui/settings.js';
+import { AdminScreen } from './ui/admin.js';
+import { LobbyScreen } from './net/table.js';
 import { byId, GAMES } from './games/registry.js';
 
 const app = document.getElementById('app');
@@ -43,10 +45,18 @@ async function openGame(id) {
   mount(app, host);
   document.querySelector('.navbar')?.remove();
 
-  currentGameCleanup = mod.mountGame(host, {
+  // هر درخواست بازگشت که صفحه‌ی بازی جوابش را ندهد، اینجا گرفته می‌شود
+  const onGlobalBack = () => { destroyGame(); navigate('games'); };
+  document.addEventListener('dy:back', onGlobalBack);
+
+  const inner = mod.mountGame(host, {
     game,
     onExit: () => { destroyGame(); navigate('home'); }
   });
+  currentGameCleanup = () => {
+    document.removeEventListener('dy:back', onGlobalBack);
+    try { inner?.(); } catch (e) { console.warn(e); }
+  };
 }
 
 function destroyGame() {
@@ -79,12 +89,36 @@ function render() {
       mount(app, ProfileScreen({ navigate, openGame }));
       document.body.append(renderNav('profile'));
       break;
+    case 'admin':
+      // پنل مدیریت: بدون نوار پایین، با دکمه‌ی بازگشت اختصاصی
+      mount(app, AdminScreen({ onBack: () => navigate('profile') }));
+      break;
     default:
       mount(app, HomeScreen({ navigate, openGame }));
       document.body.append(renderNav('home'));
   }
   document.title = 'دورهمی‌یار — جعبه‌بازی کاغذی';
 }
+
+/* ---------------- لابی چندگوشی: تمام‌صفحه، مستقل از روتر ---------------- */
+let lobbyDispose = null;
+document.addEventListener('dy:lobby', (ev) => {
+  const { gameId, title, maxSeats } = ev.detail || {};
+  clearScreen();
+  const lobby = LobbyScreen({
+    gameId, title, maxSeats,
+    onBack: () => { lobbyDispose = null; navigate('games'); }
+  });
+  lobbyDispose = lobby.dispose;
+  mount(app, lobby.node);
+  document.querySelector('.navbar')?.remove();
+});
+window.addEventListener('pagehide', () => { try { lobbyDispose?.(); } catch { /* */ } });
+
+/* ---------------- دکمه‌های سیستمی (اندروید/iOS) ---------------- */
+window.addEventListener('popstate', () => {
+  if (document.querySelector('.game-shell')) { destroyGame(); navigate('games'); }
+});
 
 /* ---------------- چرخه‌ی عمر: پنهان‌سازی کارت خصوصی ---------------- */
 function onHide() {

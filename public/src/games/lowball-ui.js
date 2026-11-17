@@ -7,6 +7,7 @@ import { h, mount, playSound, toast, stats, toFa } from '../core.js';
 import { createLowball, pick, nextRound } from '../engines/lowball.js';
 import { SUIT_GLYPH, SUIT_IS_RED, rankLabel, cardPoints } from '../engines/hokm.js';
 import { gameHeader, sheet, btn, helpBlock, callout } from '../ui/kit.js';
+import { playingCard } from '../ui/cardkit.js';
 
 const HELP = {
   steps: [
@@ -144,24 +145,7 @@ export function mountGame(root, { onExit }) {
   }
 
   function cardMini(card, { full = false } = {}) {
-    const red = SUIT_IS_RED[card.suit];
-    return h('div', {
-      class: 'playing-card',
-      style: { width: full ? '100%' : '64px', transform: 'none' }
-    },
-      h('div', { class: 'playing-card__face', style: { borderColor: red ? '#c9a8a0' : '#cbb894' } },
-        h('div', { class: 'playing-card__corner playing-card__corner--tl', style: { color: red ? '#a33d2c' : '#241d1a' } },
-          h('span', {}, rankLabel(card.rank)), h('span', { class: 'playing-card__suit' }, SUIT_GLYPH[card.suit])),
-        h('div', { class: 'playing-card__corner playing-card__corner--br', style: { color: red ? '#a33d2c' : '#241d1a' } },
-          h('span', {}, rankLabel(card.rank)), h('span', { class: 'playing-card__suit' }, SUIT_GLYPH[card.suit])),
-        h('div', {
-          style: {
-            position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-            fontSize: full ? '2rem' : '1.2rem', color: red ? '#a33d2c' : '#241d1a'
-          }
-        }, SUIT_GLYPH[card.suit])
-      )
-    );
+    return playingCard({ suit: card.suit, rank: card.rank }, { compact: !full });
   }
 
   function drawDone() {

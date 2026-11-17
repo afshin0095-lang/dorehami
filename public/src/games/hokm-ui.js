@@ -5,6 +5,7 @@
 import { h, mount, playSound, toast, stats, toFa } from '../core.js';
 import { createHokmGame, playCard, canPlay, botCard, trickWinner, teamOf, SUIT_LABEL, SUIT_GLYPH, SUIT_IS_RED, rankLabel, cardPoints, strengthInTrump } from '../engines/hokm.js';
 import { gameHeader, sheet, btn, icon, helpBlock, callout } from '../ui/kit.js';
+import { playingCard } from '../ui/cardkit.js';
 
 const HELP = {
   steps: [
@@ -152,43 +153,9 @@ export function mountGame(root, { onExit }) {
     );
   }
 
-  /** کارت ورق با آرت گوتیک: کارت‌های تصویری و آس، تصویر می‌گیرند */
+  /** ورق بازی مشترک — همان ورق واقعی با نقاشی گوتیک، برای همه‌ی بازی‌های کارتی */
   function cardFace(card, { compact = false } = {}) {
-    const red = SUIT_IS_RED[card.suit];
-    const artFor = { spades: 14, hearts: 13, clubs: 11, diamonds: 12 }[card.suit];
-    const hasArt = !compact && [11, 12, 13, 14].includes(card.rank);
-    const label = rankLabel(card.rank);
-
-    return h('div', { class: 'playing-card', style: { width: compact ? '62px' : '100%' } },
-      h('div', { class: 'playing-card__face', style: { borderColor: red ? '#c9a8a0' : '#cbb894' } },
-        h('div', { class: 'playing-card__corner playing-card__corner--tl', style: { color: red ? '#a33d2c' : '#241d1a' } },
-          h('span', {}, label), h('span', { class: 'playing-card__suit' }, SUIT_GLYPH[card.suit])),
-        h('div', { class: 'playing-card__corner playing-card__corner--br', style: { color: red ? '#a33d2c' : '#241d1a' } },
-          h('span', {}, label), h('span', { class: 'playing-card__suit' }, SUIT_GLYPH[card.suit])),
-        hasArt
-          ? h('div', { style: { position: 'absolute', inset: '14px 12px', overflow: 'hidden', border: '1px solid rgba(36,29,26,.2)' } },
-              h('div', {
-                style: {
-                  width: '100%', height: '100%',
-                  backgroundImage: 'url(/assets/art/persian-gold.jpg)',
-                  backgroundSize: 'cover', backgroundPosition: 'center',
-                  filter: `hue-rotate(${artFor * 17}deg) saturate(.72) contrast(1.05)`,
-                  mixBlendMode: 'multiply'
-                }
-              }),
-              h('div', {
-                style: {
-                  position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-                  fontSize: compact ? '1.1rem' : '1.9rem',
-                  color: red ? '#7c2a1d' : '#241d1a',
-                  textShadow: '0 1px 0 rgba(255,255,255,.5)'
-                }
-              }, label)
-            )
-          : h('div', { style: { position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: compact ? '1.3rem' : '2.2rem', color: red ? '#a33d2c' : '#241d1a' } },
-              SUIT_GLYPH[card.suit])
-      )
-    );
+    return playingCard({ suit: card.suit, rank: card.rank }, { compact });
   }
 
   function humanPlay(card) {

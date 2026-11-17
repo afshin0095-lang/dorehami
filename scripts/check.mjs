@@ -26,7 +26,8 @@ const allJs = [
   'public/src/main.js', 'public/src/core.js', 'public/src/content.js',
   'public/src/content-extra.js', 'public/src/content-more.js',
   'public/src/ui/kit.js', 'public/src/ui/screens.js', 'public/src/ui/settings.js',
-  'public/src/net/sync.js',
+  'public/src/ui/admin.js', 'public/src/ui/cardkit.js',
+  'public/src/net/sync.js', 'public/src/net/ws.js', 'public/src/net/table.js',
   'tests/core.test.js', 'tests/mafia.test.js', 'tests/hokm.test.js', 'tests/games.test.js',
   'tests/net.test.js', 'tests/server.test.js', 'tests/ui-smoke.test.js', 'tests/ui-crawl.test.js',
   'public/src/games/registry.js', 'public/src/games/mafia-ui.js', 'public/src/games/hokm-ui.js',
@@ -35,7 +36,7 @@ const allJs = [
   'public/src/games/lowball-ui.js', 'public/src/games/story-ui.js',
   'public/src/engines/mafia.js', 'public/src/engines/hokm.js', 'public/src/engines/snake.js',
   'public/src/engines/esmfamil.js', 'public/src/engines/quiz.js', 'public/src/engines/codenames.js',
-  'public/src/engines/lowball.js'
+  'public/src/engines/lowball.js', 'public/src/engines/v10.js', 'public/src/engines/logic.js'
 ];
 
 for (const f of allJs) {

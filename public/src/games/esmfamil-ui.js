@@ -129,6 +129,15 @@ export function mountGame(root, { onExit }) {
 
     const answers = r.answers[player.id] || {};
     const inputs = {};
+    // وضعیت هشدار: فهرست دسته‌هایی که با حرف اشتباه شروع شده‌اند
+    const wrongCats = new Set(
+      r.categories
+        .filter(cat => {
+          const v = (answers[cat.id] || '').trim();
+          return v && firstLetter(v) !== r.letter;
+        })
+        .map(cat => cat.id)
+    );
 
     return h('div', {},
       gameHeader({ title: `دور ${toFa(state.roundNo)} · حرف «${r.letter}»`, onBack: () => { clearInterval(timerId); onExit(); } }),
@@ -156,19 +165,30 @@ export function mountGame(root, { onExit }) {
         h('div', { style: { display: 'grid', gap: '.55rem' } },
           ...r.categories.map(cat => {
             const hint = ESF_HINTS[cat.id]?.[normalizeFa(r.letter, { afToAlef: true })[0]] || [];
+            const startWrong = wrongCats.has(cat.id);
             const input = h('input', {
-              type: 'text', value: answers[cat.id] || '', placeholder: cat.label, maxlength: '24',
+              type: 'text', value: answers[cat.id] || '', placeholder: cat.label, maxlength: '30',
+              class: `esf-input ${startWrong ? 'is-wrong' : ''}`.trim(),
               style: {
                 width: '100%', padding: '.6rem .7rem', font: 'inherit', fontSize: '.95rem',
-                border: 'none', borderBottom: '2px solid rgba(90,70,50,.35)',
-                background: 'transparent', outline: 'none'
+                border: 'none', borderBottom: `2px solid ${startWrong ? 'var(--rust)' : 'rgba(90,70,50,.35)'}`,
+                background: 'transparent', outline: 'none',
+                color: startWrong ? 'var(--rust)' : 'var(--ink)'
               },
               'aria-label': cat.label,
+              'aria-invalid': startWrong ? 'true' : 'false',
               oninput: (e) => {
-                state.round = { ...state.round, answers: { ...state.round.answers, [player.id]: { ...(state.round.answers[player.id] || {}), [cat.id]: e.target.value } } };
-                // راهنمای زنده: اولین حرف درست است؟
-                const ok = e.target.value.trim() && firstLetter(e.target.value) === r.letter;
-                e.target.style.borderBottomColor = e.target.value.trim() ? (ok ? '#2f6f68' : '#a33d2c') : 'rgba(90,70,50,.35)';
+                const value = e.target.value;
+                state.round = { ...state.round, answers: { ...state.round.answers, [player.id]: { ...(state.round.answers[player.id] || {}), [cat.id]: value } } };
+                // اعتبارسنجی زنده: حرف اول باید همان حرف دور باشد
+                const v = value.trim();
+                const ok = v && firstLetter(v) === r.letter;
+                const isWrong = Boolean(v) && !ok;
+                e.target.classList.toggle('is-wrong', isWrong);
+                e.target.style.color = isWrong ? 'var(--rust)' : 'var(--ink)';
+                e.target.style.borderBottomColor = v ? (ok ? 'var(--teal)' : 'var(--rust)') : 'rgba(90,70,50,.35)';
+                e.target.setAttribute('aria-invalid', isWrong ? 'true' : 'false');
+                updateWarning(cat, isWrong, v);
               }
             });
             inputs[cat.id] = input;
@@ -182,6 +202,20 @@ export function mountGame(root, { onExit }) {
           })
         )
       ) }),
+      // هشدار پایین صفحه: با حرف اشتباه، قرمز و با علامت اخطار
+      h('div', { class: 'esf-warn', dataset: { warn: '1' }, role: 'alert', 'aria-live': 'polite' },
+        wrongCats.size
+          ? h('div', { class: 'esf-warn__body' },
+              h('span', { class: 'esf-warn__icon' }, '⚠'),
+              h('span', {},
+                `${toFa(wrongCats.size)} پاسخ با حرف «${r.letter}» شروع نمی‌شود. `,
+                h('span', { class: 'esf-warn__list' },
+                  r.categories.filter(c => wrongCats.has(c.id)).map(c => c.label).join('، '))
+              )
+            )
+          : null
+      ),
+
       btn(state.currentPlayer < r.players.length - 1 ? 'ثبت و نفر بعد' : 'ثبت و دیدن امتیازها', {
         variant: 'btn--primary btn--block',
         onClick: () => {
@@ -197,6 +231,31 @@ export function mountGame(root, { onExit }) {
       }),
       callout('زمان که تمام شود، برگه خودکار بسته می‌شود — پس هرچه زودتر بنویس.', 'clock')
     );
+  }
+
+  /** به‌روزرسانی زنده‌ی نوار هشدار پایین صفحه، بدون رندر دوباره‌ی کل صفحه */
+  function updateWarning(cat, isWrong, value) {
+    const box = root.querySelector('[data-warn]');
+    if (!box) return;
+    const r = state.round;
+    const wrong = r.categories.filter(c => {
+      const v = (r.answers[r.players[state.currentPlayer].id] || {})[c.id] || '';
+      return String(v).trim() && firstLetter(String(v)) !== r.letter;
+    });
+    if (!wrong.length) {
+      box.replaceChildren();
+      return;
+    }
+    box.replaceChildren(
+      h('div', { class: 'esf-warn__body' },
+        h('span', { class: 'esf-warn__icon' }, '⚠'),
+        h('span', {},
+          `${toFa(wrong.length)} پاسخ با حرف «${r.letter}» شروع نمی‌شود: `,
+          h('span', { class: 'esf-warn__list' }, wrong.map(c => c.label).join('، '))
+        )
+      )
+    );
+    void cat; void isWrong; void value;
   }
 
   /* ------------------------------ امتیاز ------------------------------ */

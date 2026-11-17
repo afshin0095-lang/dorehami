@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRound, nextLetter, setAnswer, scoreRound, pickCategories } from '../public/src/engines/esmfamil.js';
-import { createSnakeGame, rollMove, rollDice, BOARD_SIZE, SNAKES, LADDERS } from '../public/src/engines/snake.js';
+import { createSnakeGame, rollMove, rollDice, BOARD_SIZE, SNAKES, LADDERS, makeLayout, validateLayout } from '../public/src/engines/snake.js';
 import { buildQuiz, answer, scoreOf, buildDuel, answerDuel, currentQuestion } from '../public/src/engines/quiz.js';
 import { createBoard, giveClue, guess, endTurn } from '../public/src/engines/codenames.js';
 import { createLowball, pick, nextRound } from '../public/src/engines/lowball.js';
@@ -66,22 +66,25 @@ test('pickCategories: تعداد درخواستی و بدون تکرار', () =>
 
 /* ------------------------------ مار و پله ------------------------------ */
 test('rollMove: حرکت ساده', () => {
-  let g = createSnakeGame({ players: ['a', 'b'] });
+  // چیدمان ثابت: خانه ۳ نباید نردبان باشد
+  let g = createSnakeGame({ players: ['a', 'b'], layout: { snakes: { 20: 8 }, ladders: { 5: 12 }, seed: 1 } });
   g = rollMove(g, 3);
   assert.equal(g.players[0].pos, 3);
   assert.equal(g.turn, 1);
 });
 
 test('rollMove: نردبان بالا می‌برد', () => {
-  let g = createSnakeGame({ players: ['a'] });
+  const layout = { snakes: {}, ladders: { 4: 14 }, seed: 1 };
+  let g = createSnakeGame({ players: ['a'], layout });
   g = { ...g, players: [{ ...g.players[0], pos: 1 }] };
   g = rollMove(g, 3); // 1+3=4 → نردبان ۱۴
-  assert.equal(g.players[0].pos, LADDERS[4]);
+  assert.equal(g.players[0].pos, 14);
   assert.equal(g.lastEvent, 'ladder');
 });
 
 test('rollMove: مار پایین می‌آورد', () => {
-  let g = createSnakeGame({ players: ['a'] });
+  const layout = { snakes: { 17: 7 }, ladders: {}, seed: 1 };
+  let g = createSnakeGame({ players: ['a'], layout });
   g = { ...g, players: [{ ...g.players[0], pos: 14 }] };
   g = rollMove(g, 3); // 17 → مار ۷
   assert.equal(g.players[0].pos, SNAKES[17]);
@@ -89,14 +92,16 @@ test('rollMove: مار پایین می‌آورد', () => {
 });
 
 test('rollMove: رد شدن از انتها برمی‌گردد', () => {
-  let g = createSnakeGame({ players: ['a'] });
+  // تخته‌ی بدون مار/نردبان تا فقط اثر «برگشت» سنجیده شود
+  const layout = { snakes: { 30: 12 }, ladders: { 3: 9 }, seed: 1 };
+  let g = createSnakeGame({ players: ['a'], layout });
   g = { ...g, players: [{ ...g.players[0], pos: 34 }] };
   g = rollMove(g, 5); // 39 → 33
   assert.equal(g.players[0].pos, 33);
 });
 
 test('rollMove: رسیدن دقیق به خانه آخر = برد', () => {
-  let g = createSnakeGame({ players: ['a', 'b'] });
+  let g = createSnakeGame({ players: ['a', 'b'], layout: { snakes: { 20: 8 }, ladders: { 5: 12 }, seed: 1 } });
   g = { ...g, players: [{ ...g.players[0], pos: 33 }, g.players[1]] };
   g = rollMove(g, 3);
   assert.equal(g.players[0].pos, BOARD_SIZE);
@@ -240,4 +245,45 @@ test('nextRound: بعد از ۵ دور بازی تمام می‌شود', () => {
     if (g.phase === 'reveal') g = nextRound(g);
   }
   assert.equal(g.phase, 'done');
+});
+
+/* ------------------------------ چیدمان تصادفی مار و پله ------------------------------ */
+test('makeLayout: ۲۰۰ چیدمان تصادفی همه معتبرند', () => {
+  const rnd = mulberry32(9);
+  for (let i = 0; i < 200; i++) {
+    const L = makeLayout(rnd);
+    const v = validateLayout(L);
+    assert.deepEqual(v.errors, [], `چیدمان ${i} نامعتبر: ${JSON.stringify(L)}`);
+  }
+});
+
+test('makeLayout: هر بار چیدمان متفاوت است', () => {
+  const a = makeLayout(mulberry32(1));
+  const b = makeLayout(mulberry32(2));
+  assert.notDeepEqual({ s: a.snakes, l: a.ladders }, { s: b.snakes, l: b.ladders });
+});
+
+test('makeLayout: خانه ۱ و ۳۶ هرگز مار/نردبان ندارند', () => {
+  const rnd = mulberry32(3);
+  for (let i = 0; i < 60; i++) {
+    const L = makeLayout(rnd);
+    assert.equal(L.snakes[1], undefined);
+    assert.equal(L.ladders[1], undefined);
+    assert.equal(L.snakes[BOARD_SIZE], undefined);
+    assert.equal(L.ladders[BOARD_SIZE], undefined);
+  }
+});
+
+test('validateLayout: چیدمان دستی خراب رد می‌شود', () => {
+  assert.equal(validateLayout({ snakes: { 10: 20 }, ladders: { 4: 14 } }).ok, false, 'مار نباید بالا برود');
+  assert.equal(validateLayout({ snakes: { 10: 4 }, ladders: { 4: 14 } }).ok, false, 'مقصد زنجیره‌ای');
+  assert.equal(validateLayout({ snakes: { 1: 4 }, ladders: { 4: 14 } }).ok, false, 'خانه ۱ شروع نیست');
+  assert.equal(validateLayout(SNAKES ? { snakes: SNAKES, ladders: LADDERS } : {}).ok, true, 'پیش‌فرض باید معتبر باشد');
+});
+
+test('createSnakeGame: چیدمان سفارشی روی بازی می‌نشیند', () => {
+  const layout = makeLayout(mulberry32(5));
+  const g = createSnakeGame({ players: ['a', 'b'], layout });
+  assert.deepEqual(g.snakes, layout.snakes);
+  assert.deepEqual(g.ladders, layout.ladders);
 });

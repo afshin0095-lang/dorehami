@@ -64,10 +64,10 @@ function installDom() {
   return { app };
 }
 
-test('همه‌ی ۱۰ بازی در یک DOM شبیه‌سازی‌شده mount می‌شوند و cleanup برمی‌گردانند', async () => {
+test('همه‌ی بازی‌ها در یک DOM شبیه‌سازی‌شده mount می‌شوند و cleanup برمی‌گردانند', async () => {
   installDom();
   const { GAMES } = await import('../public/src/games/registry.js');
-  assert.ok(GAMES.length >= 10, 'حداقل ۱۰ بازی لازم است');
+  assert.ok(GAMES.length >= 12, 'حداقل ۱۰ بازی لازم است');
 
   for (const g of GAMES) {
     const mod = await g.load();

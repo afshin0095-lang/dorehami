@@ -5,12 +5,32 @@
 import { h, mount, stats, playStreak, dailyGameId, toFa, toast, store, playSound } from '../core.js';
 import { GAMES, CATEGORIES, byId } from '../games/registry.js';
 import { icon, iconBtn, topbar, navbar, chip, sheet } from './kit.js';
-import { openSettings } from './settings.js';
+import { openSettings, getPrefs } from './settings.js';
 import { QUIZ_BANK, RIDDLES } from '../content.js';
-import { openMultiplayerPanel } from '../net/sync.js';
+import { LobbyScreen } from '../net/table.js';
 import { overlay, closeOverlay } from './kit.js';
 
 const TILT = [-1.4, 1.1, -0.7, 1.6, -1.9, 0.9, -1.1, 1.3, -0.5, 1.8, -1.6, 0.6];
+
+/** بازی‌هایی که مدیر پنهان نکرده باشد */
+export function visibleGames() {
+  const hidden = new Set(getPrefs().hiddenGames || []);
+  return GAMES.filter(g => !hidden.has(g.id));
+}
+
+/** باز کردن لابی چندگوشی یک بازی، تمام‌صفحه */
+export function openLobby(game, navigate) {
+  document.dispatchEvent(new CustomEvent('dy:lobby', { detail: { gameId: game.id, title: game.title, maxSeats: game.id === 'mafia' ? 10 : 4 } }));
+  void navigate;
+}
+
+/** دکمه‌های سرصفحه: تنظیمات (با برچسب) + پنل مدیریت */
+function headerActions(navigate) {
+  return [
+    iconBtn('settings', { label: 'تنظیمات', onClick: () => openSettings() }),
+    iconBtn('panel', { label: 'پنل مدیریت', onClick: () => navigate('admin') })
+  ];
+}
 
 function gameCard(game, i, onOpen) {
   return h('button', {
@@ -34,13 +54,15 @@ function gameCard(game, i, onOpen) {
 export function HomeScreen({ navigate, openGame }) {
   const s = stats.get();
   const streak = playStreak(s.playDates || []);
-  const daily = byId(dailyGameId(GAMES.filter(g => g.solo).map(g => g.id)));
+  const pool = visibleGames();
+  const dailyId = dailyGameId(pool.filter(g => g.solo).map(g => g.id)) || pool[0]?.id;
+  const daily = byId(dailyId) || pool[0];
   const recent = byId(s.history?.[0]?.gameId);
   const featured = ['mafia', 'hokm', 'esmfamil', 'quiz'];
   const cats = CATEGORIES.slice(0, 5);
 
   return h('div', {},
-    topbar({ right: [iconBtn('sound', { label: 'صدا', onClick: () => openSettings() }), iconBtn('help', { label: 'تنظیمات', onClick: () => openSettings() })] }),
+    topbar({ right: headerActions(navigate) }),
 
     // ویترین اصلی
     h('section', { class: 'hero torn' },
@@ -48,7 +70,7 @@ export function HomeScreen({ navigate, openGame }) {
       h('div', { class: 'hero__inner' },
         h('div', { class: 'hero__kicker' }, 'گوشی وسط، جمع روشن'),
         h('h1', {}, 'امشب چی بازی کنیم؟'),
-        h('p', {}, '۱۰ بازی کاغذی فارسی — تکی، دونفره و دورهمی. آفلاین، بدون ثبت‌نام.'),
+        h('p', {}, `${toFa(pool.length)} بازی کاغذی فارسی — تکی، دونفره و دورهمی. آفلاین، بدون ثبت‌نام.`),
         h('div', { class: 'hero__actions' },
           h('button', { class: 'btn btn--primary', onclick: () => { playSound('seal'); navigate('games'); } }, icon('play', 18), 'شروع'),
           h('button', { class: 'btn', onclick: () => { playSound('tap'); openGame(daily.id); } }, icon('spark', 18), 'چالش امروز')
@@ -78,7 +100,7 @@ export function HomeScreen({ navigate, openGame }) {
       h('button', {
         class: 'btn btn--block btn--teal',
         onclick: () => { playSound('paper-flip'); navigate('games'); }
-      }, icon('games', 18), `همه‌ی ${toFa(GAMES.length)} بازی`)
+      }, icon('games', 18), `همه‌ی ${toFa(pool.length)} بازی`)
     )
   );
 }
@@ -107,7 +129,7 @@ function recentsSheet(recent, openGame) {
 export function GamesScreen({ navigate, openGame, state }) {
   const activeCat = state?.cat || 'all';
   const query = state?.q || '';
-  const filtered = GAMES.filter(g => {
+  const filtered = visibleGames().filter(g => {
     const catOk = activeCat === 'all' || g.cats.includes(activeCat);
     const qOk = !query || (g.title + g.meta + g.tags.join(' ')).includes(query);
     return catOk && qOk;
@@ -125,7 +147,7 @@ export function GamesScreen({ navigate, openGame, state }) {
   });
 
   return h('div', {},
-    topbar({ right: [iconBtn('help', { label: 'تنظیمات', onClick: () => openSettings() })] }),
+    topbar({ right: headerActions(navigate) }),
     h('div', { style: { marginBottom: '.8rem' } }, search),
     h('div', { class: 'chips' },
       chip('همه', { pressed: activeCat === 'all', onClick: () => { state.cat = 'all'; navigate('games', state); } }),
@@ -141,13 +163,16 @@ export function GamesScreen({ navigate, openGame, state }) {
       h('div', { class: 'sheet__title' }, icon('users', 18), 'بازی چندگوشی'),
       h('p', { style: { margin: '0 0 .6rem', fontSize: '.86rem' } },
         'برای بازی با گوشی‌های جدا یک کد اتاق بساز. پیام‌ها اعتبارسنجی می‌شوند و محتوای مخفی هرگز ارسال نمی‌شود.'),
-      h('button', {
-        class: 'btn btn--teal btn--block',
-        onclick: () => {
-          playSound('paper-flip');
-          overlay(h('div', { class: 'modal-sheet sheet-in' }, openMultiplayerPanel({ onClose: () => closeOverlay() })));
-        }
-      }, 'ساخت اتاق چندگوشی')
+      h('div', { style: { display: 'grid', gap: '.45rem' } },
+        ['hokm', 'mafia', 'esmfamil', 'snake'].filter(id => !(getPrefs().hiddenGames || []).includes(id)).map(id => {
+          const g = byId(id);
+          if (!g) return null;
+          return h('button', {
+            class: 'btn btn--teal btn--block',
+            onclick: () => { playSound('paper-flip'); openLobby(g, navigate); }
+          }, icon('users', 16), ` میز ${g.title}`);
+        })
+      )
     ),
     h('p', { style: { textAlign: 'center', color: '#e8dcc4', fontSize: '.78rem', marginTop: '1.2rem', opacity: .8 } },
       'همه‌ی بازی‌ها آفلاین کار می‌کنند.')
@@ -168,7 +193,7 @@ export function LibraryScreen({ navigate, openGame }) {
   const played = Object.entries(s.byGame || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   return h('div', {},
-    topbar({ right: [iconBtn('help', { label: 'تنظیمات', onClick: () => openSettings() })] }),
+    topbar({ right: headerActions(navigate) }),
     h('h1', { style: { color: '#f7efdd', marginBottom: '.8rem', textShadow: '0 2px 8px rgba(0,0,0,.6)' } }, 'کتابخانه'),
     h('section', { class: 'sheet sheet--lined' },
       h('div', { class: 'sheet__title' }, icon('book', 18), 'راهنمای کوتاه: چطور بازی کنیم'),
@@ -224,7 +249,7 @@ export function ProfileScreen({ navigate, openGame }) {
   ];
 
   return h('div', {},
-    topbar({ right: [iconBtn('help', { label: 'تنظیمات', onClick: () => openSettings() })] }),
+    topbar({ right: headerActions(navigate) }),
     h('section', { class: 'sheet', style: { textAlign: 'center' } },
       h('div', {
         style: {

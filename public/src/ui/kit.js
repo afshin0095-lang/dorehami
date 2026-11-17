@@ -23,7 +23,18 @@ export const ICONS = {
   spark:  '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
   crown:  '<path d="M3 17l1.5-9 4 4 3.5-6 3.5 6 4-4L21 17z"/><path d="M4 20h16"/>',
   skull:  '<path d="M12 3a7 7 0 0 0-7 7v3l2.5 2v3h9v-3L19 13v-3a7 7 0 0 0-7-7z"/><circle cx="9.5" cy="11" r="1.4" fill="currentColor"/><circle cx="14.5" cy="11" r="1.4" fill="currentColor"/>',
-  arrow:  '<path d="M20 12H4"/><path d="M10 6l-6 6 6 6"/>'
+  arrow:  '<path d="M20 12H4"/><path d="M10 6l-6 6 6 6"/>',
+  shuffle:'<path d="M3 7h4l7 10h4"/><path d="M3 17h4l2-2.9"/><path d="M14 7h3"/><path d="M15.5 4.5 18 7l-2.5 2.5"/><path d="M15.5 14.5 18 17l-2.5 2.5"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2.6 6"/><path d="M20 5v6h-6"/>',
+  settings:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/>',
+  panel:  '<rect x="3" y="4" width="18" height="16" rx="1.6"/><path d="M9 4v16"/><path d="M13 9h4M13 13h4M13 17h2"/>',
+  plus:   '<path d="M12 5v14M5 12h14"/>',
+  trash:  '<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/>',
+  save:   '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h7V4"/><path d="M8 14h8v6H8z"/>',
+  lock:   '<rect x="4.5" y="10" width="15" height="10" rx="1.6"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/>',
+  grid:   '<rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/>',
+  chart:  '<path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/>',
+  wand:   '<path d="M4 20 15 9"/><path d="M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/><path d="M19 12l.7 1.4 1.4.6-1.4.6-.7 1.4-.7-1.4-1.4-.6 1.4-.6z"/>'
 };
 
 export function icon(name, size = 20) {
@@ -87,9 +98,20 @@ export function navbar({ items, active, onNavigate }) {
   );
 }
 
+/**
+ * سرصفحه‌ی بازی. دکمه‌ی بازگشت همیشه هست: حتی اگر صفحه onBack نداشته باشد،
+ * رویداد dy:back فرستاده می‌شود تا پوسته‌ی بازی آن را بگیرد (هیچ صفحه‌ای بدون راه برگشت نمی‌ماند).
+ */
 export function gameHeader({ title, onBack, children }) {
+  const handleBack = () => {
+    if (typeof onBack === 'function') return onBack();
+    document.dispatchEvent(new CustomEvent('dy:back'));
+  };
   return h('div', { class: 'game-shell__top' },
-    iconBtn('back', { label: 'بازگشت', onClick: onBack }),
+    h('button', {
+      class: 'icon-btn icon-btn--back', 'aria-label': 'بازگشت به صفحه‌ی قبل', title: 'بازگشت',
+      onclick: () => { playSound('paper-flip'); handleBack(); }
+    }, icon('back'), h('span', { class: 'icon-btn__label' }, 'بازگشت')),
     h('div', { class: 'game-shell__title' }, title),
     h('div', { style: { flex: 1 } }),
     ...(children ? [children].flat() : [])

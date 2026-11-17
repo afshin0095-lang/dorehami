@@ -34,6 +34,8 @@ export const soundPrefs = { enabled: true };
 function ctx() {
   if (!soundPrefs.enabled) return null;
   if (!audioCtx) {
+    // بدون مرورگر (آزمون/SSR) بی‌صدا و بی‌خطا
+    if (typeof window === 'undefined') return null;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     audioCtx = new AC();
@@ -42,37 +44,149 @@ function ctx() {
   return audioCtx;
 }
 
-/** صدای کوتاه تولیدشده — «جرقه‌ی» کاغذی، بدون وابستگی به فایل صوتی */
+/* ------------------------------ صدا: فولی کاغذ ------------------------------ */
+/**
+ * صداها با نویز فیلترشده ساخته می‌شوند، نه تُن خالص.
+ * کاغذ و مقوا «نویز پهن‌باند» تولید می‌کنند؛ تن خالص مصنوعی شنیده می‌شود.
+ * هر ضربه = یک بافت نویز + پاکت زمانی + فیلتر میان‌گذر.
+ */
+
+let noiseBuf = null;
+function noiseBuffer(ac) {
+  if (noiseBuf) return noiseBuf;
+  const len = Math.floor(ac.sampleRate * 0.6);
+  const buf = ac.createBuffer(1, len, ac.sampleRate);
+  const data = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < len; i++) {
+    const white = Math.random() * 2 - 1;
+    // نویز صورتی ملایم — نزدیک‌تر به خش‌خش کاغذ
+    last = (last + 0.02 * white) / 1.02;
+    data[i] = last * 3.2 + white * 0.35;
+  }
+  noiseBuf = buf;
+  return buf;
+}
+
+/**
+ * یک لایه‌ی صدای کاغذی.
+ * @param {AudioContext} ac
+ * @param {{freq:number, q?:number, gain?:number, start?:number, dur?:number, type?:BiquadFilterType, sweep?:number, tone?:number}} o
+ */
+function paperLayer(ac, o) {
+  const now = ac.currentTime;
+  const start = now + (o.start || 0);
+  const dur = o.dur || 0.12;
+
+  const src = ac.createBufferSource();
+  src.buffer = noiseBuffer(ac);
+  src.loop = true;
+
+  const filter = ac.createBiquadFilter();
+  filter.type = o.type || 'bandpass';
+  filter.frequency.setValueAtTime(o.freq, start);
+  if (o.sweep) filter.frequency.exponentialRampToValueAtTime(Math.max(80, o.sweep), start + dur);
+  filter.Q.value = o.q ?? 1.1;
+
+  const gain = ac.createGain();
+  // پاکت: حمله‌ی تیز، افت نمایی — مثل برخورد کاغذ
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.linearRampToValueAtTime(o.gain ?? 0.12, start + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+  src.connect(filter).connect(gain).connect(ac.destination);
+  src.start(start);
+  src.stop(start + dur + 0.02);
+
+  // لایه‌ی تُنال اختیاری برای حس «چوب/مقوا»
+  if (o.tone) {
+    const osc = ac.createOscillator();
+    const g2 = ac.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(o.tone, start);
+    g2.gain.setValueAtTime(0.0001, start);
+    g2.gain.linearRampToValueAtTime((o.gain ?? 0.12) * 0.25, start + 0.01);
+    g2.gain.exponentialRampToValueAtTime(0.0001, start + dur * 1.4);
+    osc.connect(g2).connect(ac.destination);
+    osc.start(start);
+    osc.stop(start + dur * 1.5);
+  }
+}
+
+const SOUND_LIB = {
+  /* ورق از روی ورق می‌لغزد */
+  'paper-flip': [
+    { freq: 2600, q: 0.9, gain: 0.10, dur: 0.17, sweep: 1200 },
+    { freq: 5200, q: 1.6, gain: 0.045, dur: 0.10, start: 0.03, sweep: 2400 }
+  ],
+  /* کارت روی میز پرت می‌شود */
+  'card-deal': [
+    { freq: 1800, q: 1.0, gain: 0.13, dur: 0.09, sweep: 700 },
+    { freq: 4200, q: 2.2, gain: 0.05, dur: 0.05, start: 0.02, sweep: 1800 },
+    { freq: 240, q: 1.2, gain: 0.09, dur: 0.10, start: 0.02, tone: 190 }
+  ],
+  /* لمس کاغذ */
+  'tap': [{ freq: 3000, q: 1.4, gain: 0.07, dur: 0.045, sweep: 1800 }],
+  /* مهر موم روی کاغذ */
+  'seal': [
+    { freq: 380, q: 0.8, gain: 0.16, dur: 0.16, sweep: 170, tone: 120 },
+    { freq: 2200, q: 1.8, gain: 0.06, dur: 0.07, start: 0.015 }
+  ],
+  /* باز شدن پرده‌ی کاغذی */
+  'unwrap': [
+    { freq: 1400, q: 0.7, gain: 0.10, dur: 0.30, sweep: 3400 },
+    { freq: 3200, q: 1.2, gain: 0.05, dur: 0.22, start: 0.08, sweep: 1200 }
+  ],
+  /* تاس چوبی روی مقوا */
+  'dice': [
+    { freq: 900, q: 1.1, gain: 0.11, dur: 0.055, sweep: 400, tone: 260 },
+    { freq: 1500, q: 1.4, gain: 0.08, dur: 0.05, start: 0.10, sweep: 600, tone: 330 },
+    { freq: 1100, q: 1.2, gain: 0.06, dur: 0.045, start: 0.19, sweep: 420, tone: 240 }
+  ],
+  /* ورق‌زدن سریع (مثل پخش دست) */
+  'shuffle': [
+    { freq: 2400, q: 0.8, gain: 0.09, dur: 0.06, sweep: 1600 },
+    { freq: 2600, q: 0.8, gain: 0.08, dur: 0.06, start: 0.07, sweep: 1700 },
+    { freq: 2200, q: 0.8, gain: 0.07, dur: 0.06, start: 0.14, sweep: 1500 }
+  ],
+  /* برد */
+  'win': [
+    { freq: 1200, q: 1.2, gain: 0.07, dur: 0.12, sweep: 2400, tone: 660 },
+    { freq: 1600, q: 1.2, gain: 0.06, dur: 0.16, start: 0.12, sweep: 3200, tone: 880 },
+    { freq: 2000, q: 1.2, gain: 0.05, dur: 0.22, start: 0.26, sweep: 3600, tone: 1320 }
+  ],
+  /* باخت */
+  'lose': [
+    { freq: 700, q: 0.9, gain: 0.09, dur: 0.22, sweep: 220, tone: 220 },
+    { freq: 400, q: 0.9, gain: 0.07, dur: 0.30, start: 0.16, sweep: 130, tone: 150 }
+  ]
+};
+
 export function playSound(name) {
   const ac = ctx();
   if (!ac) return;
-  const now = ac.currentTime;
-  const recipes = {
-    'paper-flip':  [{ type: 'bandpass', f: 1800, q: 1.2, gain: 0.10, dur: 0.16, start: 0.0 }],
-    'card-deal':   [{ type: 'lowpass', f: 900, q: 0.8, gain: 0.16, dur: 0.12, start: 0.0 }, { type: 'bandpass', f: 2400, q: 2, gain: 0.07, dur: 0.06, start: 0.05 }],
-    'tap':         [{ type: 'lowpass', f: 620, q: 1, gain: 0.12, dur: 0.07, start: 0 }],
-    'seal':        [{ type: 'lowpass', f: 300, q: 1, gain: 0.2, dur: 0.2, start: 0 }, { type: 'bandpass', f: 1200, q: 3, gain: 0.08, dur: 0.1, start: 0.02 }],
-    'win':         [{ type: 'triangle', f: 660, gain: 0.1, dur: 0.18, start: 0 }, { type: 'triangle', f: 880, gain: 0.1, dur: 0.18, start: 0.14 }, { type: 'triangle', f: 1320, gain: 0.09, dur: 0.3, start: 0.3 }],
-    'lose':        [{ type: 'sine', f: 300, gain: 0.1, dur: 0.24, start: 0 }, { type: 'sine', f: 200, gain: 0.1, dur: 0.34, start: 0.2 }],
-    'dice':        [{ type: 'bandpass', f: 1400, q: 1.6, gain: 0.12, dur: 0.09, start: 0 }, { type: 'bandpass', f: 900, q: 1.6, gain: 0.1, dur: 0.09, start: 0.11 }]
-  };
-  const recipe = recipes[name] || recipes.tap;
-  for (const s of recipe) {
-    const osc = ac.createOscillator();
-    const filter = ac.createBiquadFilter();
-    const gain = ac.createGain();
-    osc.type = s.type === 'bandpass' || s.type === 'lowpass' ? 'sawtooth' : s.type;
-    osc.frequency.value = s.f;
-    filter.type = s.type === 'bandpass' || s.type === 'lowpass' ? s.type : 'lowpass';
-    if (s.type === 'bandpass' || s.type === 'lowpass') filter.frequency.value = s.f;
-    if (s.q) filter.Q.value = s.q;
-    gain.gain.setValueAtTime(0, now + s.start);
-    gain.gain.linearRampToValueAtTime(s.gain, now + s.start + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + s.start + s.dur);
-    osc.connect(filter).connect(gain).connect(ac.destination);
-    osc.start(now + s.start);
-    osc.stop(now + s.start + s.dur + 0.02);
-  }
+  const layers = SOUND_LIB[name] || SOUND_LIB.tap;
+  for (const layer of layers) paperLayer(ac, layer);
+}
+
+/** صدای محیطی اختیاری: خش‌خش آرام کاغذ (برای منوها) */
+export function ambientPaper(on = true) {
+  const ac = ctx();
+  if (!ac) return null;
+  if (!on) return null;
+  const src = ac.createBufferSource();
+  src.buffer = noiseBuffer(ac);
+  src.loop = true;
+  const filter = ac.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 900;
+  filter.Q.value = 0.6;
+  const gain = ac.createGain();
+  gain.gain.value = 0;
+  gain.gain.linearRampToValueAtTime(0.012, ac.currentTime + 1.2);
+  src.connect(filter).connect(gain).connect(ac.destination);
+  src.start();
+  return { stop: () => { try { gain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.6); src.stop(ac.currentTime + 0.7); } catch { /* */ } } };
 }
 
 /* ------------------------------ ذخیره‌سازی ------------------------------ */

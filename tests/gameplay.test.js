@@ -527,3 +527,67 @@ test('جزیرهٔ گم‌شده: پنل ساخت باز و بسته می‌شو
   assert.equal(walk(host).filter(n => n.classList?.contains('island-build')).length, 0, 'پنل بسته نشد');
   cleanup();
 });
+
+test('آرکام: از مقدمه تا بازی', async () => {
+  installDom();
+  const mod = await import('../public/src/games/arkham-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('آرکام'), 'عنوان نیامد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('ark-inv')).length, 3, 'پژوهشگران');
+  assert.equal(walk(host).filter(n => n.classList?.contains('level-card')).length, 3, 'سطوح');
+
+  btnWith(host, 'شروع تحقیق').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('ark-bar')).length, 3, 'نوارها');
+  assert.equal(walk(host).filter(n => n.classList?.contains('ark-act')).length, 5, 'کنش‌ها');
+  assert.ok(walk(host).filter(n => n.classList?.contains('ark-card')).length > 0, 'دست خالی است');
+  assert.equal(walk(host).filter(n => n.classList?.contains('ark-track__slot')).length, 2, 'پرده/اجندا');
+  cleanup();
+});
+
+test('آرکام: بررسی اجرا می‌شود و آزمون نشان داده می‌شود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/arkham-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع تحقیق').click();
+
+  btnWith(host, 'بررسی').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('ark-test')).length, 1, 'کارت آزمون نیامد');
+  const t = walk(host).find(n => n.classList?.contains('ark-test'));
+  assert.ok(/موفق|ناموفق/.test(t.textContent), 'حکم آزمون نیست');
+  cleanup();
+});
+
+test('آرکام: پایان نوبت عذاب می‌دهد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/arkham-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع تحقیق').click();
+
+  btnWith(host, 'پایان نوبت').click();
+  assert.ok(textOf(host).includes('عذاب'), 'نوار عذاب نیست');
+  assert.ok(walk(host).filter(n => n.classList?.contains('ark-log__row')).length > 0, 'گزارش خالی');
+  cleanup();
+});
+
+test('آرکام: انتخاب پژوهشگر در مقدمه اثر می‌کند', async () => {
+  installDom();
+  const mod = await import('../public/src/games/arkham-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  const invs = walk(host).filter(n => n.classList?.contains('ark-inv'));
+  assert.ok(invs[0].classList.contains('is-on'), 'پیش‌فرض فعال نیست');
+  invs[1].click();
+  const after = walk(host).filter(n => n.classList?.contains('ark-inv'));
+  assert.ok(after[1].classList.contains('is-on'), 'پژوهشگر دوم فعال نشد');
+  assert.ok(!after[0].classList.contains('is-on'), 'پژوهشگر اول هنوز فعال است');
+
+  btnWith(host, 'شروع تحقیق').click();
+  // نام پژوهشگر دوم باید در سرصفحه باشد
+  assert.ok(textOf(host).includes('دیزی'), 'پژوهشگر انتخابی به بازی نرسید');
+  cleanup();
+});

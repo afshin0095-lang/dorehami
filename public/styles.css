@@ -2767,6 +2767,208 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .island-bar { grid-template-columns: 2.6rem 1fr 2.2rem; }
 }
 
+
+/* ============================================================
+   آرکام: نشانه‌های آشوب — کارت، کیف، اجندا
+   ============================================================ */
+[class*="ark-"] { overflow-wrap: anywhere; min-width: 0; }
+
+.ark-hero {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1rem 1.2rem;
+  background-color: #232b33;
+  background-image: url('/assets/art/noir-leather.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  color: #dfe3e0;
+}
+.ark-hero__frame {
+  position: absolute; inset: 8px;
+  border: 1px solid rgba(140,170,180,.24);
+  border-radius: 2px; pointer-events: none;
+}
+.ark-hero__frame span {
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+  padding: 0 .4rem; color: rgba(140,170,180,.45); font-size: 1rem;
+}
+.ark-hero__text { position: relative; z-index: 1; padding: .2rem .3rem; }
+.ark-hero__kicker { font-size: .7rem; letter-spacing: .14em; color: #8fa4ad; }
+.ark-hero h1 { font-size: clamp(1.35rem, 5.8vw, 1.9rem); margin: .25rem 0 .45rem; color: #eaf0ee; overflow-wrap: anywhere; }
+.ark-hero p { margin: 0; max-width: 36ch; line-height: 1.8; font-size: .85rem; color: #bcc7c9; overflow-wrap: anywhere; }
+
+/* پژوهشگران */
+.ark-investigators { display: grid; gap: .35rem; }
+.ark-inv {
+  display: grid; gap: .05rem;
+  padding: .45rem .55rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid rgba(120,95,55,.22);
+  border-inline-start: 3px solid var(--inv, #7a4a2a);
+  border-radius: 2px; text-align: start;
+  font-family: inherit; cursor: pointer;
+}
+.ark-inv.is-on { background: rgba(176,141,87,.18); border-color: var(--gold, #b08d57); }
+.ark-inv__name { font-size: .8rem; font-weight: 700; }
+.ark-inv__role { font-size: .6rem; color: var(--ink-soft); }
+.ark-inv__stats {
+  font-size: .58rem; color: var(--mustard-deep, #a87b1a);
+  font-variant-numeric: tabular-nums; letter-spacing: .08em;
+}
+.ark-inv__perk { font-size: .58rem; color: var(--teal-deep, #245b55); }
+
+.ark-brief {
+  display: grid; gap: .18rem;
+  margin: .55rem 0 .1rem; padding: .55rem .65rem;
+  background: rgba(47,111,104,.08);
+  border-right: 3px solid var(--teal);
+}
+.ark-brief strong { font-size: .78rem; }
+.ark-brief span { font-size: .7rem; color: var(--ink-soft); }
+.ark-brief__perk { color: var(--teal-deep, #245b55) !important; }
+.ark-brief__stat { font-variant-numeric: tabular-nums; }
+
+/* نوارها */
+.ark-bars { display: grid; gap: .2rem; margin-bottom: .4rem; }
+.ark-bar { display: grid; grid-template-columns: 2.8rem 1fr 2.6rem; align-items: center; gap: .32rem; }
+.ark-bar__label { font-size: .6rem; color: var(--ink-soft); }
+.ark-bar__track { height: 6px; background: rgba(120,95,55,.16); border-radius: 999px; overflow: hidden; }
+.ark-bar__fill { display: block; height: 100%; background: var(--bar, #8a4a3a); transition: width .35s var(--ease-paper); }
+.ark-bar__fill.is-inv { background: linear-gradient(90deg, #7a5a8a, #6b3a5a); }
+.ark-bar__num { font-size: .56rem; color: var(--ink-soft); text-align: end; font-variant-numeric: tabular-nums; }
+
+/* پرده و اجندا */
+.ark-track { display: grid; gap: .3rem; margin-bottom: .4rem; }
+.ark-track__slot {
+  display: grid; gap: .05rem;
+  padding: .4rem .5rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid rgba(120,95,55,.22);
+  border-radius: 2px;
+}
+.ark-track__slot.is-doom { border-inline-start: 3px solid #6b3a5a; }
+.ark-track__label { font-size: .52rem; letter-spacing: .12em; color: var(--ink-soft); }
+.ark-track__name { font-size: .74rem; font-weight: 700; }
+.ark-track__prog { font-size: .58rem; color: var(--mustard-deep, #a87b1a); font-variant-numeric: tabular-nums; }
+
+/* دشمنان */
+.ark-enemies { display: grid; gap: .28rem; margin-bottom: .4rem; }
+.ark-enemies__title { margin: 0; font-size: .66rem; letter-spacing: .1em; color: var(--rust); }
+.ark-enemy {
+  display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: .4rem;
+  padding: .35rem .5rem;
+  background: rgba(255,252,244,.9);
+  border: 1px solid rgba(163,61,44,.3);
+  border-inline-start: 3px solid var(--foe, #5a3a3a);
+  border-radius: 2px; text-align: start;
+  font-family: inherit; cursor: pointer;
+}
+.ark-enemy__glyph { font-size: 1rem; color: var(--foe, #5a3a3a); }
+.ark-enemy__name { font-size: .72rem; font-weight: 700; }
+.ark-enemy__hp { font-size: .62rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.ark-enemy__atk { font-size: .54rem; color: var(--rust); }
+
+/* آزمون */
+.ark-test {
+  margin-bottom: .4rem; padding: .45rem .55rem;
+  border: 1px solid rgba(120,95,55,.25);
+  border-radius: 2px;
+  background: rgba(255,252,244,.9);
+}
+.ark-test.is-ok { border-inline-start: 3px solid #4a7a5a; background: rgba(74,122,90,.07); }
+.ark-test.is-fail { border-inline-start: 3px solid var(--rust); background: rgba(163,61,44,.07); }
+.ark-test__head { display: flex; justify-content: space-between; gap: .4rem; align-items: baseline; }
+.ark-test__label { font-size: .68rem; font-weight: 700; }
+.ark-test__verdict { font-size: .6rem; letter-spacing: .1em; }
+.ark-test.is-ok .ark-test__verdict { color: #2f6f4a; }
+.ark-test.is-fail .ark-test__verdict { color: var(--rust); }
+.ark-test__math {
+  display: flex; flex-wrap: wrap; gap: .25rem .4rem;
+  align-items: center; margin-top: .2rem;
+  font-size: .62rem; color: var(--ink-soft); font-variant-numeric: tabular-nums;
+}
+.ark-test__token {
+  padding: .04rem .3rem; border-radius: 2px;
+  background: rgba(120,95,55,.14); color: #5a4527;
+}
+.ark-test__token.is-auto { background: rgba(163,61,44,.16); color: var(--rust); font-weight: 700; }
+.ark-test__total { font-weight: 700; color: var(--ink); }
+
+/* دارایی‌ها */
+.ark-assets { display: flex; flex-wrap: wrap; gap: .22rem; margin-bottom: .35rem; }
+.ark-asset {
+  font-size: .55rem; padding: .1rem .36rem;
+  border: 1px solid var(--ast, #5a4a3a); border-radius: 999px;
+  background: rgba(255,252,244,.9); color: var(--ink-soft);
+}
+
+/* دست */
+.ark-hand {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: .3rem; margin-bottom: .4rem;
+}
+.ark-card {
+  position: relative;
+  display: grid; gap: .05rem;
+  padding: .4rem .35rem .45rem;
+  background-color: #ece5d2;
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: 1px solid rgba(120,95,55,.32);
+  border-top: 3px solid var(--ast, #5a4a3a);
+  border-radius: 3px; text-align: start;
+  font-family: inherit; cursor: pointer;
+  box-shadow: var(--lift-1);
+  transition: transform .16s;
+}
+.ark-card:active { transform: translateY(-2px); }
+.ark-card.is-locked { opacity: .42; cursor: not-allowed; }
+.ark-card__cost {
+  position: absolute; top: .2rem; inset-inline-end: .28rem;
+  width: 1.1rem; height: 1.1rem; display: grid; place-items: center;
+  font-size: .55rem; font-weight: 700;
+  background: rgba(255,255,255,.6); border-radius: 50%;
+  border: 1px solid rgba(120,95,55,.35); color: #5a4527;
+}
+.ark-card__name { font-size: .68rem; font-weight: 700; padding-inline-end: 1.2rem; }
+.ark-card__text { font-size: .56rem; color: var(--ink-soft); line-height: 1.5; }
+
+/* کنش‌ها */
+.ark-actions {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: .28rem; margin-bottom: .4rem;
+}
+.ark-act {
+  display: grid; gap: .02rem; justify-items: center;
+  padding: .4rem .3rem;
+  background: rgba(255,252,244,.9);
+  border: 1px solid rgba(120,95,55,.25);
+  border-radius: 2px; font-family: inherit; cursor: pointer;
+}
+.ark-act:disabled { opacity: .4; cursor: not-allowed; }
+.ark-act.is-draw { border-style: dashed; }
+.ark-act__name { font-size: .7rem; font-weight: 700; }
+.ark-act__meta { font-size: .54rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.ark-footer { margin-top: .2rem; }
+
+/* گزارش */
+.ark-log {
+  margin-top: .55rem; padding: .5rem .55rem;
+  background: rgba(35,43,51,.05);
+  border: 1px solid rgba(120,95,55,.18);
+  max-height: 150px; overflow-y: auto;
+}
+.ark-log h3 { margin: 0 0 .26rem; font-size: .66rem; letter-spacing: .1em; color: var(--ink-soft); }
+.ark-log__row {
+  display: flex; gap: .32rem; margin: 0 0 .16rem;
+  font-size: .6rem; line-height: 1.6; color: var(--ink-soft);
+}
+.ark-log__turn { flex: 0 0 auto; font-weight: 700; color: #4a6b7a; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 380px) {
+  .ark-hand { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .ark-actions { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

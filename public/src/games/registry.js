@@ -103,6 +103,14 @@ export const GAMES = [
     load: () => import('./warden-ui.js')
   },
   {
+    id: 'arkham', title: 'آرکام: نشانه‌های آشوب', meta: 'تکی · ۲۰–۳۵ دقیقه',
+    playersText: '۱ نفر', timeText: '۲۰–۳۵ دقیقه',
+    art: '/assets/art/noir-leather.jpg',
+    cats: ['solo', 'story'], tags: ['کارت', 'تحقیق', 'هول', 'تک‌نفره'],
+    solo: true, badge: 'کیسهٔ آشوب', multi: false,
+    load: () => import('./arkham-ui.js')
+  },
+  {
     id: 'island', title: 'جزیرهٔ گم‌شده', meta: 'تکی · ۲۰–۳۰ دقیقه',
     playersText: '۱ نفر', timeText: '۲۰–۳۰ دقیقه',
     art: '/assets/art/velvet-board.jpg',

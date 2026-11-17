@@ -1,0 +1,696 @@
+/* ==========================================================================
+   دورهمی‌یار — سیستم طراحی «کاغذ و مقوا»
+   همه چیز کاغذی است: لایه‌های مقوا، لبه‌ی پاره، عمق سه‌بعدی، بافت چاپ دستی.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/assets/fonts/Vazirmatn-Regular.woff2') format('woff2');
+  font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/assets/fonts/Vazirmatn-Medium.woff2') format('woff2');
+  font-weight: 500; font-display: swap;
+}
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/assets/fonts/Vazirmatn-Bold.woff2') format('woff2');
+  font-weight: 700; font-display: swap;
+}
+
+:root {
+  /* ---- جوهر و کاغذ: پالت با کنتراست سنجیده‌شده (WCAG AA) ---- */
+  --ink:        #241d1a;   /* متن اصلی روی کاغذ روشن */
+  --ink-soft:   #5f5247;   /* متن ثانویه — 6.3:1 روی کاغذ */
+  --ink-faint:  #8b7c6c;
+  --paper:      #f4ecd9;   /* کاغذ کرم */
+  --paper-hi:   #fbf6ea;   /* برجسته */
+  --paper-lo:   #e2d4b8;   /* لبه‌ی پایین مقوا */
+  --paper-edge: #c9b48c;
+
+  /* رنگ‌های چاپ دستی — هر رنگ دو نسخه دارد: پرکردن (روشن) و متن (تیره) */
+  --rust:       #a33d2c; --rust-deep:  #7c2a1d;
+  --teal:       #2f6f68; --teal-deep:  #1f4f4a;
+  --mustard:    #b0801f; --mustard-deep:#7a560f;
+  --plum:       #5b3252; --plum-deep:  #3d2038;
+  --navy:       #2b3a55; --navy-deep:  #1a2438;
+  --moss:       #55613a; --moss-deep:  #38411f;
+
+  /* سایه‌های لایه‌ای — ستون فقرات حس «مقوا روی میز» */
+  --lift-1: 0 1px 0 rgba(255,255,255,.55) inset,
+            0 2px 3px rgba(48,32,18,.16),
+            0 6px 10px -4px rgba(48,32,18,.22);
+  --lift-2: 0 1px 0 rgba(255,255,255,.5) inset,
+            0 4px 6px rgba(48,32,18,.16),
+            0 12px 20px -8px rgba(48,32,18,.28);
+  --lift-3: 0 1px 0 rgba(255,255,255,.45) inset,
+            0 8px 14px rgba(48,32,18,.18),
+            0 24px 40px -14px rgba(48,32,18,.4);
+  --press:  0 1px 1px rgba(48,32,18,.2) inset,
+            0 1px 0 rgba(255,255,255,.4);
+
+  --r-paper: 3px;
+  --nav-h: 68px;
+  --ease-paper: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: 'Vazirmatn', system-ui, sans-serif;
+  color: var(--ink);
+  background: #1b1512;
+  direction: rtl;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* میز کار: تصویر تولیدشده + بافت کاغذ روی آن */
+#desk {
+  position: fixed; inset: 0; z-index: -2;
+  background: url('/assets/art/desk-bg.jpg') center/cover no-repeat, #2a1f18;
+  filter: saturate(.95) brightness(.92);
+  transform: scale(1.02);
+}
+#desk::after {
+  /* بافت کاغذ با blend تا روی همه‌چیز «چاپ‌شده» به نظر برسد */
+  content: ''; position: absolute; inset: 0;
+  background: url('/assets/art/paper-cream.jpg') center/cover no-repeat;
+  mix-blend-mode: multiply; opacity: .28;
+}
+#desk::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255,236,200,.16), transparent 60%),
+              radial-gradient(90% 70% at 50% 120%, rgba(0,0,0,.55), transparent 70%);
+}
+
+/* ============================ تایپوگرافی ============================ */
+h1, h2, h3 { margin: 0; line-height: 1.35; letter-spacing: -.2px; }
+h1 { font-size: 1.5rem; font-weight: 700; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+p  { margin: 0 0 .6rem; line-height: 1.9; font-size: .95rem; color: var(--ink); }
+small { font-size: .8rem; color: var(--ink-soft); }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ============================ کاغذ: پایه ============================ */
+.paper {
+  position: relative;
+  background-color: var(--paper);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover;
+  background-blend-mode: multiply;
+  color: var(--ink);
+  border-radius: var(--r-paper);
+  box-shadow: var(--lift-2);
+  isolation: isolate;
+}
+/* دانه‌ی کاغذ: نویز ریز که از تخت‌شدن جلوگیری می‌کند */
+.paper::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 30px rgba(160,130,80,.18),
+              inset 0 1px 0 rgba(255,255,255,.6);
+}
+/* لبه‌ی پاره — با clip-path نامنظم، نه border-radius */
+.torn {
+  --t: 7px;
+  clip-path: polygon(
+    0% 2%, 3% 0%, 14% 1.5%, 27% 0.5%, 41% 2%, 55% 0.5%, 69% 1.8%, 82% 0.3%, 94% 1.6%, 100% 3%,
+    99% 16%, 100% 31%, 98.6% 46%, 100% 60%, 99% 74%, 100% 88%, 98.8% 97%,
+    92% 100%, 78% 98.6%, 64% 100%, 49% 98.4%, 34% 100%, 20% 98.7%, 8% 100%, 1.4% 97%,
+    0.8% 84%, 0% 70%, 1.2% 55%, 0% 41%, 1% 27%, 0% 13%
+  );
+  border-radius: 0;
+}
+/* لبه‌ی دست‌ساز ملایم‌تر برای کارت‌های کوچک */
+.deckle {
+  clip-path: polygon(
+    0% 3%, 5% 0%, 22% 1.5%, 40% 0%, 58% 2%, 76% 0.5%, 92% 2%, 100% 6%,
+    98.5% 24%, 100% 44%, 98.4% 64%, 100% 82%, 97% 98%,
+    80% 100%, 60% 98.4%, 40% 100%, 20% 98.2%, 4% 100%, 0% 94%,
+    1.4% 72%, 0% 50%, 1.6% 28%
+  );
+  border-radius: 0;
+}
+
+/* ============================ دکمه‌های کاغذی ============================ */
+.btn {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .78rem 1.35rem;
+  font: inherit; font-weight: 700; font-size: .95rem;
+  color: var(--ink);
+  background-color: var(--paper-hi);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: none; border-radius: 2px;
+  cursor: pointer;
+  box-shadow: var(--lift-1);
+  transform: translateZ(0);
+  transition: transform .18s var(--ease-paper), box-shadow .18s ease;
+  text-align: center;
+}
+/* لبه‌ی «مقوا»: نوار باریک پایین که ضخامت را القا می‌کند */
+.btn::after {
+  content: ''; position: absolute; inset: auto 0 0 0; height: 3px;
+  background: linear-gradient(180deg, rgba(120,95,60,.28), rgba(120,95,60,0));
+  pointer-events: none;
+}
+.btn:hover  { transform: translateY(-2px) rotate(-.35deg); box-shadow: var(--lift-2); }
+.btn:active { transform: translateY(1px) scale(.985); box-shadow: var(--press); }
+.btn:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.btn--primary {
+  color: #fdf7ea;
+  background-color: var(--rust);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-blend-mode: multiply;
+  text-shadow: 0 1px 0 rgba(0,0,0,.28);
+}
+.btn--teal   { color: #f4fbf8; background-color: var(--teal);    background-image: url('/assets/art/paper-cream.jpg'); background-blend-mode: multiply; }
+.btn--mustard{ color: #fffaf0; background-color: var(--mustard-deep); background-image: url('/assets/art/paper-cream.jpg'); background-blend-mode: multiply; }
+.btn--ghost  { background-color: transparent; background-image: none; box-shadow: none; color: var(--ink-soft); }
+.btn--ghost:hover { background-color: rgba(255,255,255,.34); }
+.btn--block  { width: 100%; }
+.btn--sm     { padding: .5rem .85rem; font-size: .84rem; }
+
+/* ============================ چیدمان صفحه ============================ */
+.app {
+  min-height: 100dvh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 .9rem calc(var(--nav-h) + 1.4rem);
+  position: relative;
+}
+
+.topbar {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .85rem .15rem .6rem;
+  position: sticky; top: 0; z-index: 40;
+}
+.topbar__brand {
+  display: flex; align-items: center; gap: .55rem;
+  font-weight: 700; font-size: 1.05rem;
+  color: #f7efdd;
+  text-shadow: 0 2px 6px rgba(0,0,0,.6);
+}
+.topbar__seal {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #c25b45, #7c2a1d 70%);
+  box-shadow: 0 2px 6px rgba(0,0,0,.5), inset 0 1px 2px rgba(255,255,255,.35);
+  display: grid; place-items: center;
+  color: #f5dfae; font-size: 1rem; font-weight: 700;
+}
+.topbar__title { font-weight: 700; }
+.topbar__title::after {
+  content: ''; display: block; height: 2px; margin-top: 3px; opacity: .5;
+  background: linear-gradient(90deg, var(--mustard), transparent);
+}
+.topbar__spacer { flex: 1; }
+
+.icon-btn {
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border: none; cursor: pointer;
+  background-color: rgba(244,236,217,.92);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border-radius: 3px;
+  box-shadow: var(--lift-1);
+  color: var(--ink);
+  transition: transform .16s var(--ease-paper);
+}
+.icon-btn:hover  { transform: translateY(-2px) rotate(2deg); }
+.icon-btn:active { transform: scale(.94); }
+.icon-btn svg { width: 20px; height: 20px; }
+
+/* ============================ کارت بازی ============================ */
+.game-grid {
+  display: grid; gap: .85rem;
+  grid-template-columns: 1fr 1fr;
+}
+.game-card {
+  position: relative;
+  border: none; padding: 0; cursor: pointer;
+  text-align: right;
+  background-color: var(--paper);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  box-shadow: var(--lift-2);
+  border-radius: 2px;
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform .26s var(--ease-paper), box-shadow .26s ease;
+  overflow: hidden;
+  min-height: 132px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  color: var(--ink);
+}
+.game-card:hover  { transform: translateY(-5px) rotate(0deg) scale(1.015); box-shadow: var(--lift-3); z-index: 2; }
+.game-card:active { transform: translateY(0) scale(.985); box-shadow: var(--press); }
+.game-card:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
+
+/* تصویر چاپ‌شده روی کارت با blend تا «چاپ دستی» بشود */
+.game-card__art {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  opacity: .9;
+  mix-blend-mode: multiply;
+  transition: transform .4s ease;
+}
+.game-card:hover .game-card__art { transform: scale(1.06); }
+.game-card__wash {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(244,236,217,0) 30%, rgba(244,236,217,.92) 78%);
+}
+.game-card__body { position: relative; padding: .7rem .8rem .75rem; }
+.game-card__title { font-size: .95rem; font-weight: 700; line-height: 1.3; }
+.game-card__meta  { font-size: .74rem; color: var(--ink-soft); margin-top: .15rem; }
+.game-card__ribbon {
+  position: absolute; top: .5rem; right: .5rem; z-index: 3;
+  font-size: .68rem; font-weight: 700; padding: .12rem .42rem;
+  background: var(--plum); color: #f7e9d3;
+  box-shadow: 0 2px 4px rgba(0,0,0,.25);
+  transform: rotate(3deg);
+}
+
+/* کارت بزرگ (ویترین / انتخاب حالت) */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 1.15rem 1.1rem;
+  margin: .35rem 0 1.05rem;
+  min-height: 168px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  box-shadow: var(--lift-3);
+  background-color: var(--paper);
+  background-image: url('/assets/art/persian-gold.jpg');
+  background-size: cover;
+  border-radius: 2px;
+}
+.hero__veil {
+  position: absolute; inset: 0;
+  background: linear-gradient(200deg, rgba(20,15,30,.25), rgba(20,15,30,.72));
+}
+.hero__inner { position: relative; color: #f8f0dd; }
+.hero__kicker { font-size: .76rem; letter-spacing: .5px; opacity: .85; margin-bottom: .35rem; }
+.hero h1 { text-shadow: 0 2px 10px rgba(0,0,0,.55); }
+.hero p { color: #e8dcc4; font-size: .88rem; margin: .4rem 0 .8rem; }
+.hero__actions { display: flex; gap: .55rem; flex-wrap: wrap; }
+
+/* ============================ نوار پایین ============================ */
+.navbar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+  height: var(--nav-h);
+  display: flex; justify-content: center; gap: .15rem;
+  padding: .35rem .5rem calc(.35rem + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(28,20,16,.0), rgba(20,14,11,.92) 45%);
+  backdrop-filter: blur(3px);
+}
+.navbar__inner {
+  display: flex; width: 100%; max-width: 560px;
+  background-color: var(--paper);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.6);
+  border-radius: 3px 3px 0 0;
+  padding: .25rem;
+}
+.nav-item {
+  flex: 1; border: none; background: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .12rem;
+  font: inherit; font-size: .68rem; font-weight: 500;
+  color: var(--ink-faint);
+  border-radius: 2px;
+  padding: .3rem .1rem;
+  transition: color .15s ease, background .15s ease;
+}
+.nav-item svg { width: 19px; height: 19px; }
+.nav-item[aria-current='page'] {
+  color: var(--rust-deep);
+  background: rgba(163,61,44,.1);
+  font-weight: 700;
+}
+
+/* ============================ چیپ‌ها و فیلترها ============================ */
+.chips { display: flex; gap: .4rem; overflow-x: auto; padding: .1rem .1rem .5rem; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: 0 0 auto; border: none; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 500;
+  padding: .38rem .72rem;
+  color: var(--ink-soft);
+  background-color: rgba(244,236,217,.9);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  box-shadow: var(--lift-1);
+  border-radius: 1px;
+  transition: transform .15s var(--ease-paper);
+}
+.chip[aria-pressed='true'] {
+  background-color: var(--navy); color: #f3ecdd; font-weight: 700;
+  transform: rotate(-1.2deg) translateY(-1px);
+}
+.chip:active { transform: scale(.95); }
+
+/* ============================ برگه‌های محتوا ============================ */
+.sheet {
+  padding: 1rem 1.05rem;
+  margin-bottom: .9rem;
+  box-shadow: var(--lift-2);
+  background-color: var(--paper);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border-radius: 2px;
+  position: relative;
+}
+.sheet--lined {
+  background-image: url('/assets/art/notebook-page.jpg');
+  background-size: cover;
+  background-color: #f7f2e2;
+}
+.sheet__title {
+  display: flex; align-items: center; gap: .45rem;
+  font-weight: 700; font-size: 1rem; margin-bottom: .55rem;
+}
+.sheet__title svg { width: 18px; height: 18px; color: var(--rust-deep); }
+
+/* ============================ بازی: اسکلت عمومی ============================ */
+.game-shell {
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  max-width: 560px; margin: 0 auto;
+  padding: .7rem .85rem 1.2rem;
+  position: relative;
+  z-index: 1;
+}
+.game-shell__top {
+  display: flex; align-items: center; gap: .55rem; margin-bottom: .7rem;
+}
+.game-shell__title { font-weight: 700; color: #f6ecd8; text-shadow: 0 2px 8px rgba(0,0,0,.65); font-size: 1rem; }
+.game-shell__body { flex: 1; display: flex; flex-direction: column; }
+
+/* شمارنده و امتیاز */
+.score-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+.score-pill {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .65rem; font-size: .82rem; font-weight: 700;
+  background-color: rgba(244,236,217,.94);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  box-shadow: var(--lift-1); border-radius: 1px;
+}
+.score-pill--active { background-color: var(--mustard-deep); color: #fffaf0; }
+
+/* ============================ کارت خصوصی (نقش/واژه) ============================ */
+.reveal-stage {
+  flex: 1; display: grid; place-items: center;
+  perspective: 1500px;
+  padding: .6rem 0 1rem;
+}
+.private-card {
+  width: min(320px, 84vw);
+  aspect-ratio: 5 / 7;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.3, 1.4, .5, 1);
+  cursor: pointer;
+}
+.private-card[data-flipped='true'] { transform: rotateY(180deg); }
+.private-card__face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--lift-3);
+  display: flex; flex-direction: column;
+}
+.private-card__back {
+  background-color: var(--plum);
+  background-image: url('/assets/art/velvet-board.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  color: #f0e2c8;
+  align-items: center; justify-content: center; gap: .8rem;
+  text-align: center; padding: 1.2rem;
+  border: 6px solid #241d1a;
+  outline: 1px solid rgba(240,226,200,.35);
+  outline-offset: -12px;
+}
+.private-card__front { transform: rotateY(180deg); background-color: var(--paper); }
+.private-card__art { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.private-card__art::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(20,14,10,.05) 40%, rgba(20,14,10,.88) 100%);
+}
+.private-card__label {
+  position: relative; z-index: 2; margin-top: auto;
+  padding: 1rem; color: #f8f0dd; text-align: center;
+}
+.private-card__role { font-size: 1.4rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+.private-card__note { font-size: .8rem; opacity: .92; margin-top: .3rem; line-height: 1.7; }
+.private-card__seal {
+  position: absolute; top: .7rem; left: .7rem; z-index: 3;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c25b45, #6d2216);
+  box-shadow: 0 3px 8px rgba(0,0,0,.5), inset 0 1px 2px rgba(255,255,255,.3);
+  display: grid; place-items: center; color: #f5dfae; font-size: .6rem; font-weight: 700;
+}
+
+/* ============================ ورق بازی (حکم / مار و پله) ============================ */
+.playing-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 6px;
+  transform-style: preserve-3d;
+  transition: transform .55s cubic-bezier(.3, 1.3, .5, 1);
+  cursor: pointer;
+  perspective: 1000px;
+}
+.playing-card__face {
+  position: absolute; inset: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background-color: #f7f0dd;
+  box-shadow: 0 2px 4px rgba(20,14,10,.35), 0 8px 16px -6px rgba(20,14,10,.45);
+  border: 1px solid #cbb894;
+}
+/* جلای هولوگرافیک روی ورق */
+.playing-card__face::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,.55) 25%, transparent 30%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  transition: background-position .7s ease;
+  mix-blend-mode: screen;
+}
+.playing-card:hover .playing-card__face::after { background-position: -40% 0; }
+.playing-card__art { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.playing-card__corner {
+  position: absolute; font-weight: 700; font-size: .78rem; line-height: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  z-index: 3;
+}
+.playing-card__corner--tl { top: 4px; right: 4px; }
+.playing-card__corner--br { bottom: 4px; left: 4px; transform: rotate(180deg); }
+.playing-card__suit { font-size: .82rem; }
+.playing-card--back .playing-card__face {
+  background-color: var(--navy);
+  background-image: url('/assets/art/velvet-board.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: 4px solid #f2e7cf;
+  outline: 1px solid rgba(242,231,207,.4);
+  outline-offset: -8px;
+}
+
+/* ردیف دست بازیکن — کارت‌ها کمی چرخیده و روی هم */
+.hand {
+  display: flex; justify-content: center; align-items: flex-end;
+  padding: .4rem 0 1rem; min-height: 132px;
+  position: relative;
+}
+.hand__card {
+  width: 84px; margin-inline-start: -26px;
+  transform-origin: bottom center;
+  transform: rotate(var(--rot, 0deg)) translateY(var(--lift, 0px));
+  transition: transform .22s var(--ease-paper), filter .2s ease;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.3));
+}
+.hand__card:first-child { margin-inline-start: 0; }
+.hand__card:hover,
+.hand__card[data-selected='true'] { transform: rotate(0deg) translateY(-16px) scale(1.06); z-index: 5; }
+.hand__card[data-playable='false'] { filter: grayscale(.65) brightness(.9) drop-shadow(0 2px 3px rgba(0,0,0,.3)); }
+
+/* میز وسط */
+.trick-area {
+  flex: 1; display: grid; place-items: center;
+  min-height: 190px;
+  position: relative;
+}
+.trick-slot {
+  width: 88px; aspect-ratio: 5/7;
+  border: 2px dashed rgba(244,236,217,.45);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: rgba(244,236,217,.6); font-size: .72rem;
+}
+
+/* ============================ تایمر ============================ */
+.timer {
+  display: flex; align-items: center; justify-content: center; gap: .6rem;
+  font-variant-numeric: tabular-nums;
+}
+.timer__dial { position: relative; width: 108px; height: 108px; }
+.timer__num {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 1.9rem; font-weight: 700; color: #f7eeda;
+  text-shadow: 0 2px 8px rgba(0,0,0,.7);
+}
+.timer--warn .timer__num { color: #ffb4a2; }
+
+/* ============================ شبکه مار و پله ============================ */
+.board {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  background: rgba(30,20,14,.5);
+  padding: 4px;
+  border-radius: 3px;
+  box-shadow: var(--lift-2);
+}
+.board__cell {
+  aspect-ratio: 1;
+  position: relative;
+  background-color: var(--paper);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  display: grid; place-items: center;
+  font-size: .6rem; color: var(--ink-faint);
+  font-weight: 700;
+}
+.board__cell--start { background-color: #d9e8d2; }
+.board__cell--snake { background-color: #e6cfc4; }
+.board__cell--ladder { background-color: #d8e2ef; }
+.board__cell--end { background-color: var(--mustard-deep); color: #fff8e7; }
+.board__tokens { position: absolute; inset: 0; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 1px; }
+.token {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,.35);
+  box-shadow: inset -1px -1px 2px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.3);
+}
+
+/* ============================ صفحه‌های شروع/نتیجه بازی ============================ */
+.overlay {
+  position: fixed; inset: 0; z-index: 90;
+  display: grid; place-items: center;
+  padding: 1.1rem;
+  background: rgba(16,11,8,.72);
+  backdrop-filter: blur(4px);
+}
+.modal-sheet {
+  width: min(440px, 100%);
+  max-height: 86dvh; overflow-y: auto;
+  padding: 1.15rem 1.1rem 1.25rem;
+  background-color: var(--paper);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  box-shadow: var(--lift-3);
+  border-radius: 2px;
+}
+
+.result-banner {
+  text-align: center; padding: 1.1rem .9rem;
+}
+.result-banner__verdict { font-size: 1.55rem; font-weight: 700; margin-bottom: .3rem; }
+.result-banner__sub { color: var(--ink-soft); font-size: .88rem; }
+
+/* ============================ کمک‌ها ============================ */
+.help-list { padding-inline-start: 1.1rem; margin: 0; }
+.help-list li { margin-bottom: .55rem; line-height: 1.85; font-size: .9rem; }
+.help-example {
+  border-inline-start: 3px solid var(--mustard);
+  background: rgba(176,128,31,.1);
+  padding: .55rem .7rem;
+  font-size: .86rem;
+  line-height: 1.8;
+  margin: .6rem 0;
+}
+.callout {
+  display: flex; gap: .55rem;
+  padding: .65rem .7rem;
+  font-size: .85rem; line-height: 1.75;
+  background: rgba(47,111,104,.1);
+  border-inline-start: 3px solid var(--teal);
+  margin: .6rem 0;
+}
+
+/* ============================ انیمیشن‌ها ============================ */
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }
+  to   { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+.sheet-in { animation: sheet-in .42s var(--ease-paper) both; }
+
+@keyframes deal-in {
+  from { opacity: 0; transform: translateY(-40px) rotate(-12deg) scale(.8); }
+  to   { opacity: 1; transform: translateY(0) rotate(var(--rot, 0deg)) scale(1); }
+}
+
+@keyframes crumple-out {
+  0%   { transform: scale(1) rotate(0); filter: blur(0); }
+  35%  { transform: scale(.82) rotate(-4deg); }
+  100% { transform: scale(.06) rotate(22deg); opacity: 0; filter: blur(3px); }
+}
+.crumpling { animation: crumple-out .55s ease-in forwards; }
+
+@keyframes stamp-in {
+  0%   { transform: scale(2.4) rotate(-14deg); opacity: 0; }
+  60%  { transform: scale(.94) rotate(-4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-4deg); opacity: 1; }
+}
+.stamp { animation: stamp-in .5s cubic-bezier(.2,1.6,.4,1) both; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up .32s ease both; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,180,120,.5); }
+  50%      { box-shadow: 0 0 22px 4px rgba(255,180,120,.35); }
+}
+.glow { animation: pulse-glow 2.4s ease-in-out infinite; }
+
+/* کاهش حرکت: واقعی و کامل */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: .01ms !important;
+  transition-duration: .01ms !important;
+}
+
+/* متن بزرگ برای خوانایی در جمع */
+.text-lg { font-size: 1.08em; }
+.text-xl { font-size: 1.2em; }
+
+/* موبایل کوچک */
+@media (max-width: 360px) {
+  .game-grid { gap: .6rem; }
+  .hand__card { width: 70px; margin-inline-start: -30px; }
+  body { font-size: 15px; }
+}
+
+/* اسکرول‌بار نازک و کاغذی */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,.2); }
+::-webkit-scrollbar-thumb { background: rgba(244,236,217,.35); border-radius: 4px; }

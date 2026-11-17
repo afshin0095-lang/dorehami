@@ -157,7 +157,7 @@ export function validateMove(move, table, fromId) {
  * ساخت/ورود به اتاق و اتصال. کد و توکن در sessionStorage می‌ماند.
  */
 export async function openTableChannel({ mode, code, onStatusChange, onMessage }) {
-  const store = sessionStorage;
+  const store = typeof sessionStorage !== 'undefined' ? sessionStorage : { setItem() {} };
   if (mode === 'create') {
     const room = await createRoom();
     store.setItem('dy:room', JSON.stringify(room));
@@ -174,6 +174,8 @@ function attach(room, { onStatusChange, onMessage }) {
   const conn = connect({
     code: room.code,
     token: room.token,
+    // فقط سازنده‌ی اتاق این رمز را دارد؛ با آن حق داوری می‌گیرد
+    hostToken: room.hostToken || '',
     onOpen: () => onStatusChange?.({ connected: true, members: 1 }),
     onClose: () => onStatusChange?.({ connected: false }),
     onMessage: (msg) => {

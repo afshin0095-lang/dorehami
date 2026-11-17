@@ -33,9 +33,11 @@ before(async () => {
 after(() => { try { proc?.kill('SIGTERM'); } catch { /* */ } });
 
 /** کلاینت ساده روی WebSocket بومی Node */
-function dial(code, token) {
+function dial(code, token, hostToken = '') {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://127.0.0.1:${PORT}/api/room/${code}?token=${encodeURIComponent(token)}`);
+    const q = new URLSearchParams({ token });
+    if (hostToken) q.set('host', hostToken);
+    const ws = new WebSocket(`ws://127.0.0.1:${PORT}/api/room/${code}?${q.toString()}`);
     const inbox = [];
     ws.addEventListener('message', (ev) => {
       try { inbox.push(JSON.parse(ev.data)); } catch { /* */ }
@@ -65,7 +67,7 @@ test('دو کلاینت: ساخت میز، ورود با کد، پخش کارت'
   assert.match(created.code, /^[A-Z0-9]{5}$/);
   assert.ok(created.token);
 
-  const host = await dial(created.code, created.token);
+  const host = await dial(created.code, created.token, created.hostToken);
   await host.next('welcome');
 
   // مهمان با کد
@@ -93,7 +95,7 @@ test('دو کلاینت: ساخت میز، ورود با کد، پخش کارت'
 
 test('مهمان نمی‌تواند وضعیت را تحمیل کند', async () => {
   const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
-  const host = await dial(created.code, created.token);
+  const host = await dial(created.code, created.token, created.hostToken);
   await host.next('welcome');
 
   const joined = await (await fetch(`${BASE}/api/room/${created.code}`)).json();
@@ -131,7 +133,7 @@ test('وضعیت اتاق تعداد اعضا را نشان می‌دهد', asyn
 
 test('پیام‌های میز (start/move/sync) عبور می‌کنند', async () => {
   const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
-  const host = await dial(created.code, created.token);
+  const host = await dial(created.code, created.token, created.hostToken);
   await host.next('welcome');
 
   const joined = await (await fetch(`${BASE}/api/room/${created.code}`)).json();
@@ -149,9 +151,9 @@ test('پیام‌های میز (start/move/sync) عبور می‌کنند', asyn
   guest.ws.close();
 });
 
-test('میزبان‌بودن پس از خروج میزبان منتقل می‌شود', async () => {
+test('پس از خروج میزبان، اتاق زنده می‌ماند و حضور به‌روز می‌شود', async () => {
   const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
-  const host = await dial(created.code, created.token);
+  const host = await dial(created.code, created.token, created.hostToken);
   await host.next('welcome');
 
   const joined = await (await fetch(`${BASE}/api/room/${created.code}`)).json();
@@ -163,6 +165,49 @@ test('میزبان‌بودن پس از خروج میزبان منتقل می‌
   // مهمان باید پیام حضور تازه بگیرد
   const presence = await guest.next('presence', 2000);
   assert.equal(typeof presence.payload.members, 'number');
+
+  guest.ws.close();
+});
+
+test('بدون رمز میزبان، هیچ‌کس نمی‌تواند وضعیت پخش کند', async () => {
+  const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
+  assert.ok(created.hostToken, 'سازنده باید رمز میزبان بگیرد');
+
+  // دو کلاینت، هیچ‌کدام رمز میزبان ندارند
+  const x = await dial(created.code, created.token);
+  const wx = await x.next('welcome');
+  assert.equal(wx.payload.youAreHost, false, 'بدون رمز، میزبان نیست');
+
+  const joined = await (await fetch(`${BASE}/api/room/${created.code}`)).json();
+  const y = await dial(created.code, joined.token);
+  const wy = await y.next('welcome');
+  assert.equal(wy.payload.youAreHost, false);
+
+  x.send('state', { revision: 1 });
+  const err = await x.next('error');
+  assert.equal(err.payload.reason, 'not-host');
+
+  x.ws.close(); y.ws.close();
+});
+
+test('انتقال اختیار میزبان با رفتن او رخ نمی‌دهد', async () => {
+  const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
+  const host = await dial(created.code, created.token, created.hostToken);
+  await host.next('welcome');
+
+  const joined = await (await fetch(`${BASE}/api/room/${created.code}`)).json();
+  const guest = await dial(created.code, joined.token);
+  await guest.next('welcome');
+  await host.next('presence');
+
+  // میزبان می‌رود
+  host.ws.close();
+  await guest.next('presence', 2000);
+
+  // مهمان نباید بتواند وضعیت بفرستد، حتی حالا که تنهاست
+  guest.send('state', { revision: 9, cheat: true });
+  const err = await guest.next('error');
+  assert.equal(err.payload.reason, 'not-host', 'اختیار میزبان نباید خودبه‌خود منتقل شود');
 
   guest.ws.close();
 });

@@ -236,6 +236,16 @@ function handleUpgrade(req, socket, head) {
   const b = Buffer.from(room.token);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return reject(403, 'Forbidden');
 
+  /**
+   * اختیار میزبان فقط با «رمز میزبان» ثابت می‌شود — همان رمزی که تنها
+   * سازنده‌ی اتاق گرفته است. صرفِ «اولین اتصال» کافی نیست، وگرنه با رفتن
+   * میزبان، هر مهمانی می‌توانست وضعیت را قبضه کند.
+   */
+  const hostToken = url.searchParams.get('host') || '';
+  const ha = Buffer.from(hostToken);
+  const hb = Buffer.from(room.hostToken || '');
+  const hasHostSecret = ha.length > 0 && ha.length === hb.length && timingSafeEqual(ha, hb);
+
   socket.write([
     'HTTP/1.1 101 Switching Protocols',
     'Upgrade: websocket',
@@ -245,7 +255,12 @@ function handleUpgrade(req, socket, head) {
     ''
   ].join('\r\n'));
 
-  const member = { socket, joinedAt: Date.now(), isHost: room.members.size === 0 };
+  const member = {
+    socket,
+    joinedAt: Date.now(),
+    isHost: hasHostSecret,          // اختیار میزبان، نه ترتیب اتصال
+    isFirst: room.members.size === 0
+  };
   room.members.add(member);
 
   wsSend(socket, {
@@ -287,11 +302,8 @@ function handleUpgrade(req, socket, head) {
 
   const leave = () => {
     room.members.delete(member);
-    if (!member.isHost) {
-      // اگر میزبان رفت، اولین عضو میزبان می‌شود
-      const next = [...room.members][0];
-      if (next) { next.isHost = true; room.hostId = 'host'; }
-    }
+    // اختیار میزبان با رمز منتقل می‌شود، نه با رفتن میزبان.
+    // پس هیچ مهمانی خودبه‌خود میزبان نمی‌شود.
     broadcast(room, {
       v: 1, type: 'presence', roomId: code, from: 'server',
       payload: { members: room.members.size, host: room.hostId }
@@ -319,7 +331,10 @@ const server = createServer(async (req, res) => {
       for await (const chunk of req) { body += chunk; if (body.length > 2048) return json(res, 413, { error: 'too-large' }); }
       const hostToken = newToken();
       const code = newCode();
-      rooms.set(code, { code, token: newToken(), hostId: 'host', members: new Set(), createdAt: Date.now() });
+      rooms.set(code, {
+        code, token: newToken(), hostToken, hostId: 'host',
+        members: new Set(), createdAt: Date.now()
+      });
       return json(res, 201, { code, token: rooms.get(code).token, host: true, hostToken });
     }
 

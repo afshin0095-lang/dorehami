@@ -85,7 +85,7 @@ test('CSP اتصال WebSocket را مجاز می‌کند', async () => {
 
 test('WebSocket واقعی: دو کلاینت در یک اتاق پیام می‌بینند', async () => {
   const room = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
-  const url = `ws://127.0.0.1:${PORT}/api/room/${room.code}?token=${encodeURIComponent(room.token)}`;
+  const url = `ws://127.0.0.1:${PORT}/api/room/${room.code}?token=${encodeURIComponent(room.token)}&host=${encodeURIComponent(room.hostToken)}`;
   // Node 22 WebSocket داخلی دارد
   const WS = globalThis.WebSocket;
   assert.ok(WS, 'WebSocket در Node موجود است');
@@ -96,8 +96,10 @@ test('WebSocket واقعی: دو کلاینت در یک اتاق پیام می�
     ws.addEventListener('error', (e) => reject(new Error('ws error')));
   });
 
+  // فقط کلاینت «الف» رمز میزبان را دارد؛ «ب» یک مهمان عادی است
+  const guestUrl = `ws://127.0.0.1:${PORT}/api/room/${room.code}?token=${encodeURIComponent(room.token)}`;
   const a = await open(url);
-  const b = await open(url);
+  const b = await open(guestUrl);
 
   const got = [];
   b.addEventListener('message', (ev) => { try { got.push(JSON.parse(ev.data)); } catch { /* */ } });

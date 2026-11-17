@@ -34,11 +34,15 @@ export async function joinRoom(code) {
 
 /**
  * اتصال به اتاق.
- * @param {{code:string, token:string, onMessage:Function, onOpen?:Function, onClose?:Function}} opts
+ * `hostToken` فقط روی دستگاه سازنده‌ی اتاق وجود دارد و سرور با آن
+ * تشخیص می‌دهد چه کسی حق پخش وضعیت دارد.
+ * @param {{code:string, token:string, hostToken?:string, onMessage:Function, onOpen?:Function, onClose?:Function}} opts
  */
-export function connect({ code, token, onMessage, onOpen, onClose }) {
+export function connect({ code, token, hostToken = '', onMessage, onOpen, onClose }) {
   if (typeof WebSocket === 'undefined') throw new Error('این مرورگر WebSocket ندارد');
-  const ws = new WebSocket(`${wsUrl()}/${encodeURIComponent(code)}?token=${encodeURIComponent(token)}`);
+  const q = new URLSearchParams({ token });
+  if (hostToken) q.set('host', hostToken);
+  const ws = new WebSocket(`${wsUrl()}/${encodeURIComponent(code)}?${q.toString()}`);
   const gate = createRevisionGate();
   let hostId = null;
   let closed = false;

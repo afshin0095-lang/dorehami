@@ -111,6 +111,14 @@ export const GAMES = [
     load: () => import('./ring-ui.js')
   },
   {
+    id: 'spirit', title: 'روح جزیره', meta: 'تکی · ۲۰–۳۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۲۰–۳۰ دقیقه',
+    art: '/assets/art/paper-cream.jpg',
+    cats: ['solo', 'cards', 'story'], tags: ['کارت', 'جزیره', 'ترس', 'تک‌نفره'],
+    solo: true, badge: 'روح جزیره', multi: false,
+    load: () => import('./spirit-ui.js')
+  },
+  {
     id: 'arkham', title: 'آرکام: نشانه‌های آشوب', meta: 'تکی · ۲۰–۳۵ دقیقه',
     playersText: '۱ نفر', timeText: '۲۰–۳۵ دقیقه',
     art: '/assets/art/noir-leather.jpg',

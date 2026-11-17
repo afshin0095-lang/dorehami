@@ -141,7 +141,10 @@ test('کلاس‌های متنی بازی‌های تازه گارد شکستن 
     '.ark-inv__name', '.ark-inv__perk', '.ark-brief span',
     '.ring-hero p', '.ring-hero-pick__name', '.ring-card__name', '.ring-card__text',
     '.ring-stage__name', '.ring-stage__intro', '.ring-log', '.ring-stat__num',
-    '.ring-foe__name', '.ring-threat__val', '.ring-crew__row', '.ring-brief span'
+    '.ring-foe__name', '.ring-threat__val', '.ring-crew__row', '.ring-brief span',
+    '.sp-hero h1', '.sp-hero p', '.sp-spirit__name', '.sp-spirit__perk',
+    '.sp-power__name', '.sp-power__text', '.sp-land__name', '.sp-land__count',
+    '.sp-target__name', '.sp-log__row', '.sp-gauge__label', '.sp-brief span'
   ];
   for (const sel of guarded) {
     assert.ok(hasWrapGuard(sel), `${sel} بدون گارد شکستن کلمه`);
@@ -172,7 +175,7 @@ test('بدون background-size: 100% 100% (کشیدگی ممنوع)', () => {
 
 test('هر صفحه‌ی بازی دکمه‌ی بازگشت دارد', async () => {
   const files = ['mafia', 'hokm', 'esmfamil', 'snake', 'quiz', 'riddle', 'iq', 'codenames',
-    'lowball', 'story', 'warden', 'logic', 'duz', 'spot', 'gloom', 'siege', 'island', 'arkham', 'ring'];
+    'lowball', 'story', 'warden', 'logic', 'duz', 'spot', 'gloom', 'siege', 'island', 'arkham', 'ring', 'spirit'];
   for (const id of files) {
     const src = await readFile(join(ROOT, `public/src/games/${id}-ui.js`), 'utf8');
     assert.match(src, /gameHeader\(/, `${id}: gameHeader ندارد`);

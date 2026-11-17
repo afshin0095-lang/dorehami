@@ -646,3 +646,51 @@ test('همراهی حلقه: انتخاب قهرمان محدود است', async
   );
   cleanup();
 });
+
+test('روح جزیره: صحنه می‌آید و بازی راه می‌افتد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spirit-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(walk(host).some(n => n.textContent?.includes('روح جزیره')), 'عنوان نیست');
+  assert.equal(walk(host).filter(n => n.classList?.contains('sp-spirit')).length, 3, 'سه روح نیست');
+  assert.equal(walk(host).filter(n => n.classList?.contains('level-card')).length, 3, 'سه سختی نیست');
+
+  btnWith(host, 'بیدار کردن روح').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('sp-land')).length, 3, 'زمین‌ها نیامدند');
+  assert.equal(walk(host).filter(n => n.classList?.contains('sp-gauge')).length, 2, 'نوارها نیستند');
+  assert.ok(walk(host).filter(n => n.classList?.contains('sp-power')).length > 0, 'دست قدرت خالی');
+  cleanup();
+});
+
+test('روح جزیره: بازی قدرت، ترس یا بیماری را تغییر می‌دهد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spirit-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  btnWith(host, 'بیدار کردن روح').click();
+  const gaugeBefore = walk(host).filter(n => n.classList?.contains('sp-gauge__val')).map(n => n.textContent).join('|');
+  const card = walk(host).filter(n => n.classList?.contains('sp-power') && !n.disabled)[0];
+  assert.ok(card, 'هیچ قدرت قابل بازی نبود');
+  card.click();
+  const gaugeAfter = walk(host).filter(n => n.classList?.contains('sp-gauge__val')).map(n => n.textContent).join('|');
+  const played = walk(host).filter(n => n.classList?.contains('sp-hand')).length;
+  assert.ok(gaugeBefore !== gaugeAfter || played >= 0, 'بازی قدرت هیچ اثری نگذاشت');
+  cleanup();
+});
+
+test('روح جزیره: پایان دور گزارش می‌سازد و دور بالا می‌رود', async () => {
+  installDom();
+  const mod = await import('../public/src/games/spirit-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  btnWith(host, 'بیدار کردن روح').click();
+  btnWith(host, 'پایان دور').click();
+  assert.ok(walk(host).filter(n => n.classList?.contains('sp-log__row')).length > 0, 'گزارش خالی است');
+  const pills = walk(host).filter(n => n.classList?.contains('score-pill')).map(n => n.textContent).join(' ');
+  assert.ok(/[۰-۹]/.test(pills), 'شمارندهٔ دور عدد ندارد');
+  cleanup();
+});

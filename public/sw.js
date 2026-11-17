@@ -53,6 +53,8 @@ const SHELL = [
   '/src/games/arkham-ui.js',
   '/src/engines/ring.js',
   '/src/games/ring-ui.js',
+  '/src/engines/spirit.js',
+  '/src/games/spirit-ui.js',
   '/src/engines/mafia.js',
   '/src/engines/hokm.js',
   '/src/engines/snake.js',

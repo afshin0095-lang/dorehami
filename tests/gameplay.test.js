@@ -591,3 +591,58 @@ test('آرکام: انتخاب پژوهشگر در مقدمه اثر می‌کن
   assert.ok(textOf(host).includes('دیزی'), 'پژوهشگر انتخابی به بازی نرسید');
   cleanup();
 });
+
+test('همراهی حلقه: از مقدمه تا سفر', async () => {
+  installDom();
+  const mod = await import('../public/src/games/ring-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('همراهی حلقه'), 'عنوان نیامد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('ring-hero-pick')).length, 4, 'قهرمانان');
+  assert.equal(walk(host).filter(n => n.classList?.contains('level-card')).length, 3, 'سطوح');
+
+  btnWith(host, 'شروع سفر').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('ring-threat')).length, 1, 'نوار تهدید');
+  assert.equal(walk(host).filter(n => n.classList?.contains('ring-stage')).length, 1, 'مرحله');
+  assert.equal(walk(host).filter(n => n.classList?.contains('ring-stat')).length, 4, 'آمار گروه');
+  assert.ok(walk(host).filter(n => n.classList?.contains('ring-card')).length > 0, 'دست خالی');
+  cleanup();
+});
+
+test('همراهی حلقه: جست‌وجو پیشرفت یا تهدید می‌دهد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/ring-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع سفر').click();
+
+  btnWith(host, 'جست‌وجو').click();
+  const bars = walk(host).find(n => n.classList?.contains('ring-stage__bars'));
+  assert.ok(bars, 'نوار پیشرفت پیدا نشد');
+  assert.ok(/پیشرفت/.test(bars.textContent), 'متن پیشرفت نیست');
+  assert.ok(/[۰-۹]/.test(bars.textContent), `عدد فارسی نیست: ${bars.textContent}`);
+  assert.ok(walk(host).filter(n => n.classList?.contains('ring-log__row')).length > 0, 'گزارش خالی');
+  cleanup();
+});
+
+test('همراهی حلقه: انتخاب قهرمان محدود است', async () => {
+  installDom();
+  const mod = await import('../public/src/games/ring-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  // سه انتخاب‌شده، دومی را برمی‌داریم → دو می‌ماند
+  walk(host).filter(n => n.classList?.contains('ring-hero-pick'))[0].click();
+  assert.equal(
+    walk(host).filter(n => n.classList?.contains('ring-hero-pick') && n.classList?.contains('is-on')).length,
+    2, 'حذف قهرمان کار نکرد'
+  );
+  // تلاش برای حذف دومی → باید رد شود (دست‌کم دو)
+  walk(host).filter(n => n.classList?.contains('ring-hero-pick') && n.classList?.contains('is-on'))[0].click();
+  assert.equal(
+    walk(host).filter(n => n.classList?.contains('ring-hero-pick') && n.classList?.contains('is-on')).length,
+    2, 'کمتر از دو قهرمان نباید ممکن باشد'
+  );
+  cleanup();
+});

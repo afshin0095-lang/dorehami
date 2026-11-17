@@ -103,6 +103,14 @@ export const GAMES = [
     load: () => import('./warden-ui.js')
   },
   {
+    id: 'ring', title: 'همراهی حلقه', meta: 'تکی · ۱۵–۲۵ دقیقه',
+    playersText: '۱ نفر', timeText: '۱۵–۲۵ دقیقه',
+    art: '/assets/art/paper-cream.jpg',
+    cats: ['solo', 'story'], tags: ['کارت', 'سفر', 'تهدید', 'تک‌نفره'],
+    solo: true, badge: 'سفر حلقه', multi: false,
+    load: () => import('./ring-ui.js')
+  },
+  {
     id: 'arkham', title: 'آرکام: نشانه‌های آشوب', meta: 'تکی · ۲۰–۳۵ دقیقه',
     playersText: '۱ نفر', timeText: '۲۰–۳۵ دقیقه',
     art: '/assets/art/noir-leather.jpg',

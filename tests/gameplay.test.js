@@ -427,3 +427,53 @@ test('گِلومهیون: بیش از دو کارت انتخاب نمی‌شود
   );
   cleanup();
 });
+
+test('شب‌های محاصره: از مقدمه تا کارت شب', async () => {
+  installDom();
+  const mod = await import('../public/src/games/siege-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(textOf(host).includes('محاصره'), 'عنوان نیامد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('level-card')).length, 3, 'سطوح');
+  assert.equal(walk(host).filter(n => n.classList?.contains('siege-brief__row')).length, 3, 'بازمانده‌ها');
+
+  btnWith(host, 'شروع محاصره').click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('siege-res__item')).length, 5, 'منابع');
+  assert.equal(walk(host).filter(n => n.classList?.contains('siege-person')).length, 3, 'بازمانده‌ها');
+  assert.equal(walk(host).filter(n => n.classList?.contains('siege-job')).length, 6, 'کارها');
+  cleanup();
+});
+
+test('شب‌های محاصره: کار روز، کارت شب و گزینه', async () => {
+  installDom();
+  const mod = await import('../public/src/games/siege-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع محاصره').click();
+
+  walk(host).filter(n => n.classList?.contains('siege-job') && !n.disabled)[0].click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('siege-card')).length, 1, 'کارت شب نیامد');
+  assert.ok(walk(host).filter(n => n.classList?.contains('siege-choice')).length >= 2, 'گزینه کم است');
+
+  walk(host).filter(n => n.classList?.contains('siege-choice'))[0].click();
+  assert.equal(walk(host).filter(n => n.classList?.contains('siege-card')).length, 0, 'کارت شب نرفت');
+  assert.ok(walk(host).filter(n => n.classList?.contains('siege-job')).length > 0, 'روز بعد شروع نشد');
+  cleanup();
+});
+
+test('شب‌های محاصره: کار بدون منابع غیرفعال است', async () => {
+  installDom();
+  const mod = await import('../public/src/games/siege-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+  btnWith(host, 'شروع محاصره').click();
+
+  // همهٔ کارها فعال یا غیرفعال‌اند ولی هیچ‌کدام نباید بدون پیام اجرا شوند
+  const jobs = walk(host).filter(n => n.classList?.contains('siege-job'));
+  assert.equal(jobs.length, 6);
+  for (const j of jobs) {
+    assert.ok(j.textContent.length > 4, 'کار بدون متن');
+  }
+  cleanup();
+});

@@ -45,6 +45,8 @@ const SHELL = [
   '/src/games/spot-ui.js',
   '/src/engines/gloom.js',
   '/src/games/gloom-ui.js',
+  '/src/engines/siege.js',
+  '/src/games/siege-ui.js',
   '/src/engines/mafia.js',
   '/src/engines/hokm.js',
   '/src/engines/snake.js',

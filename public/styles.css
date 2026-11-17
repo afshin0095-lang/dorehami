@@ -2429,6 +2429,175 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .gloom-enemy__name { font-size: .64rem; }
 }
 
+
+/* ============================================================
+   شب‌های محاصره — بقا روی کاغذ سوخته
+   ============================================================ */
+[class*="siege-"] { overflow-wrap: anywhere; min-width: 0; }
+
+.siege-hero {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1rem 1.2rem;
+  background-color: #3b3428;
+  background-image: url('/assets/art/notebook-page.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  color: #e6dcc6;
+}
+.siege-hero__frame {
+  position: absolute; inset: 8px;
+  border: 1px solid rgba(190,160,105,.3);
+  border-radius: 2px; pointer-events: none;
+}
+.siege-hero__frame span {
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+  padding: 0 .4rem; color: rgba(190,160,105,.45); font-size: 1rem;
+}
+.siege-hero__text { position: relative; z-index: 1; padding: .2rem .3rem; }
+.siege-hero__kicker { font-size: .7rem; letter-spacing: .14em; color: #bdae8b; }
+.siege-hero h1 { font-size: clamp(1.35rem, 5.8vw, 1.9rem); margin: .25rem 0 .45rem; color: #f2e9d6; overflow-wrap: anywhere; }
+.siege-hero p { margin: 0; max-width: 36ch; line-height: 1.8; font-size: .85rem; color: #cfc4a8; overflow-wrap: anywhere; }
+
+.siege-brief {
+  display: grid; gap: .2rem;
+  margin: .55rem 0 .1rem; padding: .55rem .65rem;
+  background: rgba(47,111,104,.08);
+  border-right: 3px solid var(--teal);
+}
+.siege-brief strong { font-size: .8rem; }
+.siege-brief__row { display: flex; justify-content: space-between; gap: .4rem; font-size: .72rem; }
+.siege-brief__name { color: var(--ink); }
+.siege-brief__role { color: var(--ink-soft); font-size: .66rem; }
+
+/* منابع */
+.siege-res {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+  gap: .3rem; margin-bottom: .45rem;
+}
+.siege-res__item {
+  display: grid; justify-items: center; gap: .02rem;
+  padding: .35rem .2rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid rgba(120,95,55,.22);
+  border-top: 2px solid var(--res, #7a6a3a);
+  border-radius: 2px;
+}
+.siege-res__glyph { font-size: .95rem; color: var(--res, #7a6a3a); line-height: 1; }
+.siege-res__num { font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.siege-res__name { font-size: .54rem; color: var(--ink-soft); }
+.siege-res__item.is-low { border-color: var(--rust); background: rgba(163,61,44,.08); }
+.siege-res__item.is-low .siege-res__num { color: var(--rust); }
+.siege-res__item.is-need { border-top-color: var(--teal); }
+
+/* بازمانده‌ها */
+.siege-crew { display: grid; gap: .3rem; margin-bottom: .5rem; }
+.siege-person {
+  padding: .4rem .5rem;
+  background: rgba(255,252,244,.88);
+  border: 1px solid rgba(120,95,55,.22);
+  border-inline-start: 3px solid var(--who, #6b5a3a);
+  border-radius: 2px;
+}
+.siege-person.is-dead { opacity: .45; filter: grayscale(1); }
+.siege-person.is-critical { border-color: var(--rust); background: rgba(163,61,44,.07); }
+.siege-person__top { display: flex; justify-content: space-between; gap: .4rem; align-items: baseline; }
+.siege-person__name { font-size: .78rem; font-weight: 700; }
+.siege-person__cond { font-size: .58rem; color: var(--ink-soft); white-space: nowrap; }
+.siege-person.is-critical .siege-person__cond { color: var(--rust); font-weight: 700; }
+.siege-person.is-hungry .siege-person__cond { color: var(--mustard-deep, #a87b1a); }
+.siege-person__bar {
+  height: 5px; margin: .25rem 0 .2rem;
+  background: rgba(120,95,55,.16);
+  border-radius: 999px; overflow: hidden;
+}
+.siege-person__fill {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, #7d9b6a, #4f6b3a);
+  transition: width .35s var(--ease-paper);
+}
+.siege-person.is-critical .siege-person__fill { background: linear-gradient(90deg, #c26a4a, #a33d2c); }
+.siege-person__tags { display: flex; flex-wrap: wrap; gap: .2rem; }
+.siege-tag {
+  font-size: .52rem; padding: .05rem .3rem;
+  border-radius: 999px; background: rgba(120,95,55,.14);
+  color: var(--ink-soft);
+}
+.siege-tag.is-warn { background: rgba(163,61,44,.14); color: var(--rust); }
+.siege-tag.is-ok { background: rgba(47,111,104,.14); color: var(--teal-deep, #245b55); }
+
+/* کارهای روز */
+.siege-jobs { display: grid; gap: .3rem; }
+.siege-jobs__title { margin: .2rem 0 .1rem; font-size: .72rem; letter-spacing: .1em; color: var(--ink-soft); }
+.siege-job {
+  display: grid; gap: .05rem;
+  padding: .45rem .55rem;
+  background: rgba(255,252,244,.9);
+  border: 1px solid rgba(120,95,55,.25);
+  border-radius: 2px; text-align: start;
+  font-family: inherit; cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+.siege-job:active { transform: scale(.985); }
+.siege-job.is-locked { opacity: .42; cursor: not-allowed; }
+.siege-job__name { font-size: .78rem; font-weight: 700; }
+.siege-job__desc { font-size: .64rem; color: var(--ink-soft); }
+.siege-job__cost { font-size: .56rem; color: var(--mustard-deep, #a87b1a); }
+
+/* کارت شب */
+.siege-card {
+  margin-top: .4rem; padding: .65rem .6rem;
+  background-color: #efe4cc;
+  background-image: url('/assets/art/notebook-page.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: 1px solid rgba(120,95,55,.4);
+  border-radius: 3px;
+  box-shadow: var(--lift-2);
+}
+.siege-card__kind {
+  display: inline-block; margin-bottom: .25rem;
+  font-size: .54rem; letter-spacing: .14em;
+  padding: .1rem .4rem; border-radius: 2px;
+  background: rgba(120,95,55,.18); color: #5a4527;
+}
+.siege-card__title { margin: 0 0 .25rem; font-size: .95rem; }
+.siege-card__body { margin: 0 0 .45rem; font-size: .74rem; line-height: 1.8; color: var(--ink-soft); }
+.siege-card__choices { display: grid; gap: .28rem; }
+.siege-choice {
+  display: grid; gap: .05rem;
+  padding: .42rem .5rem;
+  background: rgba(255,255,255,.6);
+  border: 1px solid rgba(120,95,55,.24);
+  border-radius: 2px; text-align: start;
+  font-family: inherit; cursor: pointer;
+}
+.siege-choice__label { font-size: .74rem; font-weight: 700; }
+.siege-choice__note { font-size: .6rem; color: var(--ink-soft); }
+
+/* گزارش */
+.siege-log {
+  margin-top: .6rem; padding: .5rem .55rem;
+  background: rgba(59,52,40,.055);
+  border: 1px solid rgba(120,95,55,.18);
+  max-height: 160px; overflow-y: auto;
+}
+.siege-log h3 { margin: 0 0 .28rem; font-size: .68rem; letter-spacing: .1em; color: var(--ink-soft); }
+.siege-log__row {
+  display: flex; gap: .35rem; margin: 0 0 .18rem;
+  font-size: .62rem; line-height: 1.6; color: var(--ink-soft);
+}
+.siege-log__day { flex: 0 0 auto; font-weight: 700; color: var(--gold, #b08d57); font-variant-numeric: tabular-nums; }
+
+.siege-endcrew {
+  display: grid; gap: .15rem;
+  margin: .3rem auto .55rem; max-width: 22ch;
+}
+.siege-endcrew__row { font-size: .68rem; color: var(--ink-soft); }
+.siege-endcrew__row.is-dead { text-decoration: line-through; opacity: .55; }
+
+@media (max-width: 380px) {
+  .siege-res { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
+  .siege-card__body { font-size: .7rem; }
+}
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

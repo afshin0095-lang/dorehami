@@ -103,6 +103,14 @@ export const GAMES = [
     load: () => import('./warden-ui.js')
   },
   {
+    id: 'siege', title: 'شب‌های محاصره', meta: 'تکی · ۱۵–۲۵ دقیقه',
+    playersText: '۱ نفر', timeText: '۱۵–۲۵ دقیقه',
+    art: '/assets/art/notebook-page.jpg',
+    cats: ['solo', 'story'], tags: ['بقا', 'کارت', 'انتخاب', 'تک‌نفره'],
+    solo: true, badge: 'بقا', multi: false,
+    load: () => import('./siege-ui.js')
+  },
+  {
     id: 'gloom', title: 'غارهای گِلومهیون', meta: 'تکی · ۱۵–۳۰ دقیقه',
     playersText: '۱ نفر', timeText: '۱۵–۳۰ دقیقه',
     art: '/assets/art/noir-leather.jpg',

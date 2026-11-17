@@ -90,3 +90,62 @@ test('validateMove: نوبت و فاز بررسی می‌شود', () => {
   assert.equal(validateMove({ cardId: 'x' }, t, 'host').ok, true);
   assert.equal(validateMove(null, t, 'host').ok, false);
 });
+
+/* ------------------------------ پخش کارت ------------------------------ */
+test('شروع میز واقعاً کارت پخش می‌کند', async () => {
+  const { fullDeck, seededShuffle, startTable } = await import('../public/src/net/table.js');
+  assert.equal(fullDeck().length, 52);
+  assert.equal(new Set(fullDeck().map(c => c.id)).size, 52);
+
+  let t = createTable({ gameId: 'hokm', hostName: 'میزبان', maxSeats: 4, seed: 99 });
+  t = addSeat(t, { id: 'p2', name: 'دوم' });
+  t = addSeat(t, { id: 'p3', name: 'سوم' });
+  t = addSeat(t, { id: 'p4', name: 'چهارم' });
+  t = startTable(t);
+
+  assert.equal(t.phase, 'playing');
+  for (const id of ['host', 'p2', 'p3', 'p4']) {
+    assert.equal(t.hands[id].length, 13, `${id}: تعداد کارت نادرست`);
+  }
+  // هیچ کارتی دو بار پخش نشود
+  const all = new Set();
+  for (const id of Object.keys(t.hands)) for (const c of t.hands[id]) all.add(c.id);
+  assert.equal(all.size, 52, 'همه‌ی ۵۲ کارت باید یکتا پخش شوند');
+});
+
+test('بُر زدن با دانه یکسان، نتیجه‌ی یکسان می‌دهد', async () => {
+  const { seededShuffle, fullDeck } = await import('../public/src/net/table.js');
+  const a = seededShuffle(fullDeck(), 1234);
+  const b = seededShuffle(fullDeck(), 1234);
+  const c = seededShuffle(fullDeck(), 4321);
+  assert.deepEqual(a.map(x => x.id), b.map(x => x.id), 'دانه‌ی یکسان باید ترتیب یکسان بدهد');
+  assert.notDeepEqual(a.map(x => x.id), c.map(x => x.id), 'دانه‌ی متفاوت باید ترتیب متفاوت بدهد');
+});
+
+test('کارت‌های پخش‌نشده هم پنهان می‌شوند', () => {
+  let t = createTable({ gameId: 'hokm', hostName: 'میزبان', maxSeats: 2, seed: 3 });
+  t = addSeat(t, { id: 'p2', name: 'مهمان' });
+  t = startTable(t);
+
+  const pub = JSON.stringify(publicState(t));
+  assert.equal(/"rank":/.test(pub), false, 'publicState نباید رتبه‌ی هیچ کارتی داشته باشد');
+
+  const view = viewFor(t, 'host');
+  assert.equal(JSON.stringify(view.hands.p2).includes('rank'), false, 'دست حریف نباید دیده شود');
+  assert.equal(JSON.stringify(view.stock).includes('rank'), false, 'ذخیره نباید دیده شود');
+  assert.ok(view.myHand.length > 0, 'دست خودم باید دیده شود');
+});
+
+test('هر میز فقط دست خودش را می‌بیند', () => {
+  let t = createTable({ gameId: 'hokm', hostName: 'میزبان', maxSeats: 3, seed: 11 });
+  t = addSeat(t, { id: 'p2', name: 'ب' });
+  t = addSeat(t, { id: 'p3', name: 'ج' });
+  t = startTable(t);
+
+  const mine = viewFor(t, 'p2');
+  const theirs = viewFor(t, 'p3');
+  assert.equal(mine.myHand.length, theirs.myHand.length);
+  assert.notDeepEqual(mine.myHand.map(c => c.id), theirs.myHand.map(c => c.id), 'هر بازیکن باید دست خودش را داشته باشد');
+  assert.equal(mine.isMyTurn, false);
+  assert.equal(viewFor(t, 'host').isMyTurn, true);
+});

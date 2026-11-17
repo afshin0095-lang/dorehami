@@ -50,19 +50,65 @@ export function removeSeat(table, id) {
   return { ...table, seats: table.seats.filter(s => s.id !== id) };
 }
 
-export function startTable(table, { trumpSuit } = {}) {
+/* ------------------------------ دسته‌ی ورق ------------------------------ */
+export const SUITS = ['spades', 'hearts', 'diamonds', 'clubs'];
+export const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+/** دسته‌ی ۵۲تایی — همان دسته‌ی مشترک همه‌ی بازی‌های ورق */
+export function fullDeck() {
+  const out = [];
+  for (const suit of SUITS) for (const rank of RANKS) out.push({ id: `${suit[0]}${rank}`, suit, rank });
+  return out;
+}
+
+/** بُر زدن قطعی با دانه (همه‌ی دستگاه‌ها یک ترتیب می‌گیرند) */
+export function seededShuffle(arr, seed = 1) {
+  let s = (seed >>> 0) || 1;
+  const next = () => {
+    s ^= s << 13; s >>>= 0;
+    s ^= s >> 17;
+    s ^= s << 5; s >>>= 0;
+    return s / 4294967296;
+  };
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * شروع میز. کارت‌ها واقعاً پخش می‌شوند:
+ * دسته با «دانه» بُر می‌خورد، پس همه‌ی دستگاه‌ها عین همان دست‌ها را می‌سازند
+ * و لازم نیست کارت‌ها روی شبکه فرستاده شوند — فقط دانه.
+ */
+export function startTable(table, { trumpSuit, cardsEach = null } = {}) {
   if (table.seats.length < 2) throw new Error('برای شروع حداقل دو نفر لازم است');
-  // دست‌ها فقط برای همین لحظه ساخته می‌شوند؛ هر بازیکن فقط دست خودش را می‌گیرد
   const ids = table.seats.map(s => s.id);
+  const deck = seededShuffle(fullDeck(), table.seed);
+  const per = cardsEach ?? (table.gameId === 'hokm' ? Math.min(13, Math.floor(52 / ids.length)) : 5);
+
+  const hands = {};
+  ids.forEach(id => { hands[id] = []; });
+  let k = 0;
+  for (let round = 0; round < per; round++) {
+    for (const id of ids) {
+      if (k < deck.length) hands[id].push(deck[k++]);
+    }
+  }
+
   return {
     ...table,
     phase: 'playing',
     handIds: ids,
+    hands,
+    stock: deck.slice(k),
     trumpSuit: trumpSuit || 'diamonds',
     turn: ids[0],
     table: [],
     revision: table.revision + 1,
-    log: [...table.log, 'بازی شروع شد']
+    log: [...table.log, `بازی شروع شد — ${per} کارت به هر نفر`]
   };
 }
 
@@ -77,7 +123,10 @@ export function viewFor(table, viewerId) {
       ? Object.fromEntries(Object.entries(table.hands).map(([id, hand]) =>
           [id, id === viewerId ? hand : hand.map(() => ({ hidden: true }))]))
       : {},
+    // کارت‌های پخش‌نشده هم پنهان‌اند، وگرنه همه می‌فهمند چه می‌آید
+    stock: (table.stock || []).map(() => ({ hidden: true })),
     mySeat: table.seats.find(s => s.id === viewerId) || null,
+    myHand: table.hands?.[viewerId] || [],
     isMyTurn: table.turn === viewerId
   };
 }
@@ -88,7 +137,8 @@ export function publicState(table) {
     ...table,
     hands: table.hands
       ? Object.fromEntries(Object.entries(table.hands).map(([id, hand]) => [id, hand.map(() => ({ hidden: true }))]))
-      : {}
+      : {},
+    stock: (table.stock || []).map(() => ({ hidden: true }))
   };
 }
 

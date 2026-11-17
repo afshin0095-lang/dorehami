@@ -56,7 +56,7 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     connected: false,
     members: 0,
     table: createTable({ gameId, maxSeats, seed: (Date.now() ^ 0x5f3a) >>> 0 }),
-    myId: 'host',
+    myId: '',            // شناسه‌ی من روی رله (برای میزبان: 'host')
     error: '',
     notice: '',
     turnTimer: null
@@ -138,7 +138,8 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
       state.code = room.code;
       state.isHost = true;
       state.myId = 'host';
-      state.table = { ...state.table, seats: [{ id: 'host', name: state.name || 'میزبان', ready: true }] };
+      // میزبان صندلی خودش را می‌سازد؛ باقی با «hello» می‌آیند
+      state.table = createTable({ gameId, hostName: state.name || 'میزبان', maxSeats, seed: state.table.seed });
       state.screen = 'lobby';
       playSound('seal');
       render();
@@ -162,8 +163,8 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
       state.conn = { room, conn };
       state.code = room.code;
       state.isHost = false;
-      // شناسه‌ی من در میز، از سمت میزبان می‌آید
-      state.myId = null;
+      // شناسه‌ی من همان است که رله به من داده؛ میزبان با همین صندلی می‌سازد
+      state.myId = conn.id;
       state.screen = 'lobby';
       conn.send('hello', { name: state.name || 'مهمان' });
       render();
@@ -172,36 +173,60 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     }
   }
 
+  /** پخش فهرست صندلی‌ها — فقط میزبان این کار را می‌کند */
+  function broadcastSeats() {
+    state.conn?.conn?.send('seat', { seats: state.table.seats });
+  }
+
   function handleMessage(msg) {
     switch (msg.type) {
+      case 'hello': {
+        // میزبان: مهمان تازه را روی صندلی می‌نشاند و فهرست را پخش می‌کند
+        if (!state.isHost) break;
+        if (state.table.phase !== 'lobby') {
+          state.conn?.conn?.send('welcome', { seats: state.table.seats, note: 'بازی شروع شده' });
+          break;
+        }
+        try {
+          state.table = addSeat(state.table, { id: msg.from, name: msg.payload?.name });
+          broadcastSeats();
+          playSound('seal');
+        } catch (e) {
+          state.conn?.conn?.send('welcome', { seats: state.table.seats, note: e.message });
+        }
+        render();
+        break;
+      }
       case 'welcome': {
-        // میزبان فهرست صندلی‌ها را می‌فرستد؛ شناسه‌ی من هم همان‌جاست
-        const seats = msg.payload?.seats || [];
-        state.table = { ...state.table, seats };
-        if (!state.isHost && !state.myId) {
-          // اولین صندلی‌ای که نامش با نام من یکی است
-          const mine = seats.find(s => s.name === (state.name || 'مهمان'));
-          state.myId = mine ? mine.id : seats[seats.length - 1]?.id;
+        // مهمان: فهرست معتبر صندلی‌ها را از میزبان می‌گیرد
+        const seats = msg.payload?.seats;
+        if (!state.isHost && Array.isArray(seats)) {
+          state.table = { ...state.table, seats };
+          if (msg.payload?.note) state.notice = msg.payload.note;
         }
         render();
         break;
       }
       case 'seat': {
-        if (msg.payload?.seats) {
-          state.table = { ...state.table, seats: msg.payload.seats };
+        // مهمان: فهرست صندلی‌ها همیشه از میزبان می‌آید
+        const seats = msg.payload?.seats;
+        if (!state.isHost && Array.isArray(seats)) {
+          state.table = { ...state.table, seats };
           render();
         }
         break;
       }
       case 'start': {
-        // میزبان شروع را اعلام می‌کند: دانه + کارت هر نفر برای خودش
+        // میزبان شروع را اعلام می‌کند: فقط دانه و صندلی‌ها می‌آید، نه کارت‌ها
+        const p = msg.payload || {};
         state.table = {
           ...state.table,
           phase: 'playing',
-          seed: msg.payload.seed,
-          trumpSuit: msg.payload.trumpSuit,
-          turn: msg.payload.turn,
-          revision: msg.payload.revision ?? state.table.revision + 1
+          seats: Array.isArray(p.seats) ? p.seats : state.table.seats,
+          seed: p.seed,
+          trumpSuit: p.trumpSuit,
+          turn: p.turn,
+          revision: p.revision ?? state.table.revision + 1
         };
         state.screen = 'play';
         state.notice = 'بازی شروع شد';
@@ -286,8 +311,7 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     }
     const seed = (Date.now() ^ 0x9e37) >>> 0;
     state.table = startTable({ ...state.table, seed });
-    state.myId = 'host';
-    const mine = state.table.hands['host'] || [];
+    const mine = state.table.hands[state.myId] || [];
 
     state.conn?.conn.send('start', {
       seed,

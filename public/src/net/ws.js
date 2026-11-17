@@ -46,6 +46,12 @@ export function connect({ code, token, hostToken = '', onMessage, onOpen, onClos
   const gate = createRevisionGate();
   let hostId = null;
   let closed = false;
+  /**
+   * شناسه‌ی فرستنده باید حتماً با ^[A-Za-z0-9_-]{3,64}$ بخواند، وگرنه سرور
+   * پیام را «نامعتبر» می‌داند و بی‌صدا دور می‌ریزد. توکن base64url است و
+   * می‌تواند با - یا _ شروع شود؛ پس پیشوند ثابت می‌گذاریم.
+   */
+  const senderId = 'u-' + String(token).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 20).padEnd(3, '0');
 
   ws.addEventListener('open', () => { onOpen?.(); });
   ws.addEventListener('message', (ev) => {
@@ -66,11 +72,13 @@ export function connect({ code, token, hostToken = '', onMessage, onOpen, onClos
 
   return {
     gate,
+    /** شناسه‌ی خودمان روی رله — میزبان با همین شناسه صندلی می‌سازد */
+    id: senderId,
     get hostId() { return hostId; },
     get ready() { return ws.readyState === 1; },
     send(type, payload = {}) {
       if (ws.readyState !== 1) return null;
-      const msg = makeMessage(type, { roomId: code, from: token.slice(0, 12), payload });
+      const msg = makeMessage(type, { roomId: code, from: senderId, payload });
       ws.send(JSON.stringify(msg));
       return msg;
     },

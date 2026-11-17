@@ -211,3 +211,30 @@ test('انتقال اختیار میزبان با رفتن او رخ نمی‌د
 
   guest.ws.close();
 });
+
+test('شناسه‌ی فرستنده‌ی کلاینت همیشه از اعتبارسنجی سرور می‌گذرد', async () => {
+  // سرور را import نمی‌کنیم چون خودش گوش می‌دهد؛ اعتبارسنجی مشترک را می‌سنجیم
+  const { validateMessage } = await import('../public/src/net/sync.js');
+  const { readFile } = await import('node:fs/promises');
+
+  // همان قاعده‌ای که سرور اعمال می‌کند، از منبع خوانده می‌شود
+  const srv = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
+  assert.match(srv, /from\.length < 3 \|\| from\.length > 64/, 'قاعده‌ی طول فرستنده در سرور عوض شده');
+
+  const makeId = (t) => 'u-' + String(t).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 20).padEnd(3, '0');
+
+  // هر توکنی، حتی آن‌که با - یا _ شروع می‌شود، شناسه‌ی معتبر می‌دهد
+  for (const t of ['-leading-dash', '_leading', '5MmKkeL29tdI9gnpv71e', 'a', '', '!!!', 'x'.repeat(40)]) {
+    const id = makeId(t);
+    assert.ok(id.length >= 3 && id.length <= 64, `طول نامعتبر برای ${JSON.stringify(t)}: ${id}`);
+    assert.match(id, /^[A-Za-z0-9_-]+$/, `نویسه‌ی نامعتبر برای ${JSON.stringify(t)}: ${id}`);
+    const check = validateMessage({ v: 1, type: 'state', roomId: 'ABC12', from: id, payload: {} });
+    assert.equal(check.ok, true, `اعتبارسنجی کلاینت شناسه‌ی ${id} را رد کرد`);
+  }
+
+  // شناسه‌ی کوتاه رد می‌شود — و توکن کوتاه می‌توانست چنین شناسه‌ای بسازد
+  for (const bad of ['', 'a', 'ab']) {
+    const check = validateMessage({ v: 1, type: 'state', roomId: 'ABC12', from: bad, payload: {} });
+    assert.equal(check.ok, false, `شناسه‌ی کوتاه ${JSON.stringify(bad)} نباید پذیرفته شود`);
+  }
+});

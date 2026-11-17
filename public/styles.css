@@ -1441,6 +1441,290 @@ small { font-size: .8rem; color: var(--ink-soft); }
   text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
 
+
+/* ============================================================
+   دروازه‌های رؤیا — ورق خواب، در، کابوس
+   ============================================================ */
+.dream-hero {
+  position: relative;
+  padding: 1.1rem 1rem 1.2rem;
+  overflow: hidden;
+  background-color: #e7ded0;
+  background-image: url('/assets/art/notebook-page.jpg');
+  background-size: cover; background-position: center;
+  background-blend-mode: multiply;
+}
+.dream-hero__deco {
+  position: absolute; inset: 0;
+  display: flex; justify-content: space-around; align-items: center;
+  font-size: 3.6rem; color: rgba(70,60,45,.09);
+  pointer-events: none;
+}
+.dream-hero__text { position: relative; z-index: 1; }
+.dream-hero__kicker {
+  font-size: .72rem; letter-spacing: .16em; color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.dream-hero h1 {
+  font-size: clamp(1.7rem, 7vw, 2.5rem);
+  margin: .25rem 0 .45rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.dream-hero p { margin: 0; max-width: 34ch; line-height: 1.75; font-size: .9rem; color: var(--ink-soft); }
+
+/* نوار وضعیت */
+.dream-status { display: flex; gap: .45rem; margin-bottom: .7rem; flex-wrap: wrap; }
+.dream-meter {
+  flex: 1 1 30%;
+  display: flex; flex-direction: column; gap: .1rem;
+  padding: .45rem .55rem;
+  background: rgba(255,252,244,.72);
+  border: 1px solid rgba(120,95,55,.22);
+  border-radius: 2px;
+}
+.dream-meter--wide { flex-basis: 34%; }
+.dream-meter.is-low { border-color: var(--rust); background: rgba(163,61,44,.08); }
+.dream-meter__label { font-size: .64rem; letter-spacing: .05em; color: var(--ink-soft); }
+.dream-meter__value {
+  font-family: 'Pirata One', serif; font-size: 1.2rem; line-height: 1;
+  color: var(--ink);
+}
+.dream-meter.is-low .dream-meter__value { color: var(--rust); }
+.dream-meter__value--sign { font-size: 1.4rem; }
+.dream-meter__unit { font-size: .62rem; color: var(--ink-soft); }
+
+/* ورق خواب */
+.dream-hand {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: .5rem;
+}
+.dream-card {
+  position: relative;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 5 / 7;
+  padding: .3rem .3rem .35rem;
+  border: 1px solid rgba(60,45,30,.28);
+  border-radius: 6px;
+  background-color: var(--card-paper, #f4ecda);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover;
+  background-blend-mode: multiply;
+  box-shadow: var(--lift-1);
+  color: var(--dream);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform .18s var(--ease-paper), box-shadow .18s ease, filter .2s ease;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.dream-card::before {
+  content: ''; position: absolute; inset: 3px;
+  border: 1px solid currentColor;
+  opacity: .26;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.dream-card:disabled { cursor: default; }
+.dream-card.is-playable:hover,
+.dream-card.is-playable:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 2px var(--dream), var(--lift-2);
+}
+.dream-card.is-dim { filter: saturate(.75) brightness(.97); }
+.dream-card--sm { padding: .2rem; }
+.dream-card__corner {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 2px; font-size: .62rem; position: relative; z-index: 2;
+}
+.dream-card__sign { font-size: .95rem; line-height: 1; }
+.dream-card__name { font-size: .52rem; opacity: .8; letter-spacing: .02em; }
+.dream-card__art {
+  position: relative;
+  flex: 1;
+  display: grid; place-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
+.dream-card__glyph {
+  font-size: clamp(1.5rem, 6vw, 2.3rem);
+  line-height: 1;
+  opacity: .9;
+  text-shadow: 0 1px 0 rgba(255,255,255,.6);
+}
+.dream-card__vignette {
+  position: absolute; inset: 12% 6%;
+  border-radius: 50%;
+  background: radial-gradient(circle, currentColor 0%, transparent 70%);
+  opacity: .1;
+  pointer-events: none;
+}
+.dream-card__foot {
+  font-size: .5rem; letter-spacing: .01em; opacity: .78;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  position: relative; z-index: 2;
+}
+
+/* زنجیره */
+.dream-chain {
+  display: flex; gap: .35rem;
+  overflow-x: auto; padding: .2rem 0 .35rem;
+  scrollbar-width: thin;
+}
+.dream-chain .dream-card {
+  flex: 0 0 62px; width: 62px;
+  aspect-ratio: 5 / 7;
+}
+.dream-chain .dream-card__foot { display: none; }
+.dream-chain .dream-card__name { font-size: .46rem; }
+
+/* درها */
+.dream-doors { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; }
+.dream-door {
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  padding: .4rem .2rem .35rem;
+  border: 1px dashed rgba(80,60,35,.3);
+  border-radius: 3px;
+  background: rgba(255,252,244,.5);
+  overflow-wrap: anywhere;
+}
+.dream-door.is-open {
+  border-style: solid;
+  border-color: var(--dream);
+  background: rgba(255,252,244,.85);
+  box-shadow: inset 0 0 12px rgba(0,0,0,.05);
+}
+.dream-door__arch {
+  display: grid; place-items: center;
+  width: 30px; height: 38px;
+  border-radius: 15px 15px 2px 2px;
+  border: 1px solid currentColor;
+  color: var(--dream);
+  opacity: .55;
+  font-size: 1rem;
+}
+.dream-door.is-open .dream-door__arch {
+  opacity: 1;
+  background: color-mix(in srgb, var(--dream) 16%, transparent);
+  box-shadow: 0 0 0 1px currentColor;
+}
+.dream-door__name { font-size: .62rem; color: var(--ink); }
+.dream-door__state { font-size: .55rem; color: var(--ink-soft); }
+
+/* انتخاب */
+.dream-actions { margin-top: .8rem; display: grid; gap: .5rem; }
+.dream-selected {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .35rem;
+  font-size: .8rem; color: var(--ink);
+  padding: .45rem .55rem;
+  background: rgba(255,252,244,.8);
+  border-right: 3px solid var(--gold, #b08d57);
+  overflow-wrap: anywhere;
+}
+.dream-selected__label { color: var(--ink-soft); font-size: .72rem; }
+.tag { font-size: .62rem; padding: .1rem .35rem; border-radius: 999px; }
+.tag--ok { background: rgba(47,111,104,.14); color: var(--teal-deep); }
+.tag--bad { background: rgba(163,61,44,.14); color: var(--rust); }
+.dream-hint { margin: 0; font-size: .78rem; text-align: center; }
+
+/* کابوس */
+.dream-nightmare {
+  margin-top: .7rem;
+  padding: .7rem;
+  border: 1px solid #4a1f1a;
+  border-radius: 3px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(120,20,20,.5), transparent 70%),
+    #1d1210;
+  color: #e8dcc6;
+  overflow-wrap: anywhere;
+  animation: nightmare-in .35s var(--ease-paper);
+}
+.dream-nightmare__head { display: flex; gap: .5rem; align-items: flex-start; }
+.dream-nightmare__eye {
+  font-size: 1.5rem; color: #c9614a; line-height: 1;
+  animation: pulse-glow 2.6s infinite;
+}
+.dream-nightmare__title { font-family: 'Pirata One', serif; font-size: 1.15rem; letter-spacing: .04em; }
+.dream-nightmare__sub { font-size: .72rem; opacity: .78; line-height: 1.6; }
+.dream-nightmare__opts { display: grid; gap: .35rem; margin-top: .6rem; }
+.dream-opt {
+  display: block; width: 100%; text-align: right;
+  padding: .5rem .6rem;
+  background: rgba(255,240,220,.07);
+  border: 1px solid rgba(230,200,160,.28);
+  border-radius: 2px;
+  color: inherit; cursor: pointer;
+  font-family: inherit;
+  transition: background .18s ease, border-color .18s ease;
+  overflow-wrap: anywhere;
+}
+.dream-opt:hover, .dream-opt:focus-visible {
+  background: rgba(255,240,220,.14);
+  border-color: rgba(230,200,160,.6);
+}
+.dream-opt__label { display: block; font-size: .82rem; font-weight: 600; }
+.dream-opt__detail { display: block; font-size: .68rem; opacity: .7; margin-top: .12rem; line-height: 1.5; }
+
+/* پیش‌گویی */
+.dream-peek {
+  margin-top: .6rem; padding: .55rem;
+  background: rgba(255,252,244,.85);
+  border: 1px solid rgba(120,95,55,.25);
+  border-top: 3px solid var(--teal, #2f6f68);
+}
+.dream-peek__title { font-size: .72rem; color: var(--ink-soft); margin-bottom: .35rem; }
+.dream-peek__row { display: flex; gap: .3rem; flex-wrap: wrap; }
+.dream-peek__row .dream-card { width: 52px; flex: 0 0 52px; }
+.dream-peek__row .dream-card__foot { display: none; }
+.dream-peek__special {
+  display: grid; place-items: center;
+  width: 52px; aspect-ratio: 5/7;
+  border: 1px dashed rgba(80,60,35,.4);
+  font-size: .58rem; color: var(--ink-soft);
+}
+.dream-peek__special.is-bad { border-color: var(--rust); color: var(--rust); }
+
+/* پایان */
+.dream-end {
+  margin-top: .8rem; padding: .9rem .8rem;
+  text-align: center;
+  border: 1px solid rgba(120,95,55,.25);
+  background: rgba(255,252,244,.86);
+  overflow-wrap: anywhere;
+}
+.dream-end.is-win { border-color: var(--teal); box-shadow: inset 0 0 20px rgba(47,111,104,.1); }
+.dream-end.is-lose { border-color: rgba(163,61,44,.5); }
+.dream-end__seal {
+  width: 46px; height: 46px; margin: 0 auto .4rem;
+  display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid currentColor;
+  font-size: 1.3rem;
+  color: var(--teal-deep);
+}
+.dream-end.is-lose .dream-end__seal { color: var(--rust); }
+.dream-end__title { margin: 0 0 .3rem; font-size: 1.1rem; }
+.dream-end__text { margin: 0 0 .5rem; font-size: .82rem; color: var(--ink-soft); line-height: 1.7; }
+.dream-end__stats {
+  display: flex; flex-wrap: wrap; gap: .3rem .6rem;
+  justify-content: center; font-size: .7rem; color: var(--ink-soft);
+  margin-bottom: .6rem;
+}
+.dream-end .btn-row { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
+
+@keyframes nightmare-in {
+  from { opacity: 0; transform: scale(.98) translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 360px) {
+  .dream-hand { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+  .dream-doors { grid-template-columns: repeat(2, 1fr); }
+  .dream-chain .dream-card { flex: 0 0 52px; width: 52px; }
+}
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

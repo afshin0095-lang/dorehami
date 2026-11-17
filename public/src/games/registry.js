@@ -9,7 +9,8 @@ export const CATEGORIES = [
   { id: 'solo', label: 'تکی' },
   { id: 'cards', label: 'ورق و تاس' },
   { id: 'words', label: 'واژه' },
-  { id: 'mind', label: 'فکری' }
+  { id: 'mind', label: 'فکری' },
+  { id: 'story', label: 'داستانی' }
 ];
 
 export const GAMES = [
@@ -100,6 +101,14 @@ export const GAMES = [
     cats: ['solo', 'cards', 'mind'], tags: ['داستانی', 'ترسناک', 'کارتی', 'معمایی'],
     solo: true, badge: 'پرونده‌ی محقق', multi: false,
     load: () => import('./warden-ui.js')
+  },
+  {
+    id: 'dream', title: 'دروازه‌های رؤیا', meta: 'تکی · ۱۰–۲۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۱۰–۲۰ دقیقه',
+    art: '/assets/art/notebook-page.jpg',
+    cats: ['solo', 'cards', 'story'], tags: ['کارتی', 'خواب', 'کابوس', 'تک‌نفره'],
+    solo: true, badge: 'هزارتوی خواب', multi: false,
+    load: () => import('./dream-ui.js')
   },
   {
     id: 'logic', title: 'مهره‌چین', meta: 'تکی · ۵–۱۵ دقیقه',

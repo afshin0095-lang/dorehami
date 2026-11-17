@@ -274,6 +274,7 @@ export function LobbyScreen({ gameId, title, maxSeats = 4, minSeats = 2, onBack 
 
   function drawLobby() {
     const t = state.table;
+    const cardGame = t.gameId === 'hokm';
     return h('div', {},
       gameHeader({
         title: `میز ${title}`,
@@ -308,8 +309,19 @@ export function LobbyScreen({ gameId, title, maxSeats = 4, minSeats = 2, onBack 
           disabled: t.seats.length < minSeats,
           onClick: () => {
             if (t.seats.length < minSeats) { toast(`حداقل ${toFa(minSeats)} نفر لازم است`, 'warn'); return; }
-            const started = startTable(t);
-            state.conn?.conn.send('state', { revision: started.revision, phase: 'playing' });
+            // برای حکم، پخش کارت واقعی انجام می‌شود؛ برای بقیهٔ بازی‌ها
+            // فقط اعلام شروع می‌رود و خودشان وضعیت را می‌سازند.
+            if (cardGame) {
+              const started = startTable(t);
+              state.conn?.conn.send('start', {
+                phase: 'playing', seed: started.seed, seats: started.seats,
+                revision: started.revision
+              });
+            } else {
+              state.conn?.conn.send('start', {
+                phase: 'playing', seed: t.seed, seats: t.seats, revision: t.revision + 1
+              });
+            }
             toast('بازی شروع شد — همه باید منتظر نوبت خودشان بمانند', 'ok');
             playSound('seal');
           }

@@ -8,6 +8,7 @@ import { navbar } from './ui/kit.js';
 import { applyPrefs, getPrefs } from './ui/settings.js';
 import { AdminScreen } from './ui/admin.js';
 import { TableScreen } from './net/table-screen.js';
+import { LobbyScreen } from './net/table.js';
 import { byId, GAMES } from './games/registry.js';
 
 const app = document.getElementById('app');
@@ -105,10 +106,16 @@ let lobbyDispose = null;
 document.addEventListener('dy:lobby', (ev) => {
   const { gameId, title, maxSeats, minSeats } = ev.detail || {};
   clearScreen();
-  const screen = TableScreen({
-    gameId, title, maxSeats, minSeats,
-    onBack: () => { try { screen.dispose?.(); } catch { /* */ } lobbyDispose = null; navigate('games'); }
-  });
+  // حکم: میز کامل با حکم‌خوانی، پخش ۱۳ کارت و دست پنهان هر بازیکن.
+  // بقیهٔ بازی‌ها: لابی مشترک کد‌دار (همه یک میز می‌بینند).
+  const back = () => {
+    try { screen.dispose?.(); } catch { /* */ }
+    lobbyDispose = null;
+    navigate('games');
+  };
+  const screen = gameId === 'hokm'
+    ? TableScreen({ gameId, title, maxSeats, minSeats, onBack: back })
+    : LobbyScreen({ gameId, title, maxSeats, minSeats, onBack: back });
   lobbyDispose = () => screen.dispose?.();
   mount(app, screen.node);
   document.querySelector('.navbar')?.remove();

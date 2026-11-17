@@ -32,6 +32,9 @@ import { SUIT_LABEL, SUIT_GLYPH, SUIT_IS_RED, rankLabel, SUITS } from '../engine
 export function applyCardPlay(table, from, card, trump) {
   if (!table || !card) return table;
   if (table.phase === 'over') return table;
+  // کارتی که دیگر در دست این صندلی نیست، دوباره اعمال نمی‌شود (پیام تکراری)
+  const already = (table.played || []).includes(cardKey(card));
+  if (already) return table;
 
   const key = cardKey(card);
   let hands = table.hands || {};
@@ -41,8 +44,9 @@ export function applyCardPlay(table, from, card, trump) {
   const played = [...new Set((table.played || []).concat([key]))];
   const seatCount = Math.max(1, (table.seats || []).length);
 
+  const rev = (table.revision || 0) + 1;
   if (trick.length < seatCount) {
-    return { ...table, hands, table: trick, played, trickLead: table.trickLead ?? card.suit };
+    return { ...table, hands, table: trick, played, revision: rev, trickLead: table.trickLead ?? card.suit };
   }
 
   // دور کامل شد: برنده را حساب کن
@@ -58,8 +62,9 @@ export function applyCardPlay(table, from, card, trump) {
   scores[team] = (scores[team] || 0) + pts;
 
   const roundCount = (table.roundCount || 0) + 1;
-  // پایان دست: ۱۳ دور، یا رسیدن یک تیم به ۷ امتیاز
-  const finished = roundCount >= 13 || scores.A >= 7 || scores.B >= 7;
+  // ۱۳ دور تمام می‌شود؛ برندهٔ دست = امتیاز بیشتر. (شرط ۷ امتیاز حکم نیست،
+  // بلکه ۷ «دست» است — آن در موتور net/hokm-table.js پیاده شده.)
+  const finished = roundCount >= 13;
   const winnerTeam = finished
     ? (scores.A > scores.B ? 'A' : scores.B > scores.A ? 'B' : null)
     : null;
@@ -72,6 +77,7 @@ export function applyCardPlay(table, from, card, trump) {
     played,
     scores,
     roundCount,
+    revision: rev,
     phase: finished ? 'over' : table.phase,
     winnerTeam,
     turn: finished ? table.turn : best.seat,
@@ -322,8 +328,20 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
       }
       case 'move': {
         const p = msg.payload || {};
-        state.table = applyCardPlay(state.table, p.from, p.card, p.trump || state.table.trumpSuit);
-        if (p.turn) state.table = { ...state.table, turn: p.turn };
+        // رله پیام را به همه — از جمله فرستنده — برمی‌گرداند.
+        // اگر حرکت خودمان برگردد و دوباره اعمال شود، یک کارت دو بار
+        // بازی می‌شود و دست خراب می‌شود. پس با revision می‌شناسیمش.
+        const mine = p.from === state.myId;
+        if (mine && p.revision !== undefined && p.revision <= (state.table.revision || 0)) break;
+        const before = state.table.trick?.length || 0;
+        const next = applyCardPlay(state.table, p.from, p.card, p.trump || state.table.trumpSuit);
+        // کارتی که دیگر در دست نیست، اثر نمی‌کند — نشانهٔ تکرار است
+        if ((next.trick?.length || 0) === before && next.revision === state.table.revision) break;
+        state.table = { ...next, turn: p.turn || next.turn };
+        if (mine) {
+          state.table = { ...state.table, myHand: (next.hands?.[state.myId] || state.table.myHand || []) };
+        }
+        if (p.revision !== undefined) state.table.revision = Math.max(state.table.revision || 0, p.revision + 1);
         playSound('card-deal');
         render();
         break;
@@ -569,15 +587,15 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     const next = applyCardPlay(t, myId, card, t.trumpSuit || 'spades');
     state.table = { ...next, myHand: (next.hands?.[myId] || t.myHand).filter(c => cardKey(c) !== cardKey(card)) };
 
-    if (state.isHost && state.conn) {
+    const revision = state.table.revision || 0;
+    if (state.conn) {
       state.conn.conn.send('move', {
         from: myId,
         card,
         turn: state.table.turn,
-        trump: t.trumpSuit
+        trump: t.trumpSuit,
+        revision
       });
-    } else if (state.conn) {
-      state.conn.conn.send('move', { from: myId, card, turn: t.turn, trump: t.trumpSuit });
     }
     render();
   }

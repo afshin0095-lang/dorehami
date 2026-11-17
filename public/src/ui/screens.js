@@ -24,7 +24,7 @@ export function openLobby(game, navigate) {
     detail: {
       gameId: game.id,
       title: game.title,
-      maxSeats: game.id === 'mafia' ? 10 : 4,
+      maxSeats: game.id === 'mafia' ? 10 : (game.id === 'duz' ? 2 : 4),
       minSeats: 2
     }
   }));
@@ -171,7 +171,9 @@ export function GamesScreen({ navigate, openGame, state }) {
       h('p', { style: { margin: '0 0 .6rem', fontSize: '.86rem' } },
         'برای بازی با گوشی‌های جدا یک کد اتاق بساز. پیام‌ها اعتبارسنجی می‌شوند و محتوای مخفی هرگز ارسال نمی‌شود.'),
       h('div', { style: { display: 'grid', gap: '.45rem' } },
-        ['hokm', 'mafia', 'esmfamil', 'snake'].filter(id => !(getPrefs().hiddenGames || []).includes(id)).map(id => {
+        // همهٔ بازی‌های چندنفره، نه فقط چهارتای قدیمی
+        GAMES.filter(g => g.multi).map(g => g.id)
+          .filter(id => !(getPrefs().hiddenGames || []).includes(id)).map(id => {
           const g = byId(id);
           if (!g) return null;
           return h('button', {

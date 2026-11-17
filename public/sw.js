@@ -15,6 +15,7 @@ const SHELL = [
   '/src/net/ws.js',
   '/src/net/table.js',
   '/src/net/table-screen.js',
+  '/src/net/hokm-table.js',
   '/src/core.js',
   '/src/content.js',
   '/src/content-extra.js',

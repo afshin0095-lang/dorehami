@@ -37,7 +37,8 @@ const allJs = [
   'public/src/engines/mafia.js', 'public/src/engines/hokm.js', 'public/src/engines/snake.js',
   'public/src/engines/esmfamil.js', 'public/src/engines/quiz.js', 'public/src/engines/codenames.js',
   'public/src/engines/lowball.js', 'public/src/engines/v10.js', 'public/src/engines/logic.js',
-  'public/src/engines/spirit.js', 'public/src/games/spirit-ui.js', 'tests/spirit.test.js'
+  'public/src/engines/spirit.js', 'public/src/games/spirit-ui.js', 'tests/spirit.test.js',
+  'public/src/net/hokm-table.js', 'tests/hokm-engine.test.js', 'tests/table-echo.test.js'
 ];
 
 for (const f of allJs) {

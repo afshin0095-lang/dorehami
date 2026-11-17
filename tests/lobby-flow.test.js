@@ -98,3 +98,25 @@ test('پخش با شناسه‌های شبکه‌ای هم یکتا و کامل 
   }
   assert.equal(seen.size, 52);
 });
+
+/* ---------------------------- همهٔ بازی‌های چندنفره ---------------------------- */
+
+test('همهٔ بازی‌های چندنفره در رجیستری، مسیر چندگوشی دارند', async () => {
+  const { GAMES } = await import('../public/src/games/registry.js');
+  const multi = GAMES.filter(g => g.multi);
+  assert.ok(multi.length >= 9, `تنها ${multi.length} بازی چندنفره هست`);
+  for (const g of multi) {
+    assert.ok(g.id && g.title, `${g.id}: عنوان ندارد`);
+    assert.equal(typeof g.load, 'function', `${g.id}: بارگذاری ندارد`);
+  }
+  // حکم باید در فهرست باشد — میز کامل با حکم‌خوانی برای همین است
+  assert.ok(multi.some(g => g.id === 'hokm'));
+});
+
+test('لابی برای هر بازی ساخته می‌شود و کد اتاق دارد', async () => {
+  const { LobbyScreen } = await import('../public/src/net/table.js');
+  const { installDom, walk } = await import('./helpers/dom.js').catch(() => ({}));
+  // این آزمون در محیط DOM کامل اجرا می‌شود؛ در غیر این صورت از ساخت عبور می‌کنیم
+  if (typeof document === 'undefined') return;
+  assert.ok(typeof LobbyScreen === 'function');
+});

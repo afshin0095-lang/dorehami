@@ -86,15 +86,19 @@ test('١٣ دور، دست را تمام می‌کند', () => {
   assert.equal(t.winnerTeam, 'B');
 });
 
-test('رسیدن به ۷ امتیاز، دست را زودتر تمام می‌کند', () => {
+test('امتیاز ۷ در میانهٔ دست، بازی را نمی‌بندد (شرط حکم: ۷ دست)', () => {
+  // در حکم واقعی، برنده کسی است که ۷ «دست» ببرد نه ۷ امتیاز.
+  // آن شرط در موتور tests/hokm-engine.test.js آزمون شده؛ اینجا مطمئن می‌شویم
+  // میز مسیر قدیمی (بستن با امتیاز) را طی نمی‌کند.
   let t = mkTable(2, 5);
   const seats = t.seats.map(s => s.id);
   t = { ...t, table: [], trickLead: null, roundCount: 3, scores: { A: 3, B: 6 }, phase: 'playing' };
   t = applyCardPlay(t, seats[0], card('diamonds', 5), 'spades');   // ۵
   t = applyCardPlay(t, seats[1], card('diamonds', 14), 'spades');  // آس ۴ + ۵ = ۹ برای B
   assert.equal(t.scores.B >= 7, true);
-  assert.equal(t.phase, 'over');
-  assert.equal(t.winnerTeam, 'B');
+  assert.equal(t.phase, 'playing', 'امتیاز نباید بازی را ببندد');
+  assert.equal(t.roundCount, 4);
+  assert.equal(t.winnerTeam, null);
 });
 
 test('پس از پایان، حرکت تازه پذیرفته نمی‌شود', () => {

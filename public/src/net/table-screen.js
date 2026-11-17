@@ -17,7 +17,79 @@ import {
   createTable, addSeat, startTable, viewFor, publicState, validateMove,
   openTableChannel, seededShuffle, fullDeck
 } from './table.js';
-import { SUIT_LABEL, SUIT_GLYPH, SUIT_IS_RED, rankLabel } from '../engines/hokm.js';
+import { SUIT_LABEL, SUIT_GLYPH, SUIT_IS_RED, rankLabel, SUITS } from '../engines/hokm.js';
+/* ============================ منطق نوبت ============================ */
+
+/**
+ * یک کارت بازی‌شده را به میز اضافه می‌کند و اگر دور کامل شد، برنده و
+ * امتیاز را حساب می‌کند. تابع خالص است تا آزمون‌پذیر بماند.
+ *
+ * @param {object} table وضعیت میز
+ * @param {string} from شناسه‌ی صندلی بازیکن
+ * @param {{suit:string, rank:number}} card کارت بازی‌شده
+ * @param {string} trump خال حکم
+ */
+export function applyCardPlay(table, from, card, trump) {
+  if (!table || !card) return table;
+  if (table.phase === 'over') return table;
+
+  const key = cardKey(card);
+  let hands = table.hands || {};
+  if (hands[from]) hands = { ...hands, [from]: hands[from].filter(c => cardKey(c) !== key) };
+
+  const trick = [...(table.table || []), { seat: from, card }];
+  const played = [...new Set((table.played || []).concat([key]))];
+  const seatCount = Math.max(1, (table.seats || []).length);
+
+  if (trick.length < seatCount) {
+    return { ...table, hands, table: trick, played, trickLead: table.trickLead ?? card.suit };
+  }
+
+  // دور کامل شد: برنده را حساب کن
+  const lead = table.trickLead ?? trick[0].card.suit;
+  let best = trick[0];
+  for (const p of trick) {
+    if (strength(p.card, lead, trump) > strength(best.card, lead, trump)) best = p;
+  }
+  const seatIdx = (table.seats || []).findIndex(s => s.id === best.seat);
+  const team = seatIdx % 2 === 0 ? 'A' : 'B';
+  const pts = trick.reduce((n, p) => n + cardPoints(p.card.rank), 0);
+  const scores = { ...(table.scores || { A: 0, B: 0 }) };
+  scores[team] = (scores[team] || 0) + pts;
+
+  const roundCount = (table.roundCount || 0) + 1;
+  // پایان دست: ۱۳ دور، یا رسیدن یک تیم به ۷ امتیاز
+  const finished = roundCount >= 13 || scores.A >= 7 || scores.B >= 7;
+  const winnerTeam = finished
+    ? (scores.A > scores.B ? 'A' : scores.B > scores.A ? 'B' : null)
+    : null;
+
+  return {
+    ...table,
+    hands,
+    table: [],
+    trickLead: null,
+    played,
+    scores,
+    roundCount,
+    phase: finished ? 'over' : table.phase,
+    winnerTeam,
+    turn: finished ? table.turn : best.seat,
+    lastTrick: { winner: best.seat, pts, team, cards: trick }
+  };
+}
+
+/** آیا این کارت با توجه به زمین مجاز است؟ */
+export function isLegalPlay(hand, card, leadSuit) {
+  if (!leadSuit) return true;
+  if (card.suit === leadSuit) return true;
+  // اگر کارت هم‌زمین داری، باید همان را بازی کنی
+  return !hand.some(c => c.suit === leadSuit);
+}
+
+
+/** کلید یکتای کارت — باید پیش از هر استفاده‌ای تعریف شده باشد */
+const cardKey = c => `${c.suit}-${c.rank}`;
 
 /** امتیاز هر کارت — ۵ و ۱۰ و آس ارزش دارند */
 export function cardPoints(rank) {
@@ -26,8 +98,6 @@ export function cardPoints(rank) {
   if (rank === 14) return 4;
   return 0;
 }
-
-const cardKey = c => `${c.suit}-${c.rank}`;
 
 /** قدرت کارت در زمینِ داده‌شده */
 function strength(card, leadSuit, trump) {
@@ -48,7 +118,7 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
   const host = h('div', { class: 'game-shell' });
 
   const state = {
-    screen: 'choose',        // choose | join | lobby | play | error
+    screen: 'choose',        // choose | join | lobby | trump | play | error
     code: '',
     name: '',
     isHost: false,
@@ -76,6 +146,8 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     switch (state.screen) {
       case 'join': return drawJoin();
       case 'lobby': return drawLobby();
+      case 'trump': return drawTrump();
+      case 'trump-wait': return drawTrumpWait();
       case 'play': return drawPlay();
       default: return drawChoose();
     }
@@ -228,17 +300,29 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
           turn: p.turn,
           revision: p.revision ?? state.table.revision + 1
         };
-        state.screen = 'play';
-        state.notice = 'بازی شروع شد';
+        // مهمان منتظر اعلام حکم از سوی میزبان می‌ماند
+        state.screen = p.trumpSuit ? 'play' : 'trump-wait';
+        state.notice = p.trumpSuit ? 'بازی شروع شد' : 'حاکم دارد حکم را انتخاب می‌کند…';
         // دست خودم را با همان دانه می‌سازم
         state.table = { ...state.table, ...rebuildDeal(state.table, state.myId) };
         playSound('shuffle');
         render();
         break;
       }
+      case 'trump': {
+        const p = msg.payload || {};
+        if (p.trumpSuit) {
+          state.table = { ...state.table, trumpSuit: p.trumpSuit, phase: 'playing', turn: p.turn };
+          if (state.screen !== 'play') state.screen = 'play';
+          state.notice = `حکم: ${SUIT_LABEL[p.trumpSuit]}`;
+          playSound('seal');
+          render();
+        }
+        break;
+      }
       case 'move': {
         const p = msg.payload || {};
-        state.table = applyMoveLocally(state.table, p.from, p.card, p.trump);
+        state.table = applyCardPlay(state.table, p.from, p.card, p.trump || state.table.trumpSuit);
         if (p.turn) state.table = { ...state.table, turn: p.turn };
         playSound('card-deal');
         render();
@@ -321,8 +405,9 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
       seats: state.table.seats
     });
 
-    state.screen = 'play';
-    state.notice = 'تو میزبان هستی — نوبت را تو می‌گردانی';
+    // حکم‌خوانی: میزبان (حاکم) خال حکم را انتخاب می‌کند
+    state.screen = 'trump';
+    state.notice = 'حاکم هستی — خال حکم را انتخاب کن';
     playSound('shuffle');
     render();
 
@@ -346,44 +431,6 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     let k = 0;
     for (let r = 0; r < per; r++) for (const id of ids) if (k < deck.length) hands[id].push(deck[k++]);
     return { myHand: hands[myId] || [], myId, dealt: per, stockCount: deck.length - k };
-  }
-
-  /** کارت بازی‌شده را روی میز می‌گذارد و دور را می‌بندد */
-  function applyMoveLocally(table, from, card, trump) {
-    const key = cardKey(card);
-    let hands = table.hands || {};
-    if (hands[from]) hands = { ...hands, [from]: hands[from].filter(c => cardKey(c) !== key) };
-    const trick = [...(table.table || []), { seat: from, card }];
-    const played = new Set((table.played || []).concat([key]));
-
-    if (trick.length < table.seats.length) {
-      return { ...table, hands, table: trick, played: [...played], trickLead: table.trickLead ?? card.suit };
-    }
-
-    // دور کامل شد: برنده را حساب کن
-    const lead = table.trickLead ?? trick[0].card.suit;
-    let best = trick[0];
-    for (const p of trick) {
-      if (strength(p.card, lead, trump) > strength(best.card, lead, trump)) best = p;
-    }
-    const team = (best.seat === 'host' || table.seats.findIndex(s => s.id === best.seat) % 2 === 0) ? 'A' : 'B';
-    const pts = trick.reduce((n, p) => n + cardPoints(p.card.rank), 0);
-    const scores = { ...(table.scores || { A: 0, B: 0 }) };
-    scores[team] = (scores[team] || 0) + pts;
-    const roundCount = (table.roundCount || 0) + 1;
-    const nextSeat = table.seats[(table.seats.findIndex(s => s.id === best.seat)) % table.seats.length]?.id;
-
-    return {
-      ...table,
-      hands,
-      table: [],
-      trickLead: null,
-      played: [...played],
-      scores,
-      roundCount,
-      turn: best.seat,
-      lastTrick: { winner: best.seat, pts, team, cards: trick }
-    };
   }
 
   /* ============================ میز بازی ============================ */
@@ -461,7 +508,7 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
         children: h('div', { class: 'tbl-hand' },
           myHand.length
             ? myHand.map(c => {
-              const legal = isLegal(myHand, c, leadSuit);
+              const legal = isLegalPlay(myHand, c, leadSuit);
               const node = playingCard(c, { compact: true, cls: `tbl-hand__card${legal && isMyTurn ? ' is-playable' : ' is-blocked'}` });
               node.setAttribute('role', 'button');
               node.setAttribute('tabindex', isMyTurn && legal ? '0' : '-1');
@@ -475,6 +522,28 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
             : h('p', { class: 'muted' }, state.myId ? 'دستی نداری.' : 'در حال گرفتن دست…')
         )
       }),
+
+      /* پایان دست */
+      t.phase === 'over' ? h('section', { class: `tbl-over${t.winnerTeam === 'A' ? ' is-win' : ''}` },
+        h('div', { class: 'tbl-over__seal', 'aria-hidden': 'true' }, t.winnerTeam === 'A' ? '⌂' : '☾'),
+        h('h2', {}, t.winnerTeam === 'A' ? 'دست را بردید' : t.winnerTeam === 'B' ? 'دست را باختید' : 'دست مساوی شد'),
+        h('p', {}, `امتیاز ما ${toFa(t.scores?.A || 0)} — امتیاز آن‌ها ${toFa(t.scores?.B || 0)}`),
+        h('div', { class: 'btn-row' },
+          state.isHost
+            ? btn('دست تازه', {
+              variant: 'btn--primary',
+              onClick: () => {
+                state.screen = 'lobby';
+                state.table = { ...createTable({ gameId, hostName: state.table.seats[0]?.name, maxSeats, seed: (Date.now() ^ 0x2b) >>> 0 }), seats: state.table.seats };
+                state.table.seats.forEach(s => { state.table = addSeat(state.table, { id: s.id, name: s.name }); });
+                broadcastSeats();
+                render();
+              }
+            })
+            : h('p', { class: 'muted' }, 'منتظر میزبان برای دست تازه…'),
+          btn('خروج', { variant: 'btn--ghost', onClick: () => { cleanup(); onBack(); } })
+        )
+      ) : null,
 
       /* آخرین دور */
       t.lastTrick ? h('div', { class: 'tbl-last' },
@@ -490,14 +559,6 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     );
   }
 
-  /** آیا این کارت با توجه به زمین مجاز است؟ */
-  function isLegal(hand, card, leadSuit) {
-    if (!leadSuit) return true;
-    if (card.suit === leadSuit) return true;
-    // اگر کارت هم‌زمین داری، باید همان را بازی کنی
-    return !hand.some(c => c.suit === leadSuit);
-  }
-
   function sendMove(card) {
     const t = state.table;
     const myId = state.myId || 'host';
@@ -505,7 +566,7 @@ export function TableScreen({ gameId = 'hokm', title = 'حکم', maxSeats = 4, m
     if (!check.ok) { toast(check.reason, 'warn'); return; }
 
     playSound('card-deal');
-    const next = applyMoveLocally(t, myId, card, t.trumpSuit || 'spades');
+    const next = applyCardPlay(t, myId, card, t.trumpSuit || 'spades');
     state.table = { ...next, myHand: (next.hands?.[myId] || t.myHand).filter(c => cardKey(c) !== cardKey(card)) };
 
     if (state.isHost && state.conn) {

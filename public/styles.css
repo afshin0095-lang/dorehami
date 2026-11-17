@@ -1872,6 +1872,64 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .tbl-center { width: 42px; height: 42px; font-size: .9rem; }
 }
 
+
+/* انتخاب حکم */
+.trump-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem;
+  margin-top: .6rem;
+}
+.trump-pick {
+  display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  padding: .8rem .5rem;
+  background-color: var(--card-paper, #f4ecda);
+  background-image: url('/assets/art/paper-cream.jpg');
+  background-size: cover; background-blend-mode: multiply;
+  border: 1px solid rgba(60,45,30,.28);
+  border-radius: 4px;
+  box-shadow: var(--lift-1);
+  cursor: pointer;
+  color: var(--card-black, #221b16);
+  transition: transform .16s var(--ease-paper), box-shadow .16s ease;
+  overflow-wrap: anywhere;
+}
+.trump-pick:hover, .trump-pick:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--gold, #b08d57), var(--lift-2);
+}
+.trump-pick__glyph { font-size: 2rem; line-height: 1; }
+.trump-pick__glyph.is-red { color: var(--card-red, #a13d2c); }
+.trump-pick__name { font-size: .76rem; color: var(--ink-soft); }
+
+.trump-wait {
+  display: grid; place-items: center; gap: .3rem;
+  padding: 2rem 1rem; text-align: center;
+}
+.trump-wait__spin {
+  font-size: 2.4rem; opacity: .5;
+  animation: pulse-glow 2s infinite;
+}
+.trump-wait h2 { margin: 0; font-size: 1.1rem; }
+.trump-wait p { margin: 0; font-size: .82rem; color: var(--ink-soft); }
+
+/* پایان دست */
+.tbl-over {
+  margin-top: .7rem; padding: .9rem .8rem; text-align: center;
+  border: 1px solid rgba(120,95,55,.28);
+  background: rgba(255,252,244,.88);
+  overflow-wrap: anywhere;
+}
+.tbl-over.is-win { border-color: var(--teal); box-shadow: inset 0 0 20px rgba(47,111,104,.12); }
+.tbl-over__seal {
+  width: 44px; height: 44px; margin: 0 auto .35rem;
+  display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--rust); color: var(--rust);
+  font-size: 1.2rem;
+}
+.tbl-over.is-win .tbl-over__seal { border-color: var(--teal-deep); color: var(--teal-deep); }
+.tbl-over h2 { margin: 0 0 .25rem; font-size: 1.1rem; }
+.tbl-over p { margin: 0 0 .5rem; font-size: .82rem; color: var(--ink-soft); }
+.tbl-over .btn-row { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
+
 /* ============================ انیمیشن‌ها ============================ */
 @keyframes sheet-in {
   from { opacity: 0; transform: translateY(22px) rotateX(-9deg); }

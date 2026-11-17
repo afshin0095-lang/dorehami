@@ -104,9 +104,15 @@ export function startTable(table, { trumpSuit, cardsEach = null } = {}) {
     handIds: ids,
     hands,
     stock: deck.slice(k),
-    trumpSuit: trumpSuit || 'diamonds',
+    trumpSuit: trumpSuit || null,     // تا حاکم انتخاب نکند، حکمی نیست
     turn: ids[0],
     table: [],
+    trickLead: null,
+    played: [],
+    lastTrick: null,
+    scores: { A: 0, B: 0 },
+    roundCount: 0,
+    winnerTeam: null,
     revision: table.revision + 1,
     log: [...table.log, `بازی شروع شد — ${per} کارت به هر نفر`]
   };

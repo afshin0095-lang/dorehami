@@ -295,14 +295,61 @@ function showUpdateBar(serverBuild) {
   go.addEventListener('click', () => { try { sessionStorage.setItem('dy:updated', '1'); } catch {} });
 }
 
-if (RUNNING_BUILD && !IS_FRESH) {
+/**
+ * نگهبان نسخه — دو حالت دارد:
+ *
+ *  الف) «نوار به‌روزرسانی» که به کاربر می‌گوید نسخهٔ تازه هست و با
+ *       یک کلیک کش را پاک می‌کند.
+ *
+ *  ب) خودترمیمی خودکار: اگر ناسازگاری ادامه پیدا کند (یعنی کاربر
+ *       نوار را نادیده گرفته یا کلیکش کار نکرده)، برنامه **خودش**
+ *       یک بار پاک‌سازی کامل می‌کند. بدون این، کسی که نسخهٔ کهنه
+ *       را می‌بیند در حلقه می‌ماند و ما هم فقط می‌شنویم «اعمال نشد».
+ *
+ * برای اینکه این حلقه بی‌پایان نشود، تعداد تلاش‌ها در sessionStorage
+ * شمرده می‌شود: حداکثر دو خودترمیمی در هر نشست.
+ */
+const AUTO_FIX_KEY = 'dy:auto-fix-count';
+const AUTO_FIX_MAX = 2;
+
+function autoFixAttempts() {
+  try { return Number(sessionStorage.getItem(AUTO_FIX_KEY) || '0'); } catch { return 99; }
+}
+function bumpAutoFix() {
+  try { sessionStorage.setItem(AUTO_FIX_KEY, String(autoFixAttempts() + 1)); } catch { /* */ }
+}
+
+if (!IS_FRESH) {
   const check = async () => {
     const build = await askBuild();
-    if (build && RUNNING_BUILD && build !== RUNNING_BUILD) showUpdateBar(build);
+    if (!build) return;
+
+    // اگر شناسهٔ ساختِ اجراشده را نمی‌دانیم، همین حالا یاد بگیر
+    const running = RUNNING_BUILD || document.documentElement.dataset.build || null;
+    if (!running || build === running) return;
+
+    showUpdateBar(build);
+
+    // خودترمیمی: اگر قبلاً تلاش کرده‌ایم و باز هم کهنه‌ایم
+    const attempts = autoFixAttempts();
+    if (attempts < AUTO_FIX_MAX) {
+      bumpAutoFix();
+      try {
+        if (globalThis.caches?.keys) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister().catch(() => null)));
+        }
+      } catch { /* بی‌اهمیت */ }
+      location.replace(`${location.pathname}?fresh=${Date.now()}`);
+    }
   };
-  window.setTimeout(check, 1500);
+  window.setTimeout(check, 1200);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) void check(); });
-  window.setInterval(check, 120_000);
+  window.setInterval(check, 60_000);
 }
 
 /* ============================================================

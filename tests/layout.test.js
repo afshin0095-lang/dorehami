@@ -193,8 +193,10 @@ test('قاب حکاکی‌شده با border-image دور ستون می‌نشی
   // قاب باید به‌صورت border-image باشد…
   assert.match(css, /border-image-source:\s*url\('\/assets\/art\/desk-frame\.jpg'\)/,
     'قاب با border-image دور برنامه نمی‌نشیند');
-  assert.match(css, /border-image-slice:\s*26%\s+15%\s+20%\s+15%/,
+  assert.match(css, /border-image-slice:\s*24%\s+15%\s+19%\s+15%/,
     'نسبت برش قاب اندازه‌گیری‌شده نیست');
+  // ضخامت قاب باید متغیر باشد تا تنظیمش یک عدد باشد، نه پنج جا
+  assert.match(css, /--frame-w:\s*\d+px/, 'ضخامت قاب متغیر نیست');
   /**
    * این مهم‌ترین بخش است: `stretch` نوارهای قاب را در ارتفاع چند‌هزار
    * پیکسلی صفحه می‌کشید و همان چیزی می‌شد که کاربر «دفرمه و زشت»

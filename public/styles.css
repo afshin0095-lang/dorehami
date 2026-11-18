@@ -3896,10 +3896,20 @@ small { font-weight: 600; }
    * `fill` هم برداشته شد: کاغذِ داخل قاب نباید روی کل ستون پهن شود؛
    * کاغذ جای خودش را دارد و ما فقط به حاشیهٔ تزئینی نیاز داریم.
    */
-  border: 26px solid transparent;
+  /**
+   * ضخامت قاب در یک متغیر است تا با یک عدد قابل تنظیم باشد.
+   * مقدار ۲۲ پیکسل همان چیزی است که در نسخهٔ قبلی دیده می‌شد؛
+   * کاربر گفت نسخهٔ بعدی «خیلی کوچک» شد، پس به همین برش برگشتیم
+   * و فقط `repeat` را اصلاح‌شده نگه داشتیم (کشیدگی ندارد).
+   */
+  --frame-w: 22px;
+  --frame-side: 22px;
+  border: var(--frame-w) solid transparent;
+  border-left-width: var(--frame-side);
+  border-right-width: var(--frame-side);
   border-image-source: url('/assets/art/desk-frame.jpg');
-  border-image-slice: 26% 15% 20% 15%;
-  border-image-width: 26px 22px 22px 22px;
+  border-image-slice: 24% 15% 19% 15%;
+  border-image-width: var(--frame-w) var(--frame-side) var(--frame-w) var(--frame-side);
   border-image-repeat: round;
   border-radius: 0;
 
@@ -5208,3 +5218,28 @@ small { font-weight: 600; }
   text-shadow: 0 1px 2px rgba(30, 6, 8, .85);
 }
 .btn--oxblood svg { color: #f0c37a; }
+
+/* ============================================================
+   خط نسخه در تنظیمات — خوانا، کوچک، در پایین برگه
+   ============================================================ */
+.ver-line {
+  margin-top: .7rem;
+  padding: .45rem .55rem;
+  border: 1px dashed rgba(120, 95, 55, .45);
+  border-radius: 4px;
+  font-size: .68rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  background: rgba(255, 250, 240, .6);
+  word-break: break-all;
+}
+.ver-line__label { font-weight: 700; }
+.ver-line__code {
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: .7rem;
+  padding: .05rem .3rem;
+  border-radius: 3px;
+  background: rgba(120, 95, 55, .14);
+  color: #4a3520;
+}
+.ver-line__hint { opacity: .8; }

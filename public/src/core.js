@@ -4,11 +4,43 @@
    ============================================================ */
 
 /* ------------------------------ DOM ------------------------------ */
+/**
+ * ── عنصرهای SVG باید در فضای‌نام SVG ساخته شوند ─────────────────
+ *
+ * باگ طولانی‌مدتی که تازه پیدا شد: `h('svg', …)` عنصر را با
+ * `document.createElement('svg')` می‌ساخت. این عنصر در **فضای‌نام
+ * HTML** ساخته می‌شود، نه SVG. مرورگر آن را یک عنصر ناشناخته می‌بیند
+ * و هیچ‌چیز رسم نمی‌کند — نتیجه: آیکون‌های دکمه‌های تنظیمات، پنل
+ * مدیریت و بازگشت **هرگز** دیده نمی‌شدند، بدون هیچ خطایی در کنسول.
+ *
+ * همین قاعده برای فرزندان SVG هم لازم است: `<path>` و `<circle>` در
+ * فضای‌نام HTML هم رسم نمی‌شوند.
+ */
+const SVG_TAGS = new Set([
+  'svg', 'g', 'path', 'circle', 'ellipse', 'rect', 'line', 'polyline',
+  'polygon', 'text', 'tspan', 'defs', 'clipPath', 'mask', 'use',
+  'linearGradient', 'radialGradient', 'stop', 'pattern', 'symbol',
+  'filter', 'feGaussianBlur', 'feOffset', 'feMerge', 'feMergeNode',
+  'marker', 'foreignObject', 'image', 'title', 'desc'
+]);
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
 export function h(tag, props = {}, ...children) {
-  const el = document.createElement(tag);
+  const isSvg = SVG_TAGS.has(tag);
+  const el = isSvg
+    ? document.createElementNS(SVG_NS, tag)
+    : document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
     if (v === null || v === undefined || v === false) continue;
-    if (k === 'class') el.className = v;
+    /**
+     * روی عنصرهای SVG، `el.className` یک شیء SVGAnimatedString است و
+     * انتساب رشته به آن کار نمی‌کند (بی‌صدا نادیده گرفته می‌شود).
+     * باید از setAttribute استفاده شود.
+     */
+    if (k === 'class') {
+      if (isSvg) el.setAttribute('class', v);
+      else el.className = v;
+    }
     else if (k === 'html') el.innerHTML = v;
     else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
     else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
@@ -19,6 +51,39 @@ export function h(tag, props = {}, ...children) {
     if (c === null || c === undefined || c === false) continue;
     el.append(c.nodeType ? c : document.createTextNode(String(c)));
   }
+  return el;
+}
+
+/**
+ * ساخت عنصر SVG با فضای‌نام درست، برای وقتی که فرزندها از قبل با
+ * `h()` ساخته شده‌اند و در فضای‌نام HTML مانده‌اند.
+ * (در JS، آرگومان‌ها پیش از فراخوانی ارزیابی می‌شوند، پس نمی‌توان
+ * «والد» را هنگام ساخت فرزندها دید؛ این تابع آن فاصله را پر می‌کند.)
+ */
+export function svgEl(tag, props = {}, ...children) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'html') el.innerHTML = v;
+    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+    else el.setAttribute(k, v === true ? '' : String(v));
+  }
+  const append = (node) => {
+    if (node === null || node === undefined || node === false) return;
+    if (!node.nodeType) { el.append(document.createTextNode(String(node))); return; }
+    // فرزندی که در فضای‌نام HTML ساخته شده را دوباره در SVG بساز
+    if (node.nodeType === 1 && node.namespaceURI !== SVG_NS) {
+      const fixed = document.createElementNS(SVG_NS, node.tagName.toLowerCase());
+      for (const a of node.attributes || []) fixed.setAttribute(a.name, a.value);
+      if (node.innerHTML) fixed.innerHTML = node.innerHTML;
+      for (const gc of node.childNodes || []) append.call(null, gc);
+      el.append(fixed);
+      return;
+    }
+    el.append(node);
+  };
+  for (const c of children.flat(9)) append(c);
   return el;
 }
 

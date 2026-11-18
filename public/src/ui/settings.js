@@ -86,14 +86,30 @@ export function openSettings() {
     toggle('largeText', 'متن بزرگ‌تر', 'خوانایی بیشتر در جمع و نور کم.'),
 
     h('div', { style: { marginTop: '1rem', display: 'grid', gap: '.5rem' } },
-      btn('پاک‌کردن داده‌های محلی', {
+      btn('پاک‌کردن داده‌های محلی و بارگذاری از نو', {
         variant: 'btn--mustard', cls: 'btn--block', ico: 'trash',
-        onClick: () => {
+        onClick: async () => {
           if (!confirm('همه‌ی آمار، رکوردها و نشست‌ها پاک شود؟ این کار برگشت‌پذیر نیست.')) return;
           store.clearAll();
-          toast('داده‌های محلی پاک شد', 'ok');
+          /**
+           * نکتهٔ مهمی که گزارش شد: این دکمه قبلاً فقط `location.reload()`
+           * می‌زد. اگر سرویس‌ورکر نسخهٔ کهنه را بدهد، همان صفحهٔ قدیمی
+           * دوباره می‌آید و کاربر فکر می‌کند «هیچ اتفاقی نیفتاد».
+           * حالا کش و سرویس‌ورکر هم پاک می‌شوند و با ?fresh= بالا می‌آییم.
+           */
+          toast('داده‌ها پاک شد — برنامه از نو بارگذاری می‌شود', 'ok');
+          try {
+            if (globalThis.caches?.keys) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            if ('serviceWorker' in navigator) {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map(r => r.unregister().catch(() => null)));
+            }
+          } catch { /* بی‌اهمیت */ }
           closeOverlay();
-          location.reload();
+          location.replace(`${location.pathname}?fresh=${Date.now()}`);
         }
       }),
       /**
@@ -141,7 +157,18 @@ export function openSettings() {
     h('p', { style: { marginTop: '.9rem', fontSize: '.76rem', color: 'var(--ink-soft)' } },
       'دورهمی‌یار هیچ داده‌ای به اینترنت نمی‌فرستد. همه‌چیز روی همین گوشی است.'),
     h('p', { style: { margin: '.3rem 0 0', fontSize: '.72rem', color: 'var(--ink-faint)' } },
-      'اگر تصویری نیامد یا نسخهٔ قدیمی را دیدی، «بازخوانی کامل برنامه» را بزن. نیازی به کنسول یا دست‌کاری آدرس نیست.')
+      'اگر تصویری نیامد یا نسخهٔ قدیمی را دیدی، «بازخوانی کامل برنامه» را بزن. نیازی به کنسول یا دست‌کاری آدرس نیست.'),
+    /**
+     * خط نسخه — «کدام نسخه اجرا می‌شود» باید دیده شود، نه حدس زده شود.
+     * اگر چیزی درست کار نمی‌کند، همین یک خط می‌گوید کد کهنه است یا نه.
+     */
+    h('div', { class: 'ver-line' },
+      h('span', { class: 'ver-line__label' }, 'نسخهٔ اجراشده: '),
+      h('code', { class: 'ver-line__code' },
+        (document.documentElement.dataset.build || 'نامعلوم')),
+      h('span', { class: 'ver-line__hint' },
+        ' — اگر با نسخهٔ سرور یکی نیست، «بازخوانی کامل» را بزن.')
+    )
   );
 
   overlay(node, { onDismiss: closeOverlay });

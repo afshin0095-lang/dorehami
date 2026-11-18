@@ -43,6 +43,9 @@ function installDom() {
   globalThis.document = {
     body, documentElement: new FakeNode('html'), title: '', hidden: false,
     createElement: t => new FakeNode(t),
+    // مرورگر واقعی این را جدا دارد؛ آیکون‌ها با آن ساخته می‌شوند.
+    // بدونش، یک SVG در فضای‌نام HTML می‌ماند و رسم نمی‌شود.
+    createElementNS: (ns, t) => new FakeNode(t),
     createTextNode: t => { const n = new FakeNode('#text'); n.nodeType = 3; n.textContent = t; return n; },
     createDocumentFragment: () => new FakeNode('frag'),
     getElementById: id => ({ app, 'modal-root': modal, toast, desk }[id] || null),

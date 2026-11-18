@@ -38,7 +38,12 @@ const allJs = [
   'public/src/engines/esmfamil.js', 'public/src/engines/quiz.js', 'public/src/engines/codenames.js',
   'public/src/engines/lowball.js', 'public/src/engines/v10.js', 'public/src/engines/logic.js',
   'public/src/engines/spirit.js', 'public/src/games/spirit-ui.js', 'tests/spirit.test.js',
-  'public/src/net/hokm-table.js', 'tests/hokm-engine.test.js', 'tests/table-echo.test.js'
+  'public/src/net/hokm-table.js', 'tests/hokm-engine.test.js', 'tests/table-echo.test.js',
+  'public/src/engines/gk.js', 'public/src/games/gk-ui.js', 'tests/gk.test.js',
+  'public/src/content/gk-geo.js', 'public/src/content/gk-history.js',
+  'public/src/content/gk-science.js', 'public/src/content/gk-culture.js',
+  'public/src/content/gk-misc.js', 'public/src/content/gk-tables.js',
+  'public/src/content/gk-gen.js'
 ];
 
 for (const f of allJs) {

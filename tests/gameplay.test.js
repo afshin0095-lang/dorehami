@@ -694,3 +694,76 @@ test('روح جزیره: پایان دور گزارش می‌سازد و دور 
   assert.ok(/[۰-۹]/.test(pills), 'شمارندهٔ دور عدد ندارد');
   cleanup();
 });
+
+test('تست اطلاعات عمومی: صفحه می‌آید و دسته‌ها را نشان می‌دهد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gk-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  assert.ok(walk(host).some(n => n.textContent?.includes('تست اطلاعات عمومی')), 'عنوان نیست');
+  const cats = walk(host).filter(n => n.classList?.contains('gk-cat'));
+  assert.ok(cats.length >= 10, `فقط ${cats.length} دسته`);
+  // شمار سؤال (چهاررقمی) باید جایی در سرصفحه یا دستهٔ «همه» دیده شود
+  const counts = walk(host).filter(n => n.classList?.contains('gk-cat__count')).map(n => n.textContent);
+  assert.ok(counts.some(t => /[۰-۹]{4}/.test(t)), `شمار سؤال نمایش داده نشده: ${counts.join(',')}`);
+  cleanup();
+});
+
+test('تست اطلاعات عمومی: بازی شروع می‌شود و چهار گزینه دارد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gk-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  btnWith(host, 'شروع بازی').click();
+  const opts = walk(host).filter(n => n.classList?.contains('gk-opt'));
+  assert.equal(opts.length, 4, `گزینه‌ها: ${opts.length}`);
+  assert.ok(walk(host).some(n => n.classList?.contains('gk-q')), 'متن سؤال نیست');
+  assert.equal(walk(host).filter(n => n.classList?.contains('gk-dot')).length, 10, 'ده نقطهٔ پیشرفت نیست');
+  cleanup();
+});
+
+test('تست اطلاعات عمومی: پاسخ، درست را نشان می‌دهد و سؤال بعد می‌آید', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gk-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  btnWith(host, 'شروع بازی').click();
+  const before = walk(host).find(n => n.classList?.contains('gk-q')).textContent;
+
+  walk(host).filter(n => n.classList?.contains('gk-opt'))[0].click();
+  assert.equal(
+    walk(host).filter(n => n.classList?.contains('gk-opt') && n.classList?.contains('is-ok')).length,
+    1, 'پاسخ درست مشخص نشد'
+  );
+  btnWith(host, 'سؤال بعد').click();
+
+  const after = walk(host).find(n => n.classList?.contains('gk-q')).textContent;
+  assert.notEqual(before, after, 'سؤال عوض نشد');
+  assert.equal(walk(host).filter(n => n.classList?.contains('gk-dot') && n.classList?.contains('is-ok')).length
+    + walk(host).filter(n => n.classList?.contains('gk-dot') && n.classList?.contains('is-bad')).length, 1);
+  cleanup();
+});
+
+test('تست اطلاعات عمومی: ادامه پس از پیشرفت، دکمه‌اش را نشان می‌دهد', async () => {
+  installDom();
+  const mod = await import('../public/src/games/gk-ui.js');
+  const host = new N('div');
+  const cleanup = mod.mountGame(host, { onExit: () => {} });
+
+  // بازی کامل تا کارنامه
+  btnWith(host, 'شروع بازی').click();
+  let guard = 0;
+  while (guard++ < 30 && walk(host).some(n => n.classList?.contains('gk-opt'))) {
+    const opts = walk(host).filter(n => n.classList?.contains('gk-opt'));
+    opts[0].click();
+    if (walk(host).some(n => n.classList?.contains('gk-review'))) break;
+    const b = walk(host).find(n => n.classList?.contains('btn') && /سؤال بعد|کارنامه/.test(n.textContent || ''));
+    if (!b) break;
+    b.click();
+  }
+  assert.ok(walk(host).some(n => n.classList?.contains('gk-review')) || walk(host).some(n => n.textContent?.includes('کارنامه')), 'کارنامه نیامد');
+  cleanup();
+});

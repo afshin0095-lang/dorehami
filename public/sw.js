@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v8';
+const CACHE = 'dorehami-shell-v9';
 
 const SHELL = [
   '/',
@@ -32,6 +32,25 @@ const SHELL = [
   '/src/games/quiz-ui.js',
   '/src/games/riddle-ui.js',
   '/src/games/iq-ui.js',
+  '/src/games/gk-ui.js',
+  '/assets/art/games/geo-quiz.jpg',
+  '/assets/art/games/mafia.jpg',
+  '/assets/art/games/hokm.jpg',
+  '/assets/art/games/esmfamil.jpg',
+  '/assets/art/games/snake.jpg',
+  '/assets/art/games/quiz.jpg',
+  '/assets/art/games/riddle.jpg',
+  '/assets/art/games/iq.jpg',
+  '/assets/art/games/codenames.jpg',
+  '/assets/art/games/lowball.jpg',
+  '/src/engines/gk.js',
+  '/src/content/gk-geo.js',
+  '/src/content/gk-history.js',
+  '/src/content/gk-science.js',
+  '/src/content/gk-culture.js',
+  '/src/content/gk-misc.js',
+  '/src/content/gk-tables.js',
+  '/src/content/gk-gen.js',
   '/src/games/snake-ui.js',
   '/src/games/codenames-ui.js',
   '/src/games/lowball-ui.js',
@@ -70,6 +89,16 @@ const SHELL = [
   '/assets/icon-512.png',
   '/assets/art/desk-bg.jpg',
   '/assets/art/paper-cream.jpg',
+  '/assets/art/games/geo-quiz.jpg',
+  '/assets/art/games/mafia.jpg',
+  '/assets/art/games/hokm.jpg',
+  '/assets/art/games/esmfamil.jpg',
+  '/assets/art/games/snake.jpg',
+  '/assets/art/games/quiz.jpg',
+  '/assets/art/games/riddle.jpg',
+  '/assets/art/games/iq.jpg',
+  '/assets/art/games/codenames.jpg',
+  '/assets/art/games/lowball.jpg',
   '/assets/art/notebook-page.jpg',
   '/assets/art/noir-leather.jpg',
   '/assets/art/persian-gold.jpg',

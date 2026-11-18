@@ -17,7 +17,7 @@ export const GAMES = [
   {
     id: 'mafia', title: 'مافیا', meta: '۶ تا ۱۲ نفر · ۳۰–۴۵ دقیقه',
     playersText: '۶–۱۲ نفر', timeText: '۳۰–۴۵ دقیقه',
-    art: '/assets/art/mafia-role.jpg',
+    art: '/assets/art/games/mafia.jpg',
     cats: ['group', 'mind'], tags: ['نقش مخفی', 'استنتاج', 'شب و روز'],
     solo: false, badge: 'پرده‌ی خصوصی', multi: true,
     load: () => import('./mafia-ui.js')
@@ -25,7 +25,7 @@ export const GAMES = [
   {
     id: 'hokm', title: 'حکم', meta: '۴ نفر · ۲ تیم · ۱۵–۲۵ دقیقه',
     playersText: '۴ نفر', timeText: '۱۵–۲۵ دقیقه',
-    art: '/assets/art/persian-gold.jpg',
+    art: '/assets/art/games/hokm.jpg',
     cats: ['cards', 'group'], tags: ['ورق', 'تیمی', 'حکم'],
     solo: false, badge: 'ورق گوتیک', multi: true,
     load: () => import('./hokm-ui.js')
@@ -33,7 +33,7 @@ export const GAMES = [
   {
     id: 'esmfamil', title: 'اسم و فامیل', meta: '۲ تا ۸ نفر · ۱۰–۲۰ دقیقه',
     playersText: '۲–۸ نفر', timeText: '۱۰–۲۰ دقیقه',
-    art: '/assets/art/notebook-page.jpg',
+    art: '/assets/art/games/esmfamil.jpg',
     cats: ['words', 'group'], tags: ['برگه', 'واژه', 'حرف'],
     solo: false, badge: 'برگه‌ی پانچ‌شده', multi: true,
     load: () => import('./esmfamil-ui.js')
@@ -41,7 +41,7 @@ export const GAMES = [
   {
     id: 'snake', title: 'مار و پله', meta: '۲ تا ۴ نفر · ۱۵–۲۵ دقیقه',
     playersText: '۲–۴ نفر', timeText: '۱۵–۲۵ دقیقه',
-    art: '/assets/art/velvet-board.jpg',
+    art: '/assets/art/games/snake.jpg',
     cats: ['cards', 'group'], tags: ['تاس', 'تخته', 'شانس'],
     solo: false, badge: 'تاس چوبی', multi: true,
     load: () => import('./snake-ui.js')
@@ -49,7 +49,7 @@ export const GAMES = [
   {
     id: 'quiz', title: 'کوییز', meta: 'تکی یا دونفره · ۵–۱۰ دقیقه',
     playersText: '۱–۲ نفر', timeText: '۵–۱۰ دقیقه',
-    art: '/assets/art/citizen-role.jpg',
+    art: '/assets/art/games/quiz.jpg',
     cats: ['solo', 'mind'], tags: ['دانستنی', 'اطلاعات عمومی', 'مسابقه'],
     solo: true, badge: '۳۰ سؤال', multi: true,
     load: () => import('./quiz-ui.js')
@@ -57,7 +57,7 @@ export const GAMES = [
   {
     id: 'riddle', title: 'چیستان', meta: 'تکی · ۳–۸ دقیقه',
     playersText: '۱ نفر', timeText: '۳–۸ دقیقه',
-    art: '/assets/art/detective-role.jpg',
+    art: '/assets/art/games/riddle.jpg',
     cats: ['solo', 'mind'], tags: ['معما', 'حدس', 'سرنخ'],
     solo: true, badge: 'فکری', multi: false,
     load: () => import('./riddle-ui.js')
@@ -65,15 +65,23 @@ export const GAMES = [
   {
     id: 'iq', title: 'تست هوش', meta: 'تکی · ۴–۱۰ دقیقه',
     playersText: '۱ نفر', timeText: '۴–۱۰ دقیقه',
-    art: '/assets/art/doctor-role.jpg',
+    art: '/assets/art/games/iq.jpg',
     cats: ['solo', 'mind'], tags: ['منطق', 'الگو', 'تست'],
     solo: true, badge: 'منطقی', multi: false,
     load: () => import('./iq-ui.js')
   },
   {
+    id: 'gk', title: 'تست اطلاعات عمومی', meta: 'تکی · ۵–۱۲ دقیقه',
+    playersText: '۱ نفر', timeText: '۵–۱۲ دقیقه',
+    art: '/assets/art/games/geo-quiz.jpg',
+    cats: ['solo', 'mind'], tags: ['اطلاعات عمومی', 'جغرافیا', 'تاریخ', 'علوم', 'کوییز'],
+    solo: true, badge: '۱۰۰۰+ سؤال', multi: false,
+    load: () => import('./gk-ui.js')
+  },
+  {
     id: 'codenames', title: 'اسم رمز', meta: '۴ تا ۸ نفر · ۲ تیم · ۲۰–۳۰ دقیقه',
     playersText: '۴–۸ نفر', timeText: '۲۰–۳۰ دقیقه',
-    art: '/assets/art/desk-bg.jpg',
+    art: '/assets/art/games/codenames.jpg',
     cats: ['group', 'words'], tags: ['تیمی', 'سرنخ', 'کدنیمز'],
     solo: false, badge: 'دو تیم', multi: true,
     load: () => import('./codenames-ui.js')
@@ -81,7 +89,7 @@ export const GAMES = [
   {
     id: 'lowball', title: 'کم‌ترین پیشنهاد', meta: '۲ تا ۴ نفر · ۱۰–۲۰ دقیقه',
     playersText: '۲–۴ نفر', timeText: '۱۰–۲۰ دقیقه',
-    art: '/assets/art/noir-leather.jpg',
+    art: '/assets/art/games/lowball.jpg',
     cats: ['cards', 'duo'], tags: ['ورق', 'بلوف', 'مناقصه'],
     solo: false, badge: 'ورق نوآر', multi: true,
     load: () => import('./lowball-ui.js')

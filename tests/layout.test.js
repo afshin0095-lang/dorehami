@@ -144,7 +144,9 @@ test('کلاس‌های متنی بازی‌های تازه گارد شکستن 
     '.ring-foe__name', '.ring-threat__val', '.ring-crew__row', '.ring-brief span',
     '.sp-hero h1', '.sp-hero p', '.sp-spirit__name', '.sp-spirit__perk',
     '.sp-power__name', '.sp-power__text', '.sp-land__name', '.sp-land__count',
-    '.sp-target__name', '.sp-log__row', '.sp-gauge__label', '.sp-brief span'
+    '.sp-target__name', '.sp-log__row', '.sp-gauge__label', '.sp-brief span',
+    '.gk-hero h1', '.gk-hero p', '.gk-q', '.gk-opt__text', '.gk-cat__label',
+    '.gk-review__q', '.gk-review__a', '.gk-stat__val', '.gk-progress__note'
   ];
   for (const sel of guarded) {
     assert.ok(hasWrapGuard(sel), `${sel} بدون گارد شکستن کلمه`);
@@ -175,7 +177,7 @@ test('بدون background-size: 100% 100% (کشیدگی ممنوع)', () => {
 
 test('هر صفحه‌ی بازی دکمه‌ی بازگشت دارد', async () => {
   const files = ['mafia', 'hokm', 'esmfamil', 'snake', 'quiz', 'riddle', 'iq', 'codenames',
-    'lowball', 'story', 'warden', 'logic', 'duz', 'spot', 'gloom', 'siege', 'island', 'arkham', 'ring', 'spirit'];
+    'lowball', 'story', 'warden', 'logic', 'duz', 'spot', 'gloom', 'siege', 'island', 'arkham', 'ring', 'spirit', 'gk'];
   for (const id of files) {
     const src = await readFile(join(ROOT, `public/src/games/${id}-ui.js`), 'utf8');
     assert.match(src, /gameHeader\(/, `${id}: gameHeader ندارد`);

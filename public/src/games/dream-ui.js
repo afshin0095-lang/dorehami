@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { h, mount, playSound, stats, toFa } from '../core.js';
-import { gameHeader, sheet, btn, helpBlock, callout, icon } from '../ui/kit.js';
+import { gameHeader, sheet, btn, helpBlock, callout, icon, levelArt } from '../ui/kit.js';
 import {
   DREAMS, SIGNS, createDreamGame, playDream, discardDream, canPlay,
   playableCards, nightmareOptions, applyNightmare, dreamName, signName,
@@ -117,6 +117,7 @@ export function mountGame(root, { onExit } = {}) {
           ...['easy', 'normal', 'hard'].map(id => h('button', {
             class: `level-card${difficulty === id ? ' is-on' : ''}`,
             'aria-pressed': String(difficulty === id),
+            style: `--lvl-art:url('${levelArt(id)}')`,
             onclick: () => { difficulty = id; playSound('tap'); render(); }
           },
             h('div', { class: 'level-card__name' }, DIFFICULTY_LABEL[id]),

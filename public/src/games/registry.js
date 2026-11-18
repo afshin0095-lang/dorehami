@@ -4,13 +4,13 @@
    ============================================================ */
 
 export const CATEGORIES = [
-  { id: 'group', label: 'دورهمی' },
-  { id: 'duo', label: 'دونفره' },
-  { id: 'solo', label: 'تکی' },
-  { id: 'cards', label: 'ورق و تاس' },
-  { id: 'words', label: 'واژه' },
-  { id: 'mind', label: 'فکری' },
-  { id: 'story', label: 'داستانی' }
+  { id: 'group', label: 'دورهمی', glyph: '🪑', emblem: '/assets/art/cats/cat-group.jpg' },
+  { id: 'duo', label: 'دونفره', glyph: '⚔️', emblem: '/assets/art/cats/cat-duo.jpg' },
+  { id: 'solo', label: 'تکی', glyph: '🕯️', emblem: '/assets/art/cats/cat-solo.jpg' },
+  { id: 'cards', label: 'ورق و تاس', glyph: '🃏', emblem: '/assets/art/cats/cat-cards.jpg' },
+  { id: 'words', label: 'واژه', glyph: '✒️', emblem: '/assets/art/cats/cat-words.jpg' },
+  { id: 'mind', label: 'فکری', glyph: '🧠', emblem: '/assets/art/cats/cat-mind.jpg' },
+  { id: 'story', label: 'داستانی', glyph: '📖', emblem: '/assets/art/cats/cat-solo.jpg' }
 ];
 
 export const GAMES = [

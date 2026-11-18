@@ -3638,3 +3638,47 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .gk-hero h1 { font-size: .92rem; }
 }
 
+
+/* ---------- چیپ دسته با نشان تصویری ---------- */
+.chip--emblem {
+  position: relative;
+  display: inline-flex; align-items: center; gap: .32rem;
+  padding: .44rem .82rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+/* نشان دسته، کم‌رنگ پشت چیپ — کل سطح را می‌پوشاند */
+.chip--emblem::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
+  background-image: var(--emblem);
+  background-size: cover; background-position: center;
+  opacity: .2;
+  mix-blend-mode: multiply;
+  transition: opacity .2s ease;
+}
+.chip--emblem:hover::before { opacity: .32; }
+.chip--emblem[aria-pressed='true']::before {
+  opacity: .38; mix-blend-mode: luminosity;
+}
+.chip__glyph { font-size: .86rem; line-height: 1; flex: 0 0 auto; }
+.chip__label { position: relative; }
+
+/* ---------- کارت سطح با تصویر ---------- */
+.level-card {
+  position: relative; overflow: hidden; isolation: isolate;
+}
+.level-card::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
+  background-image: var(--lvl-art, none);
+  background-size: cover; background-position: center;
+  opacity: .26; mix-blend-mode: multiply;
+  transition: opacity .2s ease;
+}
+.level-card:hover::before { opacity: .36; }
+.level-card.is-on::before { opacity: .14; mix-blend-mode: normal; }
+.level-card.is-on { color: #fff8e7; }
+.level-card.is-on .level-card__name,
+.level-card.is-on .level-card__meta { color: #fff8e7; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+

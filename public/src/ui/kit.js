@@ -68,11 +68,21 @@ export function sheet({ title, iconName, children, cls = '', tone = '' }) {
   );
 }
 
-export function chip(label, { pressed = false, onClick } = {}) {
+/**
+ * چیپ دسته‌بندی. با emblem، کاغذ جلد دسته پشت آن می‌آید و
+ * نشان (glyph) هم کنار برچسب می‌نشیند تا هر دکمه معنی‌اش را
+ * با متن و تصویر هر دو نشان دهد.
+ */
+export function chip(label, { pressed = false, onClick, glyph = '', emblem = '' } = {}) {
   return h('button', {
-    class: 'chip', 'aria-pressed': pressed ? 'true' : 'false',
+    class: `chip${emblem ? ' chip--emblem' : ''}`,
+    'aria-pressed': pressed ? 'true' : 'false',
+    ...(emblem ? { style: `--emblem:url('${emblem}')` } : {}),
     onclick: () => { playSound('tap'); onClick?.(); }
-  }, label);
+  },
+    glyph ? h('span', { class: 'chip__glyph', 'aria-hidden': 'true' }, glyph) : null,
+    h('span', { class: 'chip__label' }, label)
+  );
 }
 
 export function topbar({ brand = 'دورهمی‌یار', right = [], onBack = null, title = null }) {
@@ -149,3 +159,11 @@ export function closeOverlay() {
   document.getElementById('modal-root').replaceChildren();
   document.body.style.overflow = '';
 }
+
+/** تصویر کاغذی هر سطح (سبک/آسانی) — برای کارت‌های انتخاب سختی */
+export const LEVEL_ART = {
+  easy: '/assets/art/cats/lvl-quick.jpg',
+  normal: '/assets/art/cats/lvl-standard.jpg',
+  hard: '/assets/art/cats/lvl-deep.jpg'
+};
+export const levelArt = (id) => LEVEL_ART[id] || '';

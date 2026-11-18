@@ -10,7 +10,7 @@ import {
   investigate, fight, evade, playAsset, drawCard, rest, endTurn,
   isOver, currentAct, currentAgenda, spawnEnemy, scoreOf
 } from '../engines/arkham.js';
-import { gameHeader, sheet, btn, helpBlock } from '../ui/kit.js';
+import { gameHeader, sheet, btn, helpBlock, levelArt } from '../ui/kit.js';
 
 const HELP = RULES;
 
@@ -90,6 +90,7 @@ export function mountGame(root, { onExit } = {}) {
         ...Object.entries(DIFFICULTY).map(([id, d]) => h('button', {
           class: `level-card${difficulty === id ? ' is-on' : ''}`,
           'aria-pressed': String(difficulty === id),
+          style: `--lvl-art:url('${levelArt(id)}')`,
           onclick: () => { difficulty = id; playSound('tap'); render(); }
         },
           h('div', { class: 'level-card__name' }, d.label),

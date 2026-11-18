@@ -96,7 +96,10 @@ export function HomeScreen({ navigate, openGame }) {
 
     // دسته‌ها
     h('div', { class: 'chips' },
-      ...cats.map(c => chip(c.label, { onClick: () => navigate('games', { cat: c.id }) }))
+      ...cats.map(c => chip(c.label, {
+        glyph: c.glyph, emblem: c.emblem,
+        onClick: () => navigate('games', { cat: c.id })
+      }))
     ),
 
     // بازی‌ها
@@ -160,6 +163,7 @@ export function GamesScreen({ navigate, openGame, state }) {
       chip('همه', { pressed: activeCat === 'all', onClick: () => { state.cat = 'all'; navigate('games', state); } }),
       ...CATEGORIES.map(c => chip(c.label, {
         pressed: activeCat === c.id,
+        glyph: c.glyph, emblem: c.emblem,
         onClick: () => { state.cat = c.id; navigate('games', state); }
       }))
     ),

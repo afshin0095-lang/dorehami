@@ -519,6 +519,31 @@ const server = createServer(async (req, res) => {
 
     if (pathname.startsWith('/api/')) return json(res, 404, { error: 'not-found' });
 
+    /**
+     * `/styles.css?v=<build>` — همان فایل CSS با آدرس نسخه‌دار.
+     * مرورگر آن را یک منبع تازه می‌بیند، پس نسخهٔ کهنهٔ کش‌شده هرگز
+     * انتخاب نمی‌شود. خود فایل با no-store سرو می‌شود.
+     */
+    if (pathname === '/styles.css' || pathname === '/preboot.js') {
+      const file = join(ROOT, pathname.slice(1));
+      try {
+        const data = await readFile(file);
+        res.writeHead(200, {
+          'content-type': pathname.endsWith('.css')
+            ? 'text/css; charset=utf-8'
+            : 'text/javascript; charset=utf-8',
+          // هر بار تازه؛ نسخه‌دار بودن آدرس، کشِ بلندمدت را بی‌خطر می‌کند
+          'cache-control': pathname.endsWith('.css') ? 'no-cache' : 'no-store',
+          'x-content-type-options': 'nosniff'
+        });
+        if (req.method === 'HEAD') return res.end();
+        return res.end(data);
+      } catch {
+        res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+        return res.end('not found');
+      }
+    }
+
     /* ---- استاتیک ---- */
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405, { 'content-type': 'text/plain; charset=utf-8' });
@@ -564,8 +589,23 @@ const server = createServer(async (req, res) => {
      * (بدون این، هیچ راهی برای تشخیص نسخهٔ کهنه از داخل خودِ برنامه نبود.)
      */
     if (isHtml && (pathname === '/' || pathname === '/index.html')) {
+      /**
+       * دو کار روی HTML انجام می‌شود:
+       *  ۱) شناسهٔ ساخت روی <html> می‌نشیند تا نگهبان نسخه آن را بخواند
+       *  ۲) نشانی CSS با همان شناسه «نسخه‌دار» می‌شود
+       *
+       * چرا (۲) لازم است؟ اگر مرورگر یا سرویس‌ورکر نسخهٔ کهنهٔ styles.css را
+       * نگه داشته باشد، با آدرس ثابت `/styles.css` هیچ راهی برای اجبار به
+       * گرفتن نسخهٔ تازه نیست. با `/styles.css?v=<build>` هر ساخت یک آدرس
+       * تازه دارد و نسخهٔ کهنه دیگر هیچ‌وقت انتخاب نمی‌شود — حتی اگر
+       * سرویس‌ورکر تازه نشده باشد.
+       */
       const html = data.toString('utf8')
-        .replace('<html lang="fa" dir="rtl">', `<html lang="fa" dir="rtl" data-build="${BUILD_ID}">`);
+        .replace('<html lang="fa" dir="rtl">', `<html lang="fa" dir="rtl" data-build="${BUILD_ID}">`)
+        .replace('href="/styles.css"', `href="/styles.css?v=${encodeURIComponent(BUILD_ID)}"`)
+        // پیش‌راه‌انداز: همیشه تازه، پیش از ماژول‌ها
+        .replace('<script type="module" src="/src/main.js"></script>',
+          `<script src="/preboot.js?v=${encodeURIComponent(BUILD_ID)}"></script>\n<script type="module" src="/src/main.js"></script>`);
       data = Buffer.from(html, 'utf8');
     }
 

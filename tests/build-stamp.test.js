@@ -77,3 +77,35 @@ test('بارگذاری ?fresh= سرویس‌ورکر را ثبت نمی‌کند
   assert.match(main, /IS_FRESH/, 'تشخیص fresh نیست');
   assert.match(main, /'serviceWorker' in navigator && !IS_FRESH/, 'در حالت fresh هم ثبت می‌شود');
 });
+
+/* ── سرویس‌ورکر: CSS نباید stale-first باشد ─────────────────────── */
+
+test('سرویس‌ورکر styles.css را network-first می‌گیرد، نه stale-first', () => {
+  const sw = readFileSync(join(ROOT, 'public/sw.js'), 'utf8');
+  // شاخهٔ network-first باید styles.css را در بر بگیرد
+  const codeBranch = sw.slice(sw.indexOf('const isCode'), sw.indexOf('if (isCode)'));
+  assert.match(codeBranch, /styles\.css/,
+    'styles.css در شاخهٔ network-first نیست — هر تغییر ظاهری یک بار دیرتر دیده می‌شود');
+  // و در شاخهٔ stale-while-revalidate نباید صریحاً نام برده شود
+  const staleBranch = sw.slice(sw.indexOf('stale-while-revalidate'), sw.length);
+  assert.equal(/styles\.css/.test(staleBranch), false,
+    'styles.css همزمان در شاخهٔ stale هم هست');
+});
+
+test('نسخهٔ کش سرویس‌ورکر با هر تغییر ظاهری بالا می‌رود', () => {
+  const sw = readFileSync(join(ROOT, 'public/sw.js'), 'utf8');
+  const m = sw.match(/dorehami-shell-v(\d+)/);
+  assert.ok(m, 'شمارهٔ نسخهٔ کش پیدا نشد');
+  assert.ok(Number(m[1]) >= 27, `نسخهٔ کش باید دست‌کم ۲۷ باشد، هست ${m[1]}`);
+  // بنر و لوگوی تازه باید در precache باشند
+  assert.match(sw, /hero-fabric\.jpg/, 'بنر تازه در precache نیست');
+  assert.match(sw, /logo-512\.png/, 'لوگو در precache نیست');
+});
+
+test('پیش‌راه‌انداز کش را پاک می‌کند و راه فرار دارد', () => {
+  const pre = readFileSync(join(ROOT, 'public/preboot.js'), 'utf8');
+  assert.match(pre, /caches\.keys/, 'پیش‌راه‌انداز کش را نمی‌بیند');
+  assert.match(pre, /caches\.delete/, 'پیش‌راه‌انداز کش را پاک نمی‌کند');
+  assert.match(pre, /getRegistrations/, 'پیش‌راه‌انداز سرویس‌ورکر را برنمی‌دارد');
+  assert.match(pre, /fresh/, 'راه فرار ?fresh= در پیش‌راه‌انداز نیست');
+});

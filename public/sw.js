@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v26';
+const CACHE = 'dorehami-shell-v27';
 
 const SHELL = [
   '/',
@@ -224,12 +224,21 @@ self.addEventListener('fetch', (event) => {
   }
 
   /**
-   * کد برنامه (`/src/`) همیشه network-first است: وقتی کاربر آنلاین است
-   * نسخهٔ تازه می‌آید و کش فقط پشتوانهٔ آفلاین است. با stale-while-revalidate
-   * کاربر تا یک بار دیگر همان نسخهٔ کهنه را می‌دید و به نظر می‌رسید
-   * «هیچ تغییری اعمال نشده».
+   * کد و ظاهر برنامه — `/src/` **و `/styles.css`** — همیشه network-first است.
+   *
+   * چرا styles.css هم مهم است؟ چون قبلاً این فایل در شاخهٔ stale-while-
+   * revalidate می‌افتاد: کش بی‌درنگ نسخهٔ کهنه را می‌داد و تازه‌سازی در
+   * پس‌زمینه می‌نشست. نتیجه این بود که هر تغییر ظاهری فقط از **بار دوم**
+   * دیده می‌شد و کاربر فکر می‌کرد «هیچ تغییری اعمال نشده». بدترین حالت
+   * ممکن: کد تازه + CSS کهنه، یعنی صفحه‌ای که ساختارش عوض شده ولی
+   * استایلش نه — دقیقاً همان چیزی که به‌شکل «به‌هم‌ریختگی» دیده می‌شد.
    */
-  if (url.pathname.startsWith('/src/') || url.pathname === '/sw.js') {
+  const isCode = url.pathname.startsWith('/src/')
+    || url.pathname === '/sw.js'
+    || url.pathname === '/styles.css'
+    || url.pathname === '/manifest.webmanifest';
+
+  if (isCode) {
     event.respondWith(
       fetch(req)
         .then(res => {
@@ -282,5 +291,22 @@ self.addEventListener('message', (event) => {
           event.source?.postMessage({ type: 'CACHES_CLEARED' });
         })
     );
+  }
+  /**
+   * «همه‌چیز را از نو بگیر» — کش‌ها را می‌ریزد، پوسته را از شبکه
+   * دوباره پر می‌کند و به همهٔ پنجره‌ها می‌گوید بارگذاری کنند.
+   * یک پیام، یک بارگذاری؛ کاربر لازم نیست چند بار رفرش کند.
+   */
+  if (event.data?.type === 'REFRESH_ALL') {
+    event.waitUntil((async () => {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+        const cache = await caches.open(CACHE);
+        await Promise.all(SHELL.map(u => cache.add(u).catch(() => null)));
+      } catch { /* بی‌اهمیت */ }
+      const list = await self.clients.matchAll({ type: 'window' });
+      for (const c of list) { try { c.postMessage({ type: 'REFRESH_ALL_DONE' }); } catch { /* */ } }
+    })());
   }
 });

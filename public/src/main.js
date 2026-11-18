@@ -188,11 +188,16 @@ if ('serviceWorker' in navigator && !IS_FRESH) {
         });
       });
       // نسخهٔ تازه فعال شد → یک بار تازه‌سازی، تا کد قدیمی نماند
+      /**
+       * سرویس‌ورکر تازه فعال شد. فقط reload کافی نیست: ممکن است کش
+       * نسخهٔ قدیمی هنوز زنده باشد و همان CSS کهنه را بدهد. یک بار
+       * پاک‌سازی کامل می‌کنیم تا اولین بارگذاری، قطعاً نسخهٔ تازه باشد.
+       */
       let reloaded = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (reloaded) return;
         reloaded = true;
-        location.reload();
+        void hardReload();
       });
       // هر بار بازگشت به برنامه، کش را بررسی کن
       document.addEventListener('visibilitychange', () => {
@@ -207,18 +212,36 @@ if ('serviceWorker' in navigator && !IS_FRESH) {
  * با dy:hard-reload از پنل مدیریت یا هر جای دیگر صدا زده می‌شود.
  */
 export async function hardReload() {
+  /**
+   * نکتهٔ مهم: این تابع ممکن است خودش از یک نسخهٔ **کهنه** اجرا شود
+   * (کاربر دکمه را در کد قدیمی می‌زند). پس هیچ‌کس نباید به تازه‌بودن
+   * منطق این‌جا تکیه کند؛ باید «کامل و خودبسنده» باشد:
+   *  ۱) هر کشی هست، با هر نامی، پاک شود (نه فقط کش خودمان)
+   *  ۲) سرویس‌ورکرها برداشته شوند
+   *  ۳) با ?fresh= بالا بیاییم و از آن‌جا پیش‌راه‌انداز دوباره
+   *     همان پاک‌سازی را انجام می‌دهد
+   * حتی اگر همهٔ این‌ها شکست بخورد، پارامتر fresh در آدرس باعث می‌شود
+   * پیش‌راه‌اندازِ تازه (که با no-store سرو می‌شود) کار را تمام کند.
+   */
   try {
     if ('serviceWorker' in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
+      await Promise.all(regs.map(r => r.unregister().catch(() => null)));
     }
+  } catch { /* بی‌اهمیت */ }
+  try {
     if (globalThis.caches?.keys) {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
   } catch { /* بی‌اهمیت */ }
   // با پارامتر تازه، هیچ نسخهٔ کش‌شده‌ای در مسیر نمی‌ماند
-  location.replace(`${location.pathname}?fresh=${Date.now()}`);
+  const url = `${location.pathname}?fresh=${Date.now()}`;
+  try {
+    location.replace(url);
+  } catch {
+    location.href = url;
+  }
 }
 document.addEventListener('dy:hard-reload', () => { void hardReload(); });
 

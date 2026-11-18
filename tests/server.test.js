@@ -125,3 +125,38 @@ test('کد و استایل تازه‌سازی اجباری دارند، تصو�
   const icc = img.headers.get('cache-control') || '';
   assert.match(icc, /max-age=/, `تصویر باید max-age داشته باشد، ولی: ${icc}`);
 });
+
+/* ── کش: «تغییرات اعمال نشده» نباید دیگر تکرار شود ─────────────────── */
+
+test('CSS با آدرس نسخه‌دار هم سرو می‌شود (ضد کش)', async () => {
+  const r = await get('/styles.css?v=abcdef');
+  assert.equal(r.status, 200, 'آدرس نسخه‌دار CSS ۴۰۴ می‌دهد — صفحه بی‌استایل می‌ماند');
+  assert.match(r.headers.get('content-type') || '', /text\/css/);
+  const body = await r.text();
+  assert.ok(body.length > 10000, 'CSS نسخه‌دار خالی است');
+  assert.match(body, /hero-fabric/, 'CSS نسخه‌دار نسخهٔ تازه نیست');
+});
+
+test('صفحهٔ اصلی، آدرس CSS را با شناسهٔ ساخت نسخه‌دار می‌کند', async () => {
+  const r = await get('/');
+  const html = await r.text();
+  const m = html.match(/href="\/styles\.css\?v=([^"]+)"/);
+  assert.ok(m, 'آدرس CSS نسخه‌دار نیست — مرورگر می‌تواند نسخهٔ کهنه را نگه دارد');
+  assert.match(html, /data-build="[^"]+"/, 'شناسهٔ ساخت روی <html> نیست');
+  // همان شناسه باید در هر دو جا یکی باشد
+  const build = html.match(/data-build="([^"]+)"/)[1];
+  assert.equal(m[1], build, 'نسخهٔ آدرس CSS با شناسهٔ ساخت یکی نیست');
+});
+
+test('پیش‌راه‌انداز پیش از ماژول اصلی و با no-store سرو می‌شود', async () => {
+  const html = await (await get('/')).text();
+  const preIdx = html.indexOf('/preboot.js');
+  const mainIdx = html.indexOf('/src/main.js');
+  assert.ok(preIdx > 0, 'پیش‌راه‌انداز در HTML نیست');
+  assert.ok(preIdx < mainIdx, 'پیش‌راه‌انداز باید پیش از ماژول اصلی بار شود');
+  assert.match(html.slice(preIdx - 40, preIdx + 60), /preboot\.js\?v=/, 'آدرس پیش‌راه‌انداز نسخه‌دار نیست');
+
+  const r = await get('/preboot.js');
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('cache-control') || '', /no-store/, 'پیش‌راه‌انداز نباید کش شود');
+});

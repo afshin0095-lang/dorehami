@@ -144,37 +144,29 @@ body {
    * قاب هرگز تا کف صفحه کشیده نمی‌شود؛ با cover و نسبت صفحه
    * هم‌خوان می‌ماند تا طرح رز و خارها دفرمه نشوند.
    */
+  /**
+   * دیوار پشتِ برنامه: فقط کاغذ بی‌درز + هالهٔ نور.
+   * قاب حکاکی‌شده دیگر اینجا با cover روی کل پنجره کشیده نمی‌شود —
+   * با cover روی یک صفحهٔ باریک، ۷۰٪ نقشِ قاب بریده می‌شد. قاب حالا
+   * با border-image دور خودِ ستون برنامه می‌نشیند (پایین‌تر، .app).
+   */
   background-image:
     radial-gradient(120% 66% at 50% 0%, rgba(255,247,226,.55), transparent 62%),
-    url('/assets/art/desk-frame.jpg'),
     url('/assets/art/paper-tile.jpg');
-  background-size: cover, cover, 620px auto;
-  background-position: center top, center center, center center;
-  background-repeat: no-repeat, no-repeat, repeat;
+  background-size: cover, 620px auto;
+  background-position: center top, center center;
+  background-repeat: no-repeat, repeat;
   filter: saturate(.98) brightness(1.0);
 }
 /**
- * نقش برجستگی: نور از بالا-چپ. یک لایهٔ روشن با آفست مثبت و یک لایهٔ
- * سایه با آفست منفی، هر دو از همان قاب — نتیجه‌اش حس «حکاکیِ فشارداده»
- * است، مثل جلد چرمی ضربی.
+ * نقش برجستگی ملایم دیوار — بدون تصویر قاب، فقط یک نور و یک سایهٔ
+ * نرم در لبه‌ها. سبک است و روی هر اندازه‌ای درست می‌نشیند.
  */
 #desk::before {
   content: ''; position: absolute; inset: 0;
-  background: url('/assets/art/desk-frame.jpg') center center / cover no-repeat;
-  opacity: .34;
-  mix-blend-mode: soft-light;
-  transform: translate(1.2px, 1.6px);
-  filter: brightness(1.22) contrast(1.05);
-  pointer-events: none;
-}
-#desk::after {
-  content: ''; position: absolute; inset: 0;
   background:
-    url('/assets/art/desk-frame.jpg') center center / cover no-repeat;
-  opacity: .28;
-  mix-blend-mode: multiply;
-  transform: translate(-1.2px, -1.6px);
-  filter: brightness(.82);
+    radial-gradient(140% 100% at 50% -10%, rgba(255,250,236,.5), transparent 60%),
+    linear-gradient(180deg, rgba(60,40,24,.16), transparent 18%, transparent 82%, rgba(60,40,24,.22));
   pointer-events: none;
 }
 
@@ -3879,14 +3871,30 @@ small { font-weight: 600; }
    بدنهٔ چوبی کابینت نشسته است. هیچ‌چیز از قاب بیرون نمی‌زند.
    ============================================================ */
 .app {
-  /* لبهٔ داخلی قاب: دو خط نازک چوبی + درخشش شیشه */
+  /**
+   * قاب حکاکی‌شده، دقیقاً دور همین ستون.
+   *
+   * border-image نه می‌بُرد و نه می‌کشد: گوشه‌های تزئینی ثابت می‌مانند
+   * و فقط نوارهای میانیِ قاب (که نقش دارند ولی کشسان‌اند) دراز می‌شوند.
+   * نسبت برش از خود تصویر اندازه‌گیری شده: چپ ۱۵٪ · راست ۱۵٪ ·
+   * بالا ۲۴٪ · پایین ۱۹٪.
+   *
+   * نتیجه: روی هر عرضی — از ۳۲۰ تا ۵۶۰ پیکسل — تمام نقشِ قاب دیده
+   * می‌شود، نه یک برشِ وسطِ آن.
+   */
+  border: 22px solid transparent;
+  border-image-source: url('/assets/art/desk-frame.jpg');
+  border-image-slice: 24% 15% 19% 15% fill;
+  border-image-width: 22px 20px 20px 20px;
+  border-image-repeat: stretch stretch;
+  border-radius: 0;
+
+  /* لبهٔ داخلی: دو خط نازک چوبی + درخشش شیشه */
   box-shadow:
     inset 0 0 0 1px rgba(139,110,68,.30),
     inset 0 0 0 7px rgba(58,40,26,.10),
     inset 0 2px 0 rgba(255,245,225,.42),
-    0 0 0 1px rgba(38,26,18,.55),
     0 18px 44px rgba(10,6,4,.55);
-  border-radius: 16px;
   background:
     linear-gradient(180deg, rgba(255,244,224,.34), rgba(244,236,217,.14) 22%, rgba(244,236,217,.10) 100%);
   margin-top: .5rem;

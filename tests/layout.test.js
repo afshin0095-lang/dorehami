@@ -7,6 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -183,4 +184,32 @@ test('هر صفحه‌ی بازی دکمه‌ی بازگشت دارد', async ()
     assert.match(src, /gameHeader\(/, `${id}: gameHeader ندارد`);
     assert.match(src, /onBack/, `${id}: onBack ندارد`);
   }
+});
+
+/* ── پس‌زمینه‌ها باید دقیقاً در قاب خودشان جا شوند ───────────────── */
+
+test('قاب حکاکی‌شده با border-image دور ستون می‌نشیند، نه با cover روی کل صحنه', () => {
+  const css = readFileSync(join(ROOT, 'public/styles.css'), 'utf8');
+  // قاب باید به‌صورت border-image باشد…
+  assert.match(css, /border-image-source:\s*url\('\/assets\/art\/desk-frame\.jpg'\)/,
+    'قاب با border-image دور برنامه نمی‌نشیند');
+  assert.match(css, /border-image-slice:\s*24%\s+15%\s+19%\s+15%\s+fill/,
+    'نسبت برش قاب اندازه‌گیری‌شده نیست');
+  // …و دیگر با cover روی کل صحنه کشیده نشود (این کار ۷۰٪ نقش را می‌بُرید)
+  const deskBlock = css.slice(css.indexOf('#desk {'), css.indexOf('#desk::before'));
+  assert.equal(deskBlock.includes("url('/assets/art/desk-frame.jpg')"), false,
+    'قاب هنوز روی #desk با cover کشیده می‌شود');
+});
+
+test('هیچ surface با پس‌زمینهٔ عکس، نسبت تصویر را دفرمه نمی‌کند', () => {
+  const css = readFileSync(join(ROOT, 'public/styles.css'), 'utf8');
+  // هیچ‌جا نباید ۱۰۰٪ ۱۰۰٪ باشد (کشیدگی) — قبلاً همین قاعده سبب باگ شده بود
+  assert.equal(/background-size:\s*100%\s+100%/.test(css), false,
+    'پس‌زمینه با ۱۰۰٪ ۱۰۰٪ کشیده می‌شود');
+  // banner باید نسبت ابعاد خودش را قفل کند تا cover دفرمه‌اش نکند
+  assert.match(css, /\.hero-fabric\s*\{[^}]*aspect-ratio:\s*1376\s*\/\s*768/s,
+    'بنر پارچه‌ای نسبت ابعاد تصویر را قفل نکرده');
+  // و پوشش‌های cover باید center باشند، نه یک گوشهٔ دلبخواه
+  const coverRules = [...css.matchAll(/background-size:\s*cover[^;]*;/g)];
+  assert.ok(coverRules.length > 10, 'قاعده‌های cover کمتر از انتظار است');
 });

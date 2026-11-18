@@ -69,19 +69,43 @@ export function HomeScreen({ navigate, openGame }) {
   const cats = CATEGORIES.slice(0, 5);
 
   return h('div', {},
+    // لوگوی بالای برنامه — بالای همه‌چیز، مثل نشان روی جلد
+    h('div', { class: 'brand' },
+      h('img', {
+        class: 'brand__logo',
+        src: '/assets/logo-512.png',
+        alt: 'دورهمی‌یار',
+        width: '132', height: '120',
+        draggable: 'false'
+      })
+    ),
+
     topbar({ right: headerActions(navigate) }),
 
-    // ویترین اصلی
-    h('section', { class: 'hero torn' },
-      h('div', { class: 'hero__veil' }),
-      h('div', { class: 'hero__inner' },
-        h('div', { class: 'hero__kicker' }, 'گوشی وسط، جمع روشن'),
-        h('h1', {}, 'امشب چی بازی کنیم؟'),
-        h('p', {}, `${toFa(pool.length)} بازی کاغذی فارسی — تکی، دونفره و دورهمی. آفلاین، بدون ثبت‌نام.`),
-        h('div', { class: 'hero__actions' },
-          h('button', { class: 'btn btn--primary', onclick: () => { playSound('seal'); navigate('games'); } }, icon('play', 18), 'شروع'),
-          h('button', { class: 'btn', onclick: () => { playSound('tap'); openGame(daily.id); } }, icon('spark', 18), 'چالش امروز')
-        )
+    /*
+     * بنر پارچه‌ای: بافت واقعی + گلدوزی فیروزه‌ای.
+     * متن روی خودِ پارچه می‌نشیند (نه در یک جعبهٔ جدا) تا حس «چاپ روی
+     * پارچه» بدهد. سایهٔ متن کوتاه و گرم است، نه سایهٔ سیاهِ تیز.
+     */
+    h('section', { class: 'hero-fabric' },
+      h('div', { class: 'hero-fabric__cloth' }),
+      h('div', { class: 'hero-fabric__inner' },
+        h('div', { class: 'hero-fabric__kicker' }, 'گوشی وسط جمع روشن'),
+        h('h1', { class: 'hero-fabric__title' }, 'امشب چی بازی کنیم؟'),
+        h('p', { class: 'hero-fabric__sub' },
+          'یه دورهمی شاد و لذت‌بخش — چه از راه دور و چه نزدیک')
+      )
+    ),
+
+    // چالش امروز — زیر بنر، با همان قرمز جگریِ پارچه
+    h('div', { class: 'hero-challenge' },
+      h('button', {
+        class: 'btn btn--oxblood btn--block hero-challenge__btn',
+        onclick: () => { playSound('seal'); openGame(daily.id); }
+      },
+        icon('spark', 18),
+        h('span', {}, 'چالش امروز'),
+        h('span', { class: 'hero-challenge__name' }, `· ${daily.title}`)
       )
     ),
 

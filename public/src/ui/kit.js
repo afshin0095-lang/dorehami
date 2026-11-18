@@ -96,14 +96,29 @@ export function topbar({ brand = 'دورهمی‌یار', right = [], onBack = n
   );
 }
 
+/**
+ * نوار پایین. هر بخش سه لایه دارد:
+ *  ۱) نشان (icon) که در بخش فعال بزرگ‌تر و رنگی می‌شود
+ *  ۲) عنوان نوشتاری
+ *  ۳) خطِ نشانگر پایین که با انتخاب، از وسط باز می‌شود
+ * این‌طور «کجای برنامه‌ای» بدون خواندن متن هم معلوم است.
+ */
 export function navbar({ items, active, onNavigate }) {
   return h('nav', { class: 'navbar', 'aria-label': 'ناوبری اصلی' },
     h('div', { class: 'navbar__inner' },
-      ...items.map(it => h('button', {
-        class: 'nav-item',
-        'aria-current': active === it.id ? 'page' : null,
-        onclick: () => { playSound('tap'); onNavigate(it.id); }
-      }, icon(it.icon, 19), h('span', {}, it.label)))
+      ...items.map(it => {
+        const on = active === it.id;
+        return h('button', {
+          class: `nav-item${on ? ' is-active' : ''}`,
+          'aria-current': on ? 'page' : null,
+          'aria-label': it.label,
+          onclick: () => { playSound('tap'); onNavigate(it.id); }
+        },
+          h('span', { class: 'nav-item__glyph' }, icon(it.icon, 21)),
+          h('span', { class: 'nav-item__label' }, it.label),
+          h('span', { class: 'nav-item__mark', 'aria-hidden': 'true' })
+        );
+      })
     )
   );
 }

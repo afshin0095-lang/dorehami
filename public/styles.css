@@ -337,69 +337,73 @@ small { font-weight: 600; }
   position: relative;
   border: none; padding: 0; cursor: pointer;
   text-align: right;
-  /* مقوای تیره زیر عکس: بافت کاغذ کهنه می‌ماند، ولی روشنایی سفید حذف شده */
   background-color: #2b1d13;
   background-image: url('/assets/art/paper-cream.jpg');
   background-size: cover;
   background-blend-mode: multiply;
-  box-shadow: var(--lift-2);
-  border-radius: 3px;
-  transform: rotate(var(--tilt, 0deg));
-  transition: transform .26s var(--ease-paper), box-shadow .26s ease, filter .26s ease;
+
+  /**
+   * «یک کارت، ولی ضخیم» — مثل کارت بانکی از جنس مقوا، نه چند کارت روی هم.
+   *
+   * ضخامت با سه چیز ساخته می‌شود، نه با تکرار خود کارت:
+   *   ۱) لبهٔ روشن بالا (نور از سقف روی لبهٔ برش‌خوردهٔ مقوا)
+   *   ۲) لبهٔ تیره پایین و راست (ضخامت واقعی ورق)
+   *   ۳) سایهٔ کوتاهِ تماس با میز + سایهٔ نرمِ دور
+   * نتیجه: یک شیء یکپارچه با حجم، بدون لایه‌های تکراری.
+   */
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 241, 213, .42),      /* لبهٔ روشن بالا */
+    inset 0 -3px 0 rgba(16, 10, 5, .62),           /* لبهٔ ضخامت پایین */
+    inset 1.2px 0 0 rgba(255, 241, 213, .16),
+    inset -1.2px 0 0 rgba(16, 10, 5, .42),
+    0 3px 0 #1f1409,                               /* خودِ ضخامت مقوا */
+    0 4px 1px rgba(0, 0, 0, .35),
+    0 10px 18px -8px rgba(10, 6, 3, .72),          /* تماس با میز */
+    0 22px 34px -18px rgba(8, 5, 2, .62);          /* سایهٔ نرم دور */
+
+  transition: transform .26s var(--ease-paper), box-shadow .26s ease;
   overflow: hidden;
-  min-height: 132px;
+  min-height: 148px;
   display: flex; flex-direction: column; justify-content: flex-end;
   color: #fdf6e6;
   isolation: isolate;
+  /* بدون چرخش: کارت‌ها باید منظم و «کارت‌مانند» باشند، نه کج */
+  transform: none;
 }
 
-/* ── لایه‌های حجم: کارت مثل یک قطعهٔ ضخیم مقوایی ─────────────────
-   ۱) لبهٔ روشن بالا  ۲) لبهٔ تیرهٔ راست  ۳) سایهٔ ضخامت پایین  ۴) سایهٔ روی میز */
+/* فقط یک هایلایت شیشه‌ای نازک روی سطح — مثل روکش کارت بانکی */
 .game-card::before {
   content: '';
   position: absolute; inset: 0; z-index: 4;
   pointer-events: none;
   border-radius: inherit;
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 238, 205, .5),
-    inset 1.5px 0 0 rgba(255, 238, 205, .22),
-    inset -1.5px 0 0 rgba(24, 14, 8, .45),
-    inset 0 -2px 0 rgba(24, 14, 8, .55);
+  background: linear-gradient(148deg,
+    rgba(255, 255, 255, .16) 0%,
+    rgba(255, 255, 255, .05) 18%,
+    rgba(255, 255, 255, 0) 34%,
+    rgba(255, 255, 255, 0) 100%);
 }
-/* لایهٔ «ضخامت» کارت — چند سایهٔ پشت‌سرهم، مثل مقوای چندلایه */
-.game-card::after {
-  content: '';
-  position: absolute; inset: 0; z-index: -1;
-  border-radius: inherit;
-  transform: translateY(3px);
-  background: #3a2718;
+
+/* هیچ لایهٔ پشتهٔ اضافی — عمداً ::after حذف شد */
+.game-card::after { content: none; }
+
+.game-card:hover {
+  transform: translateY(-6px);
   box-shadow:
-    0 3px 0 #2e1f13,
-    0 4px 0 #241809,
-    0 6px 0 rgba(20, 12, 6, .9),
-    0 9px 0 rgba(16, 10, 5, .75),
-    0 14px 22px -8px rgba(10, 6, 3, .85),
-    0 22px 34px -14px rgba(8, 5, 2, .7);
-}
-.game-card:hover  {
-  transform: translateY(-7px) rotate(0deg) scale(1.018);
-  box-shadow: var(--lift-3);
+    inset 0 1.5px 0 rgba(255, 241, 213, .5),
+    inset 0 -3px 0 rgba(16, 10, 5, .62),
+    inset 1.2px 0 0 rgba(255, 241, 213, .18),
+    inset -1.2px 0 0 rgba(16, 10, 5, .42),
+    0 3px 0 #1f1409,
+    0 5px 1px rgba(0, 0, 0, .32),
+    0 16px 24px -10px rgba(10, 6, 3, .75),
+    0 30px 44px -20px rgba(8, 5, 2, .6);
   z-index: 2;
 }
-.game-card:hover::after {
-  transform: translateY(4px);
-  box-shadow:
-    0 4px 0 #2e1f13,
-    0 6px 0 #241809,
-    0 9px 0 rgba(20, 12, 6, .9),
-    0 13px 0 rgba(16, 10, 5, .72),
-    0 20px 28px -10px rgba(10, 6, 3, .85),
-    0 30px 44px -16px rgba(8, 5, 2, .7);
-}
-.game-card:active { transform: translateY(-1px) scale(.994); }
+.game-card:active { transform: translateY(-1px); }
 .game-card:focus-visible { outline: 3px solid var(--mustard); outline-offset: 4px; }
 
-/* تصویر: تمام‌قاب، بدون محو‌شدن در پایین */
 .game-card__art {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
@@ -445,28 +449,6 @@ small { font-weight: 600; }
 }
 
 /* کارت بزرگ (ویترین / انتخاب حالت) */
-.hero {
-  position: relative; overflow: hidden;
-  padding: 1.15rem 1.1rem;
-  margin: .35rem 0 1.05rem;
-  min-height: 168px;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  box-shadow: var(--lift-3);
-  background-color: var(--paper);
-  background-image: url('/assets/art/persian-gold.jpg');
-  background-size: cover;
-  border-radius: 2px;
-}
-.hero__veil {
-  position: absolute; inset: 0;
-  background: linear-gradient(200deg, rgba(20,15,30,.25), rgba(20,15,30,.72));
-}
-.hero__inner { position: relative; color: #f8f0dd; }
-.hero__kicker { font-size: .76rem; letter-spacing: .5px; opacity: .85; margin-bottom: .35rem; }
-.hero h1 { text-shadow: 0 2px 10px rgba(0,0,0,.55); }
-.hero p { color: #e8dcc4; font-size: .88rem; margin: .4rem 0 .8rem; }
-.hero__actions { display: flex; gap: .55rem; flex-wrap: wrap; }
-
 /* ============================ نوار پایین ============================ */
 .navbar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
@@ -487,19 +469,56 @@ small { font-weight: 600; }
 }
 .nav-item {
   flex: 1; border: none; background: none; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .12rem;
-  font: inherit; font-size: .68rem; font-weight: 500;
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .18rem;
+  font: inherit; font-size: .68rem; font-weight: 600;
   color: var(--ink-faint);
-  border-radius: 2px;
-  padding: .3rem .1rem;
-  transition: color .15s ease, background .15s ease;
+  border-radius: 8px;
+  padding: .34rem .1rem .42rem;
+  transition: color .2s ease, background .2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.nav-item svg { width: 19px; height: 19px; }
+.nav-item__glyph {
+  display: grid; place-items: center;
+  width: 30px; height: 26px;
+  transition: transform .24s cubic-bezier(.2,1.4,.4,1), color .2s ease;
+}
+.nav-item svg { width: 21px; height: 21px; }
+.nav-item__label { line-height: 1.1; transition: font-weight .2s ease; }
+
+/* خطِ نشانگر: در حالت عادی بسته، در حالت فعال از وسط باز می‌شود */
+.nav-item__mark {
+  position: absolute; bottom: 4px;
+  width: 0; height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--rust) 18%, var(--rust) 82%, transparent);
+  transition: width .26s cubic-bezier(.2,1.3,.4,1);
+}
+
+/* ---- حالت فعال: واضح، نه فقط کمی پررنگ‌تر ---- */
+.nav-item.is-active,
 .nav-item[aria-current='page'] {
   color: var(--rust-deep);
-  background: rgba(163,61,44,.1);
-  font-weight: 700;
+  font-weight: 800;
+  background:
+    radial-gradient(120% 90% at 50% 120%, rgba(163,61,44,.16), transparent 70%),
+    rgba(254, 250, 240, .55);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -2px 0 rgba(163,61,44,.16);
 }
+.nav-item.is-active .nav-item__glyph,
+.nav-item[aria-current='page'] .nav-item__glyph {
+  transform: translateY(-2px) scale(1.14);
+  color: var(--rust-deep);
+  filter: drop-shadow(0 2px 3px rgba(163,61,44,.35));
+}
+.nav-item.is-active .nav-item__mark,
+.nav-item[aria-current='page'] .nav-item__mark { width: 26px; }
+
+/* ریزحرکت هنگام لمس — بازخورد فوری */
+.nav-item:active .nav-item__glyph { transform: scale(.9); }
+.nav-item:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 
 /* ============================ چیپ‌ها و فیلترها ============================ */
 .chips { display: flex; gap: .4rem; overflow-x: auto; padding: .1rem .1rem .5rem; scrollbar-width: none; }
@@ -4732,7 +4751,18 @@ small { font-weight: 600; }
 .btn--with-icon {
   display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
 }
-.btn--with-icon svg { flex: 0 0 auto; opacity: .88; }
+/* اندازهٔ قطعیِ آیکون داخل دکمه.
+   اینجا width/height اجباری است: در flex، «0 0 auto» یعنی «به اندازهٔ
+   محتوا»، و یک SVG که فقط viewBox دارد به ۳۰۰×۱۵۰ پیش‌فرض می‌رسد —
+   همان چیزی که دکمه‌های پنل مدیریت و تنظیمات را از هم می‌پاشید. */
+.btn--with-icon svg {
+  flex: 0 0 16px;
+  width: 16px; height: 16px;
+  min-width: 16px; min-height: 16px;
+  opacity: .88;
+}
+/* شبکهٔ ایمنی: هر svg داخل دکمه هرگز بزرگ‌تر از متنش نمی‌شود */
+.btn svg { max-width: 20px; max-height: 20px; }
 
 /* ============================================================
    نوار «نسخهٔ تازه آماده است»
@@ -4914,3 +4944,162 @@ small { font-weight: 600; }
   border: 1px solid #9a8663;
 }
 .vol__hint { margin: 0; font-size: .72rem; color: var(--ink-faint, #6d5c4a); }
+
+/* ============================================================
+   لوگو — نشان بالای برنامه
+   ============================================================ */
+.brand {
+  display: flex; justify-content: center;
+  padding: .55rem 0 .1rem;
+  margin-bottom: -14px;              /* لوگو کمی روی بنر می‌افتد */
+  position: relative; z-index: 5;
+}
+.brand__logo {
+  display: block;
+  width: clamp(96px, 26vw, 132px);
+  height: auto;
+  /* سایهٔ نرم زیر نشان تا روی پارچه «نشسته» به نظر برسد */
+  filter: drop-shadow(0 6px 12px rgba(30, 14, 10, .55))
+          drop-shadow(0 1px 1px rgba(0, 0, 0, .35));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ============================================================
+   بنر پارچه‌ای — بافت برجسته + گلدوزی فیروزه‌ای
+   ============================================================ */
+.hero-fabric {
+  position: relative;
+  margin: .2rem 0 .7rem;
+  border-radius: 6px;
+  overflow: hidden;
+  /* نسبت تصویر پارچه تا هیچ‌جا کشیده نشود */
+  aspect-ratio: 1376 / 768;
+  min-height: 176px;
+  box-shadow:
+    0 2px 0 rgba(58, 16, 18, .55),
+    0 10px 22px -12px rgba(40, 12, 12, .8),
+    0 26px 40px -24px rgba(30, 8, 8, .6);
+  isolation: isolate;
+}
+/* خودِ پارچه — تمام‌قاب و بدون دفرمگی */
+.hero-fabric__cloth {
+  position: absolute; inset: 0;
+  /* نسخهٔ سبک برای صفحه‌های کوچک، نسخهٔ کامل برای بزرگ‌ترها */
+  background-image: url('/assets/art/hero-fabric-sm.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+}
+@media (min-width: 720px) {
+  .hero-fabric__cloth { background-image: url('/assets/art/hero-fabric.jpg'); }
+}
+/**
+ * بافت برجسته: نوری که از بالا می‌آید روی برجستگی‌های تار و پود
+ * می‌نشیند. یک گرادیان بسیار نازک + یک نویز ریز، کارِ فیلتر تخت را
+ * نمی‌کند — حجم پارچه را نگه می‌دارد.
+ */
+.hero-fabric::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 2;
+  pointer-events: none;
+  background:
+    /* نور ملایم از بالا */
+    linear-gradient(180deg, rgba(255, 236, 214, .10), transparent 26%, transparent 74%, rgba(24, 6, 8, .22)),
+    /* درخشش لبه‌ها مثل پارچهٔ کشیده */
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 240, 220, .10), transparent 55%);
+  mix-blend-mode: soft-light;
+}
+
+/* متن روی پارچه */
+.hero-fabric__inner {
+  position: relative; z-index: 3;
+  height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 12% 12% 10%;
+}
+.hero-fabric__kicker {
+  font-size: clamp(.62rem, 2.3vw, .76rem);
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: #ecd0a4;
+  text-shadow: 0 1px 1px rgba(40, 8, 10, .85);
+  margin-bottom: .25rem;
+}
+.hero-fabric__title {
+  margin: 0 0 .3rem;
+  font-size: clamp(1.15rem, 5.2vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.25;
+  /* مثل گلدوزیِ کرم‌رنگ روی پارچهٔ جگری */
+  color: #fdf1dc;
+  text-shadow:
+    0 1px 0 rgba(120, 26, 30, .95),
+    0 2px 3px rgba(28, 6, 8, .8),
+    0 0 18px rgba(255, 226, 180, .14);
+  letter-spacing: -.3px;
+}
+.hero-fabric__sub {
+  margin: 0;
+  font-size: clamp(.68rem, 2.7vw, .84rem);
+  line-height: 1.7;
+  font-weight: 600;
+  color: #f0dcc0;
+  max-width: 34ch;
+  text-shadow: 0 1px 2px rgba(30, 8, 10, .9);
+}
+
+/* ============================================================
+   دکمهٔ چالش امروز — قرمز جگری با بافت پارچه
+   ============================================================ */
+.hero-challenge { margin-bottom: 1rem; }
+.hero-challenge__btn {
+  gap: .45rem;
+  font-weight: 800;
+  font-size: .92rem;
+  padding: .82rem 1rem;
+  border-radius: 6px;
+  /* پارچهٔ همان بنر، تا هم‌خانواده به نظر برسد */
+  background-color: #7d1f24;
+  background-image: url('/assets/art/hero-fabric.jpg');
+  background-size: 340% auto;
+  background-position: center 68%;
+  background-blend-mode: multiply;
+  color: #fdf1dc;
+  text-shadow: 0 1px 2px rgba(30, 6, 8, .9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 200, .26),
+    inset 0 -3px 0 rgba(30, 6, 8, .5),
+    0 3px 0 #4d1114,
+    0 4px 1px rgba(0, 0, 0, .3),
+    0 12px 20px -10px rgba(40, 8, 10, .8);
+}
+.hero-challenge__btn:hover {
+  transform: translateY(-3px) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 200, .32),
+    inset 0 -3px 0 rgba(30, 6, 8, .5),
+    0 3px 0 #4d1114,
+    0 5px 1px rgba(0, 0, 0, .28),
+    0 18px 28px -12px rgba(40, 8, 10, .85);
+}
+.hero-challenge__btn:active { transform: translateY(0) !important; }
+.hero-challenge__btn svg { color: #f0c37a; }
+.hero-challenge__name { font-weight: 600; opacity: .85; font-size: .84rem; }
+
+/* ============================================================
+   دکمهٔ جگری عمومی
+   ============================================================ */
+.btn--oxblood {
+  background-color: #7d1f24;
+  background-image: url('/assets/art/hero-fabric.jpg');
+  background-size: 300% auto;
+  background-position: center 60%;
+  background-blend-mode: multiply;
+  color: #fdf1dc;
+  text-shadow: 0 1px 2px rgba(30, 6, 8, .85);
+}
+.btn--oxblood svg { color: #f0c37a; }

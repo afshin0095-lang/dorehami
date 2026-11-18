@@ -99,10 +99,9 @@ const surfaceQuestion = (root) =>
  * نه ترتیب بُر‌خورده) و بعد می‌بینیم همان متن در UI چندمین دکمه است.
  */
 async function correctOptionIndexInUI(root, questionText) {
-  const { QUIZ_BANK } = await import('../public/src/content.js');
-  const { QUIZ_EXTRA } = await import('../public/src/content-extra.js');
-  const bank = [...QUIZ_BANK, ...QUIZ_EXTRA];
-  const q = bank.find(x => (x.q || '').trim() === questionText);
+  // بانک واقعیِ بازی: کوییز حالا از بانک مسابقه‌ای می‌خواند
+  const { QUIZ_BANK_PRO } = await import('../public/src/content/quiz-pro.js');
+  const q = QUIZ_BANK_PRO.find(x => (x.q || '').trim() === questionText);
   if (!q) return -1;
   const correctText = q.a[q.correct ?? q.answerIndex];
   const buttons = optionButtons(root);

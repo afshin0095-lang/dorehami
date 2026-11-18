@@ -3,10 +3,14 @@
    ============================================================ */
 
 import { h, mount, playSound, stats, toFa, toast } from '../core.js';
-import { QUIZ_BANK } from '../content.js';
 import { buildQuiz, buildDuel, answer, answerDuel, currentQuestion, scoreOf } from '../engines/quiz.js';
 import { gameHeader, sheet, btn, helpBlock, callout } from '../ui/kit.js';
-import { QUIZ_EXTRA } from '../content-extra.js';
+/**
+ * بانک کوییز مسابقه‌ای: ۱۴۳ سؤال دست‌ساز در ۱۲ دسته.
+ * سؤال‌ها از جنس پرسش‌های مسابقات واقعی‌اند — پاسخ دانستنی است،
+ * یادداشت زمینه می‌دهد، و هیچ سؤالی تکرار دیگری نیست.
+ */
+import { QUIZ_BANK_PRO } from '../content/quiz-pro.js';
 
 const HELP = {
   steps: [
@@ -20,9 +24,9 @@ const HELP = {
 };
 
 export function mountGame(root, { onExit }) {
-  const bank = [...QUIZ_BANK, ...QUIZ_EXTRA];
+  const bank = QUIZ_BANK_PRO;
   const cats = ['همه', ...new Set(bank.map(q => q.cat).filter(Boolean))];
-  let state = { screen: 'setup', mode: 'solo', count: 8, cat: null };
+  let state = { screen: 'setup', mode: 'solo', count: 12, cat: null };
 
   const render = () => mount(root, draw());
   render();
@@ -54,7 +58,7 @@ export function mountGame(root, { onExit }) {
         }, c))
       ) }),
       sheet({ title: 'تعداد سؤال', iconName: 'clock', children: h('div', { style: { display: 'flex', gap: '.4rem', justifyContent: 'center' } },
-        ...[5, 8, 12, 20].map(n => h('button', {
+        ...[8, 12, 20, 30].map(n => h('button', {
           class: 'chip', 'aria-pressed': String(state.count === n),
           onclick: () => { state.count = n; playSound('tap'); render(); }
         }, toFa(n)))

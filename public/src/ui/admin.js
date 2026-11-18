@@ -10,6 +10,7 @@ import { icon, iconBtn, btn, sheet, gameHeader, callout, helpBlock } from './kit
 import { getPrefs, setPrefs, applyPrefs } from './settings.js';
 import { GAMES, CATEGORIES } from '../games/registry.js';
 import { QUIZ_BANK, RIDDLES, CODENAMES_WORDS, ESF_CATEGORIES, IQ_ITEMS } from '../content.js';
+import { bankSize as gkBankSize, categoryCounts as gkCategoryCounts } from '../engines/gk.js';
 import { QUIZ_EXTRA } from '../content-extra.js';
 import { RIDDLES_EXTRA, IQ_EXTRA } from '../content-more.js';
 
@@ -65,6 +66,7 @@ function contentStats() {
     { label: 'آیتم تست هوش', value: IQ_ITEMS.length + IQ_EXTRA.length, min: 12 },
     { label: 'واژه‌ی اسم رمز', value: CODENAMES_WORDS.length, min: 25 },
     { label: 'دسته‌ی اسم و فامیل', value: ESF_CATEGORIES.length, min: 8 },
+    { label: 'اطلاعات عمومی', value: gkBankSize(), min: 1000 },
     { label: 'بازی', value: GAMES.length, min: 10 },
     { label: 'دسته‌بندی', value: CATEGORIES.length, min: 5 }
   ];
@@ -275,6 +277,13 @@ export function AdminScreen({ onBack }) {
       [...IQ_ITEMS, ...IQ_EXTRA].forEach((q, i) => {
         if (!q.q || !Array.isArray(q.a) || q.a.length !== 4) problems.push(`هوش #${i + 1}: ساختار خراب`);
       });
+      // بانک اطلاعات عمومی: ساختار هر سؤال و یکتایی متن سؤال
+      const gkAll = gkBankSize();
+      if (gkAll < 1000) problems.push(`اطلاعات عمومی: فقط ${gkAll} سؤال`);
+      const gkCats = gkCategoryCounts();
+      for (const [name, n] of Object.entries(gkCats)) {
+        if (!n) problems.push(`اطلاعات عمومی: دستهٔ «${name}» خالی است`);
+      }
       if (new Set(CODENAMES_WORDS).size !== CODENAMES_WORDS.length) problems.push('اسم رمز: واژه‌ی تکراری');
       log('بررسی محتوا', problems.length ? `${problems.length} مشکل` : 'سالم');
 

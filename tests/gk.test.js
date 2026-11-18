@@ -278,3 +278,22 @@ test('بازی هرگز معلق نمی‌ماند', () => {
     assert.ok(isOver(g), `دانه ${seed}: تمام نشد`);
   }
 });
+
+/* ------------------------------ یکپارچگی با پنل ------------------------------ */
+
+test('پنل مدیریت بانک اطلاعات عمومی را می‌شناسد', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
+  const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const admin = readFileSync(join(ROOT, 'public/src/ui/admin.js'), 'utf8');
+  assert.ok(admin.includes('gkBankSize'), 'پنل، اندازهٔ بانک را نمی‌خواند');
+  assert.ok(admin.includes('اطلاعات عمومی'), 'ردیفی برای اطلاعات عمومی در پنل نیست');
+});
+
+test('هر دستهٔ بانک حداقل یک سؤال دارد و شمارش‌ها با بانک می‌خواند', () => {
+  const counts = categoryCounts();
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  assert.equal(total, bankSize(), 'جمع دسته‌ها با اندازهٔ بانک نمی‌خواند');
+  for (const [c, n] of Object.entries(counts)) assert.ok(n > 0, `${c} خالی است`);
+});

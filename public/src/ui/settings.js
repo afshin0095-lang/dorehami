@@ -2,10 +2,10 @@
    تنظیمات — پنل کاغذی
    ============================================================ */
 
-import { h, store, soundPrefs, playSound, toast } from '../core.js';
+import { h, store, soundPrefs, playSound, toast, setVolume } from '../core.js';
 import { overlay, closeOverlay, icon, btn } from './kit.js';
 
-const DEFAULTS = { sound: true, reduceMotion: false, largeText: false, highContrast: false, hiddenGames: [] };
+const DEFAULTS = { sound: true, volume: 0.7, reduceMotion: false, largeText: false, highContrast: false, hiddenGames: [] };
 
 export function getPrefs() {
   return { ...DEFAULTS, ...store.get('settings', {}) };
@@ -21,6 +21,8 @@ export function setPrefs(patch = {}) {
 export function applyPrefs() {
   const p = getPrefs();
   soundPrefs.enabled = p.sound;
+  soundPrefs.volume = typeof p.volume === 'number' ? p.volume : 0.7;
+  setVolume(soundPrefs.volume);
   document.body.classList.toggle('reduce-motion', p.reduceMotion);
   document.body.classList.toggle('text-lg', p.largeText);
   document.body.classList.toggle('high-contrast', Boolean(p.highContrast));
@@ -49,12 +51,37 @@ export function openSettings() {
                 h('small', {}, desc))
   );
 
+  function volumeRow() {
+    const current = Math.round((getPrefs().volume ?? 0.7) * 100);
+    const label = h('span', { class: 'vol__num' }, `${current}٪`);
+    const input = h('input', {
+      class: 'vol__range', type: 'range', min: '0', max: '100', step: '5',
+      value: String(current), 'aria-label': 'بلندی صدا',
+      oninput: (e) => {
+        const v = Number(e.target.value);
+        label.textContent = `${v}٪`;
+        setVolume(v / 100);
+        setPrefs({ volume: v / 100 });
+      },
+      onchange: () => { playSound('tap'); }
+    });
+    return h('div', { class: 'vol' },
+      h('div', { class: 'vol__head' },
+        h('span', { class: 'vol__title' }, 'بلندی صدا'),
+        label
+      ),
+      input,
+      h('p', { class: 'vol__hint' }, 'پیش‌فرض آرام است. اگر جمع شلوغ است، بیشترش کن.')
+    );
+  }
+
   const node = h('div', { class: 'modal-sheet sheet-in' },
     h('div', { style: { display: 'flex', alignItems: 'center', marginBottom: '.6rem' } },
       h('h2', { style: { flex: 1 } }, 'تنظیمات'),
       h('button', { class: 'icon-btn', 'aria-label': 'بستن', onclick: () => { playSound('tap'); closeOverlay(); } }, icon('close'))
     ),
     toggle('sound', 'صدای رابط', 'صدای کاغذ و کارت. برای سکوت کامل خاموش کن.'),
+    volumeRow(),
     toggle('reduceMotion', 'کاهش حرکت', 'انیمیشن‌های پرحرکت را متوقف می‌کند.'),
     toggle('largeText', 'متن بزرگ‌تر', 'خوانایی بیشتر در جمع و نور کم.'),
 

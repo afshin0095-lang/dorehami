@@ -29,7 +29,11 @@ export function mount(root, ...nodes) { clear(root); root.append(...nodes.flat(9
 
 /* ------------------------------ صدا (WebAudio، بدون فایل) ------------------------------ */
 let audioCtx = null;
-export const soundPrefs = { enabled: true };
+/**
+ * تنظیمات صدا. `volume` بین ۰ تا ۱ است و روی گذرگاه مستر ضرب می‌شود.
+ * پیش‌فرض ۰٫۷ — یعنی حتی در حالت «روشن» هم آرام است.
+ */
+export const soundPrefs = { enabled: true, volume: 0.7 };
 
 function ctx() {
   if (!soundPrefs.enabled) return null;
@@ -41,7 +45,58 @@ function ctx() {
     audioCtx = new AC();
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
+  ensureBus(audioCtx);
   return audioCtx;
+}
+
+/**
+ * گذرگاه مستر — «آرام و گرم» به‌جای «تیز و خشک».
+ *
+ * چرا؟ صداهای قبلی همه‌ی انرژی‌شان را در باند ۲–۶ کیلوهرتز داشتند که
+ * گوش را خسته می‌کند. یک فیلتر پایین‌گذر ملایم روی ۶٫۵ کیلوهرتز،
+ * به‌همراه اشباع نرم (tanh) و کاهش کلی، همان حس کاغذ را نگه می‌دارد
+ * ولی تهاجم را می‌گیرد. همه‌ی لایه‌ها به این گذرگاه وصل می‌شوند.
+ */
+let busNode = null;
+let masterNode = null;
+function ensureBus(ac) {
+  if (busNode) return busNode;
+  const master = ac.createGain();
+  master.gain.value = 0.58 * (soundPrefs.volume ?? 0.7);   // کلی آرام‌تر از قبل
+  masterNode = master;
+
+  const shelf = ac.createBiquadFilter();     // کمی گرمای پایین
+  shelf.type = 'lowshelf'; shelf.frequency.value = 320; shelf.gain.value = 1.6;
+
+  const lp = ac.createBiquadFilter();        // بریدن تیزیِ بالا
+  lp.type = 'lowpass'; lp.frequency.value = 6500; lp.Q.value = 0.4;
+
+  const hp = ac.createBiquadFilter();        // نگذاشتن زیرصدای ساب
+  hp.type = 'highpass'; hp.frequency.value = 85; hp.Q.value = 0.5;
+
+  const shaper = ac.createWaveShaper();      // اشباع نرم
+  const curve = new Float32Array(1024);
+  for (let i = 0; i < 1024; i++) {
+    const x = (i / 1023) * 2 - 1;
+    curve[i] = Math.tanh(x * 1.35) * 0.92;
+  }
+  shaper.curve = curve;
+  shaper.oversample = '2x';
+
+  hp.connect(shelf).connect(lp).connect(shaper).connect(master).connect(ac.destination);
+  busNode = hp;
+  return busNode;
+}
+function busOut(ac) { return busNode || ac.destination; }
+
+/** تغییر زندهٔ بلندی صدا (بدون نیاز به ساخت دوبارهٔ گذرگاه) */
+export function setVolume(v) {
+  const n = Math.max(0, Math.min(1, Number(v)));
+  soundPrefs.volume = n;
+  if (masterNode && audioCtx) {
+    try { masterNode.gain.linearRampToValueAtTime(0.58 * n, audioCtx.currentTime + 0.12); } catch { /* */ }
+  }
+  return n;
 }
 
 /* ------------------------------ صدا: فولی کاغذ ------------------------------ */
@@ -90,11 +145,14 @@ function paperLayer(ac, o) {
 
   const gain = ac.createGain();
   // پاکت: حمله‌ی تیز، افت نمایی — مثل برخورد کاغذ
+  /* پاکت نرم: حملهٔ ۱۲ms (نه ۸ms) و افتِ منحنی، نه بریدگی ناگهانی.
+     برخورد کاغذ واقعی هم همین‌قدر نرم است. */
+  const atk = Math.min(0.014, dur * 0.34);
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.linearRampToValueAtTime(o.gain ?? 0.12, start + 0.008);
+  gain.gain.linearRampToValueAtTime(o.gain ?? 0.12, start + atk);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
-  src.connect(filter).connect(gain).connect(ac.destination);
+  src.connect(filter).connect(gain).connect(busOut(ac));
   src.start(start);
   src.stop(start + dur + 0.02);
 
@@ -107,70 +165,79 @@ function paperLayer(ac, o) {
     g2.gain.setValueAtTime(0.0001, start);
     g2.gain.linearRampToValueAtTime((o.gain ?? 0.12) * 0.25, start + 0.01);
     g2.gain.exponentialRampToValueAtTime(0.0001, start + dur * 1.4);
-    osc.connect(g2).connect(ac.destination);
+    osc.connect(g2).connect(busOut(ac));
     osc.start(start);
     osc.stop(start + dur * 1.5);
   }
 }
 
+/**
+ * کتابخانهٔ صدا — نسخهٔ «آرام».
+ *
+ * سه قاعده در بازتنظیم:
+ *  ۱) گِین‌ها حدود ۴۰٪ کمتر؛ هیچ صدایی نباید از گفت‌وگوی جمع بیرون بزند.
+ *  ۲) فرکانس‌ها پایین‌تر: مرکز باند از ۲–۵kHz به ۱–۳kHz آمد. تیزیِ
+ *     زیاد است که گوش را بعد از چند نوبت خسته می‌کند.
+ *  ۳) دُم‌ها بلندتر: صداها کشیده می‌شوند و می‌نشینند، نه اینکه بزنند و بروند.
+ */
 const SOUND_LIB = {
-  /* ورق از روی ورق می‌لغزد */
+  /* ورق از روی ورق می‌لغزد — خش‌خش نرم و کشیده */
   'paper-flip': [
-    { freq: 2600, q: 0.9, gain: 0.10, dur: 0.17, sweep: 1200 },
-    { freq: 5200, q: 1.6, gain: 0.045, dur: 0.10, start: 0.03, sweep: 2400 }
+    { freq: 1700, q: 0.8, gain: 0.055, dur: 0.26, sweep: 900 },
+    { freq: 3400, q: 1.3, gain: 0.024, dur: 0.16, start: 0.04, sweep: 1700 }
   ],
-  /* کارت روی میز پرت می‌شود */
+  /* کارت روی میز می‌نشیند — ضربهٔ چوبیِ خفه */
   'card-deal': [
-    { freq: 1800, q: 1.0, gain: 0.13, dur: 0.09, sweep: 700 },
-    { freq: 4200, q: 2.2, gain: 0.05, dur: 0.05, start: 0.02, sweep: 1800 },
-    { freq: 240, q: 1.2, gain: 0.09, dur: 0.10, start: 0.02, tone: 190 }
+    { freq: 1300, q: 0.9, gain: 0.07, dur: 0.14, sweep: 620 },
+    { freq: 3000, q: 1.7, gain: 0.026, dur: 0.08, start: 0.03, sweep: 1400 },
+    { freq: 190, q: 1.1, gain: 0.052, dur: 0.17, start: 0.02, tone: 150 }
   ],
-  /* لمس کاغذ */
-  'tap': [{ freq: 3000, q: 1.4, gain: 0.07, dur: 0.045, sweep: 1800 }],
-  /* مهر موم روی کاغذ */
+  /* لمس کاغذ — کوتاه و ملایم */
+  'tap': [{ freq: 2100, q: 1.2, gain: 0.038, dur: 0.07, sweep: 1300 }],
+  /* مهر موم روی کاغذ — گرم و کم‌عمق */
   'seal': [
-    { freq: 380, q: 0.8, gain: 0.16, dur: 0.16, sweep: 170, tone: 120 },
-    { freq: 2200, q: 1.8, gain: 0.06, dur: 0.07, start: 0.015 }
+    { freq: 300, q: 0.7, gain: 0.09, dur: 0.22, sweep: 150, tone: 105 },
+    { freq: 1700, q: 1.5, gain: 0.032, dur: 0.10, start: 0.02, sweep: 900 }
   ],
-  /* باز شدن پرده‌ی کاغذی */
+  /* باز شدن پردهٔ کاغذی — کشیده و نرم */
   'unwrap': [
-    { freq: 1400, q: 0.7, gain: 0.10, dur: 0.30, sweep: 3400 },
-    { freq: 3200, q: 1.2, gain: 0.05, dur: 0.22, start: 0.08, sweep: 1200 }
+    { freq: 1050, q: 0.6, gain: 0.058, dur: 0.42, sweep: 2400 },
+    { freq: 2300, q: 1.0, gain: 0.028, dur: 0.30, start: 0.10, sweep: 1000 }
   ],
-  /* تاس چوبی روی مقوا */
+  /* تاس چوبی روی مقوا — غلت نرم، نه تق‌تق */
   'dice': [
-    { freq: 900, q: 1.1, gain: 0.11, dur: 0.055, sweep: 400, tone: 260 },
-    { freq: 1500, q: 1.4, gain: 0.08, dur: 0.05, start: 0.10, sweep: 600, tone: 330 },
-    { freq: 1100, q: 1.2, gain: 0.06, dur: 0.045, start: 0.19, sweep: 420, tone: 240 }
+    { freq: 720, q: 1.0, gain: 0.062, dur: 0.09, sweep: 340, tone: 210 },
+    { freq: 1150, q: 1.2, gain: 0.045, dur: 0.08, start: 0.11, sweep: 520, tone: 270 },
+    { freq: 880, q: 1.1, gain: 0.034, dur: 0.075, start: 0.21, sweep: 380, tone: 195 }
   ],
-  /* ورق‌زدن سریع (مثل پخش دست) */
+  /* ورق‌زدن (پخش دست) — سه خشِ پیوسته و آرام */
   'shuffle': [
-    { freq: 2400, q: 0.8, gain: 0.09, dur: 0.06, sweep: 1600 },
-    { freq: 2600, q: 0.8, gain: 0.08, dur: 0.06, start: 0.07, sweep: 1700 },
-    { freq: 2200, q: 0.8, gain: 0.07, dur: 0.06, start: 0.14, sweep: 1500 }
+    { freq: 1500, q: 0.7, gain: 0.05, dur: 0.10, sweep: 1100 },
+    { freq: 1650, q: 0.7, gain: 0.044, dur: 0.10, start: 0.09, sweep: 1200 },
+    { freq: 1400, q: 0.7, gain: 0.038, dur: 0.10, start: 0.18, sweep: 1000 }
   ],
-  /* برد */
+  /* برد — زنگ ملایم، مثل نواختن لبهٔ جام */
   'win': [
-    { freq: 1200, q: 1.2, gain: 0.07, dur: 0.12, sweep: 2400, tone: 660 },
-    { freq: 1600, q: 1.2, gain: 0.06, dur: 0.16, start: 0.12, sweep: 3200, tone: 880 },
-    { freq: 2000, q: 1.2, gain: 0.05, dur: 0.22, start: 0.26, sweep: 3600, tone: 1320 }
+    { freq: 900, q: 1.0, gain: 0.045, dur: 0.26, sweep: 1500, tone: 523 },
+    { freq: 1200, q: 1.0, gain: 0.038, dur: 0.32, start: 0.13, sweep: 1900, tone: 659 },
+    { freq: 1500, q: 1.0, gain: 0.03, dur: 0.44, start: 0.27, sweep: 2100, tone: 784 }
   ],
-  /* باخت */
+  /* باخت — آهٔ کوتاه، بدون نالهٔ تیز */
   'lose': [
-    { freq: 700, q: 0.9, gain: 0.09, dur: 0.22, sweep: 220, tone: 220 },
-    { freq: 400, q: 0.9, gain: 0.07, dur: 0.30, start: 0.16, sweep: 130, tone: 150 }
+    { freq: 520, q: 0.8, gain: 0.058, dur: 0.32, sweep: 190, tone: 196 },
+    { freq: 320, q: 0.8, gain: 0.045, dur: 0.44, start: 0.20, sweep: 120, tone: 147 }
   ],
-  /* کارت روی کارت می‌لغزد — ملایم‌تر و کشیده‌تر از پخش کارت */
+  /* کارت روی کارت می‌لغزد — ملایم‌ترین صدای مجموعه */
   'card-slide': [
-    { freq: 2100, q: 1.1, gain: 0.085, dur: 0.22, sweep: 900 },
-    { freq: 3600, q: 1.8, gain: 0.04, dur: 0.14, start: 0.05, sweep: 1900 },
-    { freq: 180, q: 1.0, gain: 0.05, dur: 0.16, start: 0.03, tone: 140 }
+    { freq: 1450, q: 0.9, gain: 0.048, dur: 0.30, sweep: 780 },
+    { freq: 2500, q: 1.4, gain: 0.02, dur: 0.20, start: 0.06, sweep: 1300 },
+    { freq: 150, q: 0.9, gain: 0.03, dur: 0.22, start: 0.04, tone: 118 }
   ],
-  /* برگه کاغذ مچاله/پاره می‌شود — برای خطا، نه بوق */
+  /* خطا — برگهٔ کاغذ که کنار می‌رود؛ هرگز بوق */
   'error': [
-    { freq: 1200, q: 0.8, gain: 0.09, dur: 0.13, sweep: 500 },
-    { freq: 800, q: 0.7, gain: 0.07, dur: 0.11, start: 0.07, sweep: 340 },
-    { freq: 2600, q: 1.5, gain: 0.04, dur: 0.06, start: 0.02, sweep: 1300 }
+    { freq: 900, q: 0.7, gain: 0.05, dur: 0.18, sweep: 430 },
+    { freq: 620, q: 0.6, gain: 0.038, dur: 0.16, start: 0.09, sweep: 300 },
+    { freq: 1800, q: 1.2, gain: 0.02, dur: 0.08, start: 0.03, sweep: 900 }
   ]
 };
 
@@ -196,7 +263,7 @@ export function ambientPaper(on = true) {
   const gain = ac.createGain();
   gain.gain.value = 0;
   gain.gain.linearRampToValueAtTime(0.012, ac.currentTime + 1.2);
-  src.connect(filter).connect(gain).connect(ac.destination);
+  src.connect(filter).connect(gain).connect(busOut(ac));
   src.start();
   return { stop: () => { try { gain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.6); src.stop(ac.currentTime + 0.7); } catch { /* */ } } };
 }

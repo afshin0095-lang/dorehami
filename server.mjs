@@ -486,7 +486,12 @@ const server = createServer(async (req, res) => {
      */
     if (pathname === '/preview') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-      return res.end(PREVIEW_HTML);
+      // همان نسخه‌دار‌سازی CSS که صفحهٔ اصلی دارد، تا پیش‌نمایش هم هرگز
+      // استایل کهنه نگیرد
+      return res.end(PREVIEW_HTML.replace(
+        'href="/styles.css"',
+        `href="/styles.css?v=${encodeURIComponent(BUILD_ID)}"`
+      ));
     }
 
     if (pathname === '/api/room' && req.method === 'POST') {

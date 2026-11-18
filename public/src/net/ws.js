@@ -1,12 +1,14 @@
 /* ============================================================
    حمل‌ونقل شبکه‌ی واقعی — WebSocket با اتاق و توکن
-   سرور فقط پیام‌ها را بین اعضای یک اتاق پخش می‌کند؛
-   منطق بازی سمت «میزبان» است و کلاینت‌ها فقط ورودی می‌فرستند.
+   سرور داور است (تصمیم «ب»): وضعیت عمومی روی سرور می‌ماند، دست‌های
+   خصوصی از سیید مشتق می‌شوند و هرگز روی سیم نمی‌روند. کلاینت‌ها فقط
+   «حرکت» می‌فرستند؛ «وضعیت» نمی‌فرستند.
 
    امنیت:
    • هر اتصال با توکن اتاق احراز هویت می‌شود (سرور می‌دهد)
    • پیام‌های نامعتبر/بزرگ‌تر از حد رد می‌شوند
-   • کلاینت هرگز وضعیت را از غیرمیزبان اعمال نمی‌کند (revision gate)
+   • کلاینت وضعیت را فقط از «server» و فقط اگر تازه‌تر باشد اعمال می‌کند
+   • سرور جلوی حرکت بی‌نوبت و وضعیت‌سازیِ کلاینت را می‌گیرد
    ============================================================ */
 
 import { validateMessage, makeMessage, PROTOCOL_VERSION, createRevisionGate } from './sync.js';
@@ -45,6 +47,7 @@ export function connect({ code, token, hostToken = '', onMessage, onOpen, onClos
   const ws = new WebSocket(`${wsUrl()}/${encodeURIComponent(code)}?${q.toString()}`);
   const gate = createRevisionGate();
   let hostId = null;
+  let playerId = null;
   let closed = false;
   /**
    * شناسه‌ی فرستنده باید حتماً با ^[A-Za-z0-9_-]{3,64}$ بخواند، وگرنه سرور
@@ -60,10 +63,15 @@ export function connect({ code, token, hostToken = '', onMessage, onOpen, onClos
     const v = validateMessage(raw);
     if (!v.ok) return;                        // پیام مخرب بی‌صدا دور ریخته می‌شود
     const msg = v.msg;
-    if (msg.type === 'welcome' && msg.payload?.host) hostId = msg.payload.host;
+    if (msg.type === 'welcome') {
+      if (msg.payload?.host) hostId = msg.payload.host;
+      // شناسهٔ بازیکن را از سرور می‌گیریم — کلاینت خودش را معرفی نمی‌کند
+      if (msg.payload?.youAre) playerId = msg.payload.youAre;
+      if (msg.payload?.state) onMessage?.({ ...msg.payload.state, from: 'server' });
+    }
     if (msg.type === 'state') {
-      // وضعیت فقط از میزبان و فقط اگر تازه‌تر باشد
-      if (!gate.accept(msg, hostId || msg.payload?.hostId)) return;
+      // در تصمیم «ب» فقط سرور داور است؛ وضعیت از میزبان هم پذیرفته نمی‌شود
+      if (!gate.accept(msg)) return;
     }
     onMessage?.(msg);
   });
@@ -72,8 +80,13 @@ export function connect({ code, token, hostToken = '', onMessage, onOpen, onClos
 
   return {
     gate,
-    /** شناسه‌ی خودمان روی رله — میزبان با همین شناسه صندلی می‌سازد */
+    /** شناسهٔ ما روی رله (برای اعتبارسنجی پیام) */
     id: senderId,
+    /**
+     * شناسهٔ بازیکنِ ما — سرور می‌دهد. صندلی و دست خصوصی با همین
+     * ساخته می‌شوند؛ کلاینت نمی‌تواند خودش را بازیکن دیگری جا بزند.
+     */
+    get playerId() { return playerId; },
     get hostId() { return hostId; },
     get ready() { return ws.readyState === 1; },
     send(type, payload = {}) {

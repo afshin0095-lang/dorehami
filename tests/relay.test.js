@@ -93,7 +93,7 @@ test('CSP قاب‌شدن در پیش‌نمایش را مجاز می‌کند',
   assert.ok(csp.includes("script-src 'self'"));
 });
 
-test('WebSocket واقعی: دو کلاینت در یک اتاق پیام می‌بینند', async () => {
+test('WebSocket واقعی: سرور وضعیت را پخش می‌کند و state کلاینت را رد می‌کند', async () => {
   const room = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
   const url = `ws://127.0.0.1:${PORT}/api/room/${room.code}?token=${encodeURIComponent(room.token)}&host=${encodeURIComponent(room.hostToken)}`;
   // Node 22 WebSocket داخلی دارد
@@ -115,21 +115,28 @@ test('WebSocket واقعی: دو کلاینت در یک اتاق پیام می�
   b.addEventListener('message', (ev) => { try { got.push(JSON.parse(ev.data)); } catch { /* */ } });
 
   await new Promise(r => setTimeout(r, 150));
-  // میزبان (اولین عضو) وضعیت می‌فرستد
-  a.send(JSON.stringify({ v: 1, type: 'state', roomId: room.code, from: 'hostclient', payload: { revision: 1, turn: 2 } }));
-  await new Promise(r => setTimeout(r, 250));
+
+  // یک نشستن، سرور خودش وضعیت تازه پخش می‌کند (تصمیم «ب»)
+  got.length = 0;
+  b.send(JSON.stringify({ v: 1, type: 'seat', roomId: room.code, from: 'guestclient', payload: { name: 'مهمان' } }));
+  await new Promise(r => setTimeout(r, 300));
 
   const stateMsg = got.find(m => m.type === 'state');
-  assert.ok(stateMsg, 'پیام state باید برسد');
-  assert.equal(stateMsg.payload.revision, 1);
-  assert.equal(stateMsg.from, 'host', 'فرستنده‌ی میزبان باید به host عادی‌سازی شود');
+  assert.ok(stateMsg, 'سرور باید وضعیت را پخش کند');
+  assert.equal(stateMsg.from, 'server', 'فرستندهٔ وضعیت باید server باشد');
+  assert.ok(Number.isInteger(stateMsg.rev) && stateMsg.rev > 0, 'شمارندهٔ نسخه لازم است');
+  assert.ok(Array.isArray(stateMsg.seats), 'فهرست صندلی‌ها لازم است');
 
-  // عضو دوم حق فرستادن state ندارد
+  // هیچ کلاینتی — حتی میزبان — نمی‌تواند وضعیت بفرستد
+  const gotA = [];
+  a.addEventListener('message', (ev) => { try { gotA.push(JSON.parse(ev.data)); } catch { /* */ } });
   got.length = 0;
-  b.send(JSON.stringify({ v: 1, type: 'state', roomId: room.code, from: 'intruder01', payload: { revision: 99 } }));
+  a.send(JSON.stringify({ v: 1, type: 'state', roomId: room.code, from: 'hostclient', payload: { revision: 99 } }));
   await new Promise(r => setTimeout(r, 250));
-  assert.equal(got.filter(m => m.type === 'state').length, 0, 'state غیرمیزبان پخش نشود');
-  assert.ok(got.some(m => m.type === 'error'), 'باید خطای not-host برگردد');
+  assert.equal(got.filter(m => m.type === 'state').length, 0, 'state کلاینت پخش نشود');
+  const errMsg = gotA.find(m => m.type === 'error');
+  assert.ok(errMsg, 'باید خطای state-is-server-authoritative برگردد');
+  assert.equal(errMsg.payload.reason, 'state-is-server-authoritative');
 
   a.close(); b.close();
 });

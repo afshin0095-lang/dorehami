@@ -94,10 +94,17 @@ export function createLocalChannel(roomId) {
 export function createRevisionGate() {
   let last = -1;
   return {
-    accept(msg, hostId) {
+    /**
+     * وضعیت را فقط از «سرور» قبول کن و فقط اگر تازه‌تر باشد.
+     *
+     * در تصمیم «ب» سرور داور است، نه میزبان. پس state از هر فرستندهٔ
+     * غیرِ server رد می‌شود — حتی اگر میزبان باشد. شمارندهٔ rev یکنوا
+     * است، پس بستهٔ قدیمی/تکراری اعمال نمی‌شود.
+     */
+    accept(msg, _hostId) {
       if (!msg || msg.type !== 'state') return false;
-      if (hostId && msg.from !== hostId) return false;
-      const rev = Number(msg.payload?.revision);
+      if (msg.from !== 'server') return false;
+      const rev = Number(msg.rev);
       if (!Number.isInteger(rev) || rev <= last) return false;
       last = rev;
       return true;

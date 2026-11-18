@@ -61,7 +61,7 @@ function dial(code, token, hostToken = '') {
   });
 }
 
-test('دو کلاینت: ساخت میز، ورود با کد، پخش کارت', async () => {
+test('دو کلاینت: ساخت میز، ورود با کد، پخش وضعیت عمومی', async () => {
   // میزبان
   const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
   assert.match(created.code, /^[A-Z0-9]{5}$/);
@@ -77,17 +77,20 @@ test('دو کلاینت: ساخت میز، ورود با کد، پخش کارت'
   await guest.next('welcome');
   await host.next('presence');
 
-  // میزبان وضعیت شروع را می‌فرستد
-  host.send('state', { revision: 1, phase: 'playing', seed: 12345, trumpSuit: 'spades' });
+  /* در تصمیم «ب» سرور داور است: صندلی گرفتن کافی است تا سرور
+     وضعیت عمومی تازه پخش کند — کلاینت هیچ وضعیتی نمی‌فرستد. */
+  guest.send('seat', { name: 'مهمان' }, 'guest-client');
   const st = await guest.next('state');
-  assert.equal(st.payload.phase, 'playing');
-  assert.equal(st.payload.seed, 12345, 'دانه باید برسد');
-  assert.equal(st.from, 'host', 'فرستنده باید میزبان باشد');
+  assert.equal(st.from, 'server', 'فرستندهٔ وضعیت باید سرور باشد');
+  assert.ok(st.seed, 'سیید عمومی برای ساخت دست لازم است');
+  assert.ok(Array.isArray(st.seats) && st.seats.length >= 1, 'صندلی‌ها باید در وضعیت باشند');
+  assert.equal(typeof st.rev, 'number', 'شمارندهٔ نسخه لازم است');
 
-  // هیچ کارتی نباید در پیام باشد
+  // هیچ کارت/دست خصوصی نباید در پیام باشد
   const raw = JSON.stringify(st);
-  assert.equal(/"suit"\s*:\s*"/.test(raw), false, 'پیام وضعیت نباید خدشه‌ی کارت داشته باشد');
-  assert.equal(/"rank"\s*:/.test(raw), false, 'پیام وضعیت نباید رتبه داشته باشد');
+  for (const k of ['"hand"', '"hands"', '"cards"', '"deck"', '"rank"', '"suit"']) {
+    assert.equal(raw.includes(k), false, `پیام وضعیت نباید ${k} داشته باشد`);
+  }
 
   host.ws.close();
   guest.ws.close();
@@ -103,10 +106,10 @@ test('مهمان نمی‌تواند وضعیت را تحمیل کند', async (
   await guest.next('welcome');
   await host.next('presence');
 
-  // مهمان تلاش می‌کند وضعیت بفرستد
+  // مهمان تلاش می‌کند وضعیت بفرستد — سرور به هیچ‌کس اجازه نمی‌دهد
   guest.send('state', { phase: 'playing', cheat: true }, 'guest-1');
   const err = await guest.next('error');
-  assert.equal(err.payload?.reason, 'not-host', 'سرور باید رد کند');
+  assert.equal(err.payload?.reason, 'state-is-server-authoritative', 'سرور باید رد کند');
 
   // هیچ stateای نباید به میزبان برسد
   const leaked = host.inbox.filter(m => m.type === 'state');
@@ -131,7 +134,7 @@ test('وضعیت اتاق تعداد اعضا را نشان می‌دهد', asyn
   assert.equal(before.full, false);
 });
 
-test('پیام‌های میز (start/move/sync) عبور می‌کنند', async () => {
+test('سرور داوری می‌کند: start بدون دو بازیکن رد می‌شود و sync رله می‌شود', async () => {
   const created = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
   const host = await dial(created.code, created.token, created.hostToken);
   await host.next('welcome');
@@ -141,11 +144,16 @@ test('پیام‌های میز (start/move/sync) عبور می‌کنند', asyn
   await guest.next('welcome');
   await host.next('presence');
 
-  for (const type of ['start', 'move', 'sync']) {
-    host.send(type, { probe: type });
-    const got = await guest.next(type);
-    assert.equal(got.payload.probe, type, `پیام ${type} نرسید`);
-  }
+  /* start اکنون در سرور داوری می‌شود: میزبان صندلی دارد ولی مهمان
+     هنوز ننشسته، پس باید رد شود (نه اینکه بی‌صدا پخش شود). */
+  host.send('start', { probe: 'start' });
+  const err = await host.next('error');
+  assert.match(err.payload.reason, /بازیکن|صندلی|شروع|جریان/, 'start نامعتبر باید رد شود');
+
+  // sync یک پیام رله‌ای است و باید عبور کند
+  host.send('sync', { probe: 'sync' });
+  const got = await guest.next('sync');
+  assert.equal(got.payload.probe, 'sync', 'پیام sync نرسید');
 
   host.ws.close();
   guest.ws.close();
@@ -185,7 +193,7 @@ test('بدون رمز میزبان، هیچ‌کس نمی‌تواند وضعی�
 
   x.send('state', { revision: 1 });
   const err = await x.next('error');
-  assert.equal(err.payload.reason, 'not-host');
+  assert.equal(err.payload.reason, 'state-is-server-authoritative');
 
   x.ws.close(); y.ws.close();
 });
@@ -204,10 +212,16 @@ test('انتقال اختیار میزبان با رفتن او رخ نمی‌د
   host.ws.close();
   await guest.next('presence', 2000);
 
-  // مهمان نباید بتواند وضعیت بفرستد، حتی حالا که تنهاست
+  /* در تصمیم «ب» هیچ کلاینتی وضعیت نمی‌فرستد؛ پس حتی با رفتن میزبان
+     مهمان هم نمی‌تواند وضعیت را قبضه کند — سرور داور می‌ماند. */
   guest.send('state', { revision: 9, cheat: true });
   const err = await guest.next('error');
-  assert.equal(err.payload.reason, 'not-host', 'اختیار میزبان نباید خودبه‌خود منتقل شود');
+  assert.equal(err.payload.reason, 'state-is-server-authoritative',
+    'وضعیت‌سازیِ کلاینت نباید ممکن شود');
+
+  // و مهمان هم میزبان نشده است
+  const st = await (await fetch(`${BASE}/api/room/${created.code}`)).json();
+  assert.ok(st.members >= 0);
 
   guest.ws.close();
 });

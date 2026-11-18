@@ -10,6 +10,10 @@ import { readFile, stat, readdir } from 'node:fs/promises';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { join, extname, normalize, sep, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  createRoom as createGameRoom, seatPlayer, setReady, startGame,
+  applyAction, publicState, finishGame, PHASE, PRIVATE_KEYS
+} from './src/room-state.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, 'public');
@@ -302,15 +306,32 @@ function handleUpgrade(req, socket, head) {
 
   const member = {
     socket,
+    /* شناسهٔ بازیکن: تصادفی و سمت سرور. کلاینت نمی‌تواند خودش را
+       بازیکن دیگری جا بزند. */
+    playerId: 'p-' + newToken().slice(0, 10),
     joinedAt: Date.now(),
     isHost: hasHostSecret,          // اختیار میزبان، نه ترتیب اتصال
     isFirst: room.members.size === 0
   };
   room.members.add(member);
 
+  /* اختیار میزبان را به شناسهٔ واقعیِ همین اتصال گره بزن. پیش از اتصال،
+     اتاق «host» نمادین داشت و بررسی «فقط میزبان شروع کند» هیچ‌وقت
+     برقرار نمی‌شد. */
+  if (member.isHost && room.game) {
+    room.game.hostId = member.playerId;
+    room.hostId = member.playerId;
+    room.game.rev++;
+    seatPlayer(room.game, member.playerId, 'میزبان');
+  }
+
   wsSend(socket, {
     v: 1, type: 'welcome', roomId: code, from: 'server',
-    payload: { host: room.hostId, members: room.members.size, youAreHost: member.isHost }
+    payload: {
+      host: room.hostId, members: room.members.size,
+      youAreHost: member.isHost, youAre: member.playerId,
+      state: room.game ? publicState(room.game) : null
+    }
   });
   broadcast(room, {
     v: 1, type: 'presence', roomId: code, from: 'server',
@@ -336,17 +357,84 @@ function handleUpgrade(req, socket, head) {
       const msg = check.msg;
       if (msg.roomId !== code) continue;
 
-      // فقط میزبان حق پخش «state» دارد — جلوی جعل وضعیت را می‌گیرد
-      if (msg.type === 'state' && !member.isHost) {
-        wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: 'not-host' } });
+      /* ---------------- داور: سرور، نه میزبان ----------------
+         طبق تصمیم «ب»، وضعیت عمومی روی سرور است و دست‌ها از سیید
+         مشتق می‌شوند. پس هیچ کلاینتی «state» نمی‌فرستد؛ فقط «action».
+         اگر کسی state بفرستد، رد می‌شود (جلوگیری از جعل وضعیت). */
+      if (msg.type === 'state') {
+        wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: 'state-is-server-authoritative' } });
         continue;
       }
+
+      const g = room.game;
+      const playerId = member.playerId;
+
+      if (msg.type === 'hello') {
+        if (g) {
+          seatPlayer(g, playerId, msg.payload?.name);
+          broadcast(room, publicState(g));
+        }
+        continue;
+      }
+      if (msg.type === 'seat') {
+        if (!g) { wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: 'no-game' } }); continue; }
+        const r = seatPlayer(g, playerId, msg.payload?.name);
+        if (!r.ok) wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: r.error } });
+        broadcast(room, publicState(g));
+        continue;
+      }
+      if (msg.type === 'start') {
+        if (!g) continue;
+        const r = startGame(g, playerId);
+        if (!r.ok) wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: r.error } });
+        else broadcast(room, publicState(g));
+        continue;
+      }
+      if (msg.type === 'finish') {
+        if (!g) continue;
+        const r = finishGame(g);
+        if (!r.ok) wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: r.error } });
+        else broadcast(room, publicState(g));
+        continue;
+      }
+      if (msg.type === 'move') {
+        if (!g) continue;
+        const r = applyAction(g, playerId, msg.payload?.action);
+        if (!r.ok) {
+          wsSend(socket, { v: 1, type: 'error', roomId: code, from: 'server', payload: { reason: r.error } });
+        } else {
+          broadcast(room, publicState(g));
+          // نوبت به بازیکنِ جدید هم خبر داده می‌شود تا شمارنده‌اش بیدار شود
+          if (g.turn) broadcast(room, { v: 1, type: 'presence', roomId: code, from: 'server', payload: { turn: g.turn } });
+        }
+        continue;
+      }
+
+      // بقیهٔ پیام‌ها (ping/pong/bye/ack) فقط رله می‌شوند
       broadcast(room, { ...msg, from: member.isHost ? 'host' : msg.from }, socket);
     }
   });
 
   const leave = () => {
     room.members.delete(member);
+    /* صندلی را آزاد کن، ولی سیید و امتیاز را نگه دار: با برگشتن
+       همان بازیکن، صندلی‌اش را پس می‌گیرد. اگر نوبتش بود، نوبت
+       به نفر بعد می‌رود تا بازی قفل نشود. */
+    if (room.game) {
+      const g = room.game;
+      const seatIdx = g.seats.findIndex(s => s.playerId === member.playerId);
+      if (seatIdx >= 0) {
+        if (g.turn === member.playerId && g.phase === PHASE.PLAYING) {
+          const next = g.seats[(seatIdx + 1) % g.seats.length];
+          if (next) g.turn = next.playerId;
+          g.rev++;
+        }
+        g.seats.splice(seatIdx, 1);
+        g.seats.forEach((s, i) => { s.order = i; });
+        g.rev++;
+        broadcast(room, publicState(g));
+      }
+    }
     // اختیار میزبان با رمز منتقل می‌شود، نه با رفتن میزبان.
     // پس هیچ مهمانی خودبه‌خود میزبان نمی‌شود.
     broadcast(room, {
@@ -392,6 +480,14 @@ const server = createServer(async (req, res) => {
       const code = newCode();
       rooms.set(code, {
         code, token: newToken(), hostToken, hostId: 'host',
+        /**
+         * اتاق بازی: سیید را *سرور* می‌سازد. اگر کلاینت سیید می‌داد،
+         * می‌توانست دست دلخواه برای خودش بسازد.
+         */
+        game: createGameRoom({
+          code, gameId: null, hostId: 'host',
+          seed: randomBytes(16).toString('hex')
+        }),
         members: new Set(), createdAt: Date.now()
       });
       return json(res, 201, { code, token: rooms.get(code).token, host: true, hostToken });

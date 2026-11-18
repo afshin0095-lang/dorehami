@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v20';
+const CACHE = 'dorehami-shell-v21';
 
 const SHELL = [
   '/',

@@ -58,15 +58,16 @@ test('normalizeRoomCode: ورودی کاربر نرمال می‌شود', () => 
   assert.equal(normalizeRoomCode(''), null);
 });
 
-test('revision gate: فقط وضعیت جدیدتر از میزبان پذیرفته می‌شود', () => {
+test('revision gate: فقط وضعیت تازه‌ی سرور پذیرفته می‌شود', () => {
   const gate = createRevisionGate();
-  const host = 'host1';
-  const msg = (rev, from = host) => ({ type: 'state', from, payload: { revision: rev } });
-  assert.equal(gate.accept(msg(1), host), true);
-  assert.equal(gate.accept(msg(1), host), false, 'تکرار پذیرفته نشود');
-  assert.equal(gate.accept(msg(0), host), false, 'قدیمی‌تر پذیرفته نشود');
-  assert.equal(gate.accept(msg(2), host), true);
-  assert.equal(gate.accept(msg(99), 'intruder'), false, 'از غیرمیزبان پذیرفته نشود');
+  const state = (rev, from = 'server') => ({ type: 'state', from, rev, payload: {} });
+  assert.equal(gate.accept(state(1)), true);
+  assert.equal(gate.accept(state(1)), false, 'تکرار پذیرفته نشود');
+  assert.equal(gate.accept(state(0)), false, 'قدیمی‌تر پذیرفته نشود');
+  assert.equal(gate.accept(state(2)), true);
+  // در تصمیم «ب» سرور داور است: وضعیت از میزبان هم پذیرفته نمی‌شود
+  assert.equal(gate.accept(state(99, 'host1')), false, 'از غیرِ سرور پذیرفته نشود');
+  assert.equal(gate.accept(state(99, 'p-fake')), false, 'از کلاینت پذیرفته نشود');
   assert.equal(gate.revision, 2);
 });
 

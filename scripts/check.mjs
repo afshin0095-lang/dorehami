@@ -52,6 +52,8 @@ const allJs = [
   'public/src/engines/qwixx.js', 'public/src/games/qwixx-ui.js',
   'public/src/engines/worms.js', 'public/src/games/worms-ui.js',
   'public/src/engines/finddiff.js', 'public/src/games/finddiff-ui.js',
+  'src/room-state.js', 'tests/room-state.test.js', 'tests/room-e2e.test.js',
+  'tests/build-stamp.test.js',
   'tests/finddiff.test.js', 'tests/quiz-ui.test.js',
   'tests/qwixx.test.js', 'tests/worms.test.js',
   'tests/uno.test.js', 'tests/cards.test.js', 'tests/dice.test.js'

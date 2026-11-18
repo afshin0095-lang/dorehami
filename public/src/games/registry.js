@@ -15,6 +15,70 @@ export const CATEGORIES = [
 
 export const GAMES = [
   {
+    id: 'skyjo', title: 'اسکایجو', meta: '۲ تا ۴ نفر · ۱۵–۳۰ دقیقه',
+    playersText: '۲–۴ نفر', timeText: '۱۵–۳۰ دقیقه',
+    art: '/assets/art/games/skyjo.jpg',
+    cats: ['group', 'cards'], tags: ['ورق', 'حافظه', 'کمترین امتیاز', 'حدس'],
+    solo: false, badge: '۱۲ کارت', multi: false,
+    load: () => import('./skyjo-ui.js')
+  },
+  {
+    id: 'kittens', title: 'بچه گربه‌های منفجر شونده', meta: '۲ تا ۵ نفر · ۱۰–۲۰ دقیقه',
+    playersText: '۲–۵ نفر', timeText: '۱۰–۲۰ دقیقه',
+    art: '/assets/art/games/kittens.jpg',
+    cats: ['group', 'cards'], tags: ['ورق', 'شانس', 'بلوف', 'خنده‌دار'],
+    solo: false, badge: '💥', multi: false,
+    load: () => import('./kittens-ui.js')
+  },
+  {
+    id: 'liarsdice', title: 'تاس دروغگو', meta: '۲ تا ۶ نفر · ۱۰–۱۵ دقیقه',
+    playersText: '۲–۶ نفر', timeText: '۱۰–۱۵ دقیقه',
+    art: '/assets/art/games/liarsdice.jpg',
+    cats: ['group', 'cards'], tags: ['تاس', 'بلوف', 'روان‌شناسی', 'ریسک'],
+    solo: false, badge: 'بلوف', multi: false,
+    load: () => import('./liar-ui.js')
+  },
+  {
+    id: 'uno', title: 'اونو', meta: '۲ تا ۴ نفر · ۱۰–۲۰ دقیقه',
+    playersText: '۲–۴ نفر', timeText: '۱۰–۲۰ دقیقه',
+    art: '/assets/art/games/uno.jpg',
+    cats: ['group', 'cards'], tags: ['ورق', 'اکشن', 'هم‌رنگ', 'سریع'],
+    solo: false, badge: 'کلاسیک', multi: false,
+    load: () => import('./uno-ui.js')
+  },
+  {
+    id: 'eights', title: 'هفت خبیث', meta: '۲ تا ۴ نفر · ۵–۱۲ دقیقه',
+    playersText: '۲–۴ نفر', timeText: '۵–۱۲ دقیقه',
+    art: '/assets/art/games/crazy8.jpg',
+    cats: ['group', 'cards'], tags: ['ورق', 'پاسور', 'ساده', 'سریع'],
+    solo: false, badge: 'پاسور', multi: false,
+    load: () => import('./cards-ui.js')
+  },
+  {
+    id: 'blackjack', title: 'بیست‌ویک', meta: 'تکی · ۳–۸ دقیقه',
+    playersText: '۱ نفر', timeText: '۳–۸ دقیقه',
+    art: '/assets/art/games/blackjack.jpg',
+    cats: ['solo', 'cards'], tags: ['پاسور', 'ریسک', 'عدد', 'تصمیم'],
+    solo: true, badge: '۲۱', multi: false,
+    load: () => import('./cards-ui.js')
+  },
+  {
+    id: 'yahtzee', title: 'یاتزی', meta: '۱ تا ۴ نفر · ۱۵–۲۵ دقیقه',
+    playersText: '۱–۴ نفر', timeText: '۱۵–۲۵ دقیقه',
+    art: '/assets/art/games/yahtzee.jpg',
+    cats: ['solo', 'cards'], tags: ['تاس', 'ترکیب', 'امتیاز', 'شانس'],
+    solo: true, badge: '۱۳ خانه', multi: false,
+    load: () => import('./dice-ui.js')
+  },
+  {
+    id: 'farkle', title: 'فارکل', meta: '۱ تا ۴ نفر · ۱۰–۲۰ دقیقه',
+    playersText: '۱–۴ نفر', timeText: '۱۰–۲۰ دقیقه',
+    art: '/assets/art/games/farkle.jpg',
+    cats: ['solo', 'cards'], tags: ['تاس', 'ریسک', 'طمع', 'امتیاز'],
+    solo: true, badge: '۶ تاس', multi: false,
+    load: () => import('./dice-ui.js')
+  },
+  {
     id: 'mafia', title: 'مافیا', meta: '۶ تا ۱۲ نفر · ۳۰–۴۵ دقیقه',
     playersText: '۶–۱۲ نفر', timeText: '۳۰–۴۵ دقیقه',
     art: '/assets/art/games/mafia.jpg',

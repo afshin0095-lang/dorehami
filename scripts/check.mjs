@@ -43,7 +43,13 @@ const allJs = [
   'public/src/content/gk-geo.js', 'public/src/content/gk-history.js',
   'public/src/content/gk-science.js', 'public/src/content/gk-culture.js',
   'public/src/content/gk-misc.js', 'public/src/content/gk-tables.js',
-  'public/src/content/gk-gen.js', 'tests/card-art.test.js', 'tests/sound.test.js'
+  'public/src/content/gk-gen.js', 'tests/card-art.test.js', 'tests/sound.test.js',
+  'public/src/engines/uno.js', 'public/src/engines/eights.js', 'public/src/engines/dice5.js',
+  'public/src/ui/tablekit.js', 'public/src/games/uno-ui.js',
+  'public/src/games/cards-ui.js', 'public/src/games/dice-ui.js',
+  'public/src/engines/skyjo.js', 'public/src/engines/kittens.js', 'public/src/engines/bluff.js',
+  'public/src/games/skyjo-ui.js', 'public/src/games/kittens-ui.js', 'public/src/games/liar-ui.js',
+  'tests/uno.test.js', 'tests/cards.test.js', 'tests/dice.test.js'
 ];
 
 for (const f of allJs) {

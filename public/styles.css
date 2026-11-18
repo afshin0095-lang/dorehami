@@ -124,23 +124,40 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* میز کار: تصویر تولیدشده + بافت کاغذ روی آن */
+/* ============================================================
+   صحنه: نرم‌افزار داخل یک ماشین آرکید کاغذی
+   لایه‌ها از پایین به بالا:
+     ۱) دیوار پارلور قدیمی (کاغذ دیواری محو)
+     ۲) بدنهٔ کابینت آرکید با تصویر حکاکی‌شده
+     ۳) هالهٔ نور صفحه
+     ۴) بافت کاغذ روی کل صحنه
+   محتوا داخل «صفحهٔ» کابینت می‌نشیند، نه روی کل مرورگر.
+   ============================================================ */
 #desk {
   position: fixed; inset: 0; z-index: -2;
-  background: url('/assets/art/desk-bg.jpg') center/cover no-repeat, #2a1f18;
-  filter: saturate(.95) brightness(.92);
-  transform: scale(1.02);
+  background-color: #241a14;
+  background-image:
+    /* نور گرم صفحه از بالا */
+    radial-gradient(120% 70% at 50% 0%, rgba(255,236,200,.20), transparent 62%),
+    /* کابینت آرکید، کل قاب را می‌پوشاند */
+    url('/assets/art/arcade/machine.jpg');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  filter: saturate(.96) brightness(.9);
 }
+/* کاغذ کهنه روی کل صحنه — طرح شلوغ را نرم می‌کند */
 #desk::after {
-  /* بافت کاغذ با blend تا روی همه‌چیز «چاپ‌شده» به نظر برسد */
   content: ''; position: absolute; inset: 0;
   background: url('/assets/art/paper-cream.jpg') center/cover no-repeat;
-  mix-blend-mode: multiply; opacity: .28;
+  mix-blend-mode: multiply; opacity: .34;
 }
+/* سایهٔ گوشه‌ها: مثل نگاه‌کردن به داخل کابینت */
 #desk::before {
   content: ''; position: absolute; inset: 0;
-  background: radial-gradient(120% 80% at 50% 0%, rgba(255,236,200,.16), transparent 60%),
-              radial-gradient(90% 70% at 50% 120%, rgba(0,0,0,.55), transparent 70%);
+  background:
+    radial-gradient(115% 78% at 50% 42%, transparent 52%, rgba(18,11,7,.62) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.34), transparent 22%, transparent 74%, rgba(0,0,0,.48));
 }
 
 /* ============================ تایپوگرافی ============================ */
@@ -3708,3 +3725,591 @@ small { font-size: .8rem; color: var(--ink-soft); }
   text-shadow: 0 1px 0 rgba(255,255,255,.5);
 }
 [class*="game-art-banner"] { min-width: 0; overflow-wrap: anywhere; }
+
+/* ============================================================
+   قاب صفحهٔ کابینت آرکید
+   نرم‌افزار داخل یک «صفحهٔ» شیشه‌ای-کاغذی دیده می‌شود که در
+   بدنهٔ چوبی کابینت نشسته است. هیچ‌چیز از قاب بیرون نمی‌زند.
+   ============================================================ */
+.app {
+  /* لبهٔ داخلی قاب: دو خط نازک چوبی + درخشش شیشه */
+  box-shadow:
+    inset 0 0 0 1px rgba(139,110,68,.30),
+    inset 0 0 0 7px rgba(58,40,26,.10),
+    inset 0 2px 0 rgba(255,245,225,.42),
+    0 0 0 1px rgba(38,26,18,.55),
+    0 18px 44px rgba(10,6,4,.55);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,244,224,.34), rgba(244,236,217,.14) 22%, rgba(244,236,217,.10) 100%);
+  margin-top: .5rem;
+  margin-bottom: .6rem;
+}
+
+/* درخشش شیشه روی صفحه — نازک و ملایم، نه شلوغ */
+.app::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(118deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.04) 26%, transparent 46%),
+    radial-gradient(120% 44% at 50% -6%, rgba(255,240,210,.22), transparent 70%);
+  mix-blend-mode: screen;
+  opacity: .8;
+}
+/* خطوط اسکن ریز — حس صفحهٔ CRT کاغذی */
+.app::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(74,58,38,.055) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: .5;
+}
+
+/* محتوای واقعی بالای لایه‌های تزئینی */
+.app > * { position: relative; z-index: 1; }
+
+/* صحنه‌های تمام‌صفحه (بازی‌ها) هم همان قاب را می‌گیرند */
+.game-shell {
+  box-shadow:
+    inset 0 0 0 1px rgba(139,110,68,.24),
+    inset 0 0 0 7px rgba(58,40,26,.08),
+    inset 0 2px 0 rgba(255,245,225,.32),
+    0 18px 44px rgba(10,6,4,.5);
+  border-radius: 14px;
+  position: relative;
+}
+.game-shell::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; border-radius: inherit;
+  background: repeating-linear-gradient(180deg, rgba(74,58,38,.05) 0 1px, transparent 1px 3px);
+  opacity: .45;
+}
+.game-shell > * { position: relative; z-index: 1; }
+
+/* روی صفحه‌های کوچک، قاب نازک‌تر تا فضا کم نیاید */
+@media (max-width: 420px) {
+  .app { border-radius: 11px; margin-top: .3rem; }
+  .app::after, .game-shell::before { opacity: .3; }
+}
+
+/* ============================================================
+   میزهای تازه — اونو، پاسور، تاس
+   همه در همان زبان «چاپ دستی روی کاغذ کهنه».
+   ============================================================ */
+
+/* ---------- مشترک: لبهٔ کاغذی ---------- */
+.print-edge {
+  position: relative;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,252,243,.72), rgba(247,238,220,.62));
+  border: 1px solid rgba(120,86,48,.34);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.5),
+    inset 0 1px 0 rgba(255,255,255,.7),
+    0 2px 0 rgba(120,86,48,.16),
+    0 10px 22px -14px rgba(52,32,16,.5);
+}
+
+/* ---------- کارت روی میز ---------- */
+.tbl-card {
+  position: relative;
+  width: 62px; height: 88px;
+  border-radius: 7px;
+  background: linear-gradient(165deg, #fffdf6, #f4e8d2);
+  border: 1px solid rgba(96,66,36,.4);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 3px 7px -3px rgba(52,32,16,.45);
+  display: grid; place-items: center;
+  font-family: 'Vazirmatn', serif;
+  color: #2c2118;
+  transition: transform .16s ease, box-shadow .16s ease;
+  padding: 0; cursor: default;
+}
+.tbl-card.is-red { color: #8d2b26; }
+.tbl-card__glyph { font-size: 1.72rem; line-height: 1; }
+.tbl-card.is-facedown {
+  background:
+    repeating-linear-gradient(45deg, rgba(90,60,30,.1) 0 5px, transparent 5px 10px),
+    linear-gradient(160deg, #6d4a2c, #4a301c);
+  border-color: rgba(40,24,12,.7);
+}
+.tbl-card.is-facedown .tbl-card__glyph { color: rgba(244,232,210,.5); font-size: 1.1rem; }
+.tbl-card.is-playable { cursor: pointer; }
+.tbl-card.is-playable:hover,
+.tbl-card.is-playable:focus-visible {
+  transform: translateY(-7px) rotate(-1deg);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 18px -10px rgba(52,32,16,.7);
+}
+.tbl-card.is-playable::after {
+  content: '';
+  position: absolute; inset: -3px;
+  border-radius: 9px;
+  border: 1.5px solid rgba(150,112,52,.55);
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+.tbl-card.is-playable:hover::after { opacity: 1; }
+.tbl-card__corner {
+  position: absolute; top: 3px; inset-inline-start: 4px;
+  font-size: .62rem; font-weight: 700; line-height: 1;
+}
+
+/* ---------- تاس چوبی ---------- */
+.die {
+  position: relative;
+  width: 46px; height: 46px;
+  border-radius: 9px;
+  background: linear-gradient(150deg, #fdf7e8, #e8d9bd);
+  border: 1px solid rgba(96,66,36,.42);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 3px 6px -3px rgba(52,32,16,.5);
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+  padding: 6px; gap: 1px;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.die--btn { cursor: pointer; }
+.die__pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #3a2a1b;
+  align-self: center; justify-self: center;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.35);
+}
+.die.is-held {
+  background: linear-gradient(150deg, #f6e6c4, #d9c39a);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 0 0 2px rgba(150,112,52,.55), 0 6px 12px -6px rgba(52,32,16,.6);
+  transform: translateY(-4px);
+}
+.die--btn:hover { transform: translateY(-4px) rotate(-2deg); }
+
+/* ---------- میزهای کارتی ---------- */
+.uno-hero, .cards-hero {
+  display: flex; gap: 16px; align-items: center;
+  padding: 16px; margin-bottom: 14px;
+}
+.uno-hero__stack, .cards-hero__fan {
+  display: flex; gap: 4px; flex: 0 0 auto;
+}
+.uno-hero__card, .cards-hero__card {
+  width: 44px; height: 62px; border-radius: 6px;
+  display: grid; place-items: center;
+  background: linear-gradient(160deg, #fffdf6, #efe1c8);
+  border: 1px solid rgba(96,66,36,.4);
+  box-shadow: 0 3px 7px -4px rgba(52,32,16,.6);
+  font-size: 1.2rem; color: #2c2118;
+}
+.uno-hero__card.is-red, .cards-hero__card.is-red { color: #8d2b26; }
+.uno-hero__text, .cards-hero__text { flex: 1 1 auto; min-width: 0; }
+.uno-hero__kicker, .cards-hero__kicker,
+.dice-hero__kicker {
+  font-size: .72rem; letter-spacing: .08em;
+  color: #8a6a44; margin-bottom: 4px;
+}
+.uno-hero h1, .cards-hero h1, .dice-hero h1 {
+  font-size: 1.18rem; margin: 0 0 6px; line-height: 1.4;
+}
+.uno-hero p, .cards-hero p, .dice-hero p {
+  margin: 0; font-size: .84rem; line-height: 1.7; color: #5b4632;
+}
+
+/* اونو */
+.uno-table { display: grid; gap: 12px; padding: 14px; }
+.uno-table__row {
+  display: flex; gap: 14px; align-items: center; justify-content: center;
+  flex-wrap: wrap;
+}
+.uno-top {
+  width: 76px; height: 108px; border-radius: 9px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(96,66,36,.45);
+  box-shadow: 0 5px 12px -6px rgba(52,32,16,.65);
+  font-size: 1.9rem; color: #fffdf6; font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+.uno-top--red { background: linear-gradient(160deg, #a8352c, #7e241d); }
+.uno-top--blue { background: linear-gradient(160deg, #2f5a80, #1f3f5c); }
+.uno-top--green { background: linear-gradient(160deg, #3d6b45, #28492e); }
+.uno-top--yellow { background: linear-gradient(160deg, #c39a2c, #99751c); }
+.uno-top--wild { background: linear-gradient(150deg, #6d4a2c 0 25%, #2f5a80 25% 50%, #a8352c 50% 75%, #c39a2c 75%); }
+.uno-top__face { font-size: 1.5rem; }
+.uno-pile { display: grid; gap: 4px; justify-items: center; }
+.uno-pile__count { font-size: .68rem; color: #8a6a44; }
+.uno-hand {
+  display: flex; gap: 6px; overflow-x: auto; padding: 10px 4px 14px;
+  scrollbar-width: thin;
+}
+.uno-hand .tbl-card { flex: 0 0 auto; }
+.uno-log {
+  display: grid; gap: 3px; font-size: .76rem; color: #5b4632;
+  padding: 10px 12px; line-height: 1.6;
+}
+.uno-log__row { margin: 0; }
+.uno-log__row:first-child { color: #3a2a1b; font-weight: 600; }
+.uno-pick { display: grid; gap: 10px; padding: 14px; margin-top: 12px; }
+.uno-pick__title { margin: 0; font-size: .92rem; }
+.uno-pick__row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.uno-color-pill {
+  border: 1px solid rgba(96,66,36,.4); border-radius: 10px;
+  padding: 12px 4px; cursor: pointer;
+  color: #fffdf6; font-size: .78rem; font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 4px 9px -5px rgba(52,32,16,.7);
+  transition: transform .14s ease;
+}
+.uno-color-pill:hover { transform: translateY(-3px); }
+.uno-color-pill--red { background: linear-gradient(160deg, #a8352c, #7e241d); }
+.uno-color-pill--blue { background: linear-gradient(160deg, #2f5a80, #1f3f5c); }
+.uno-color-pill--green { background: linear-gradient(160deg, #3d6b45, #28492e); }
+.uno-color-pill--yellow { background: linear-gradient(160deg, #c39a2c, #99751c); }
+.uno-actions { display: grid; gap: 8px; padding: 0 4px; }
+.uno-result, .cards-result, .dice-result {
+  display: grid; gap: 10px; justify-items: center; text-align: center;
+  padding: 24px 18px; margin-bottom: 14px;
+}
+.uno-result__seal, .cards-result__seal, .dice-result__seal {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 1.6rem; color: #8a6a44;
+  border: 1.5px dashed rgba(138,106,68,.6);
+}
+.is-win .uno-result__seal, .cards-result.is-win .cards-result__seal,
+.dice-result.is-win .dice-result__seal {
+  color: #3d6b45; border-color: rgba(61,107,69,.7);
+}
+
+/* پاسور */
+.cards-table {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px;
+  align-items: center; padding: 16px; margin-bottom: 12px;
+}
+.cards-table__center { display: grid; gap: 8px; justify-items: center; }
+.cards-top {
+  width: 72px; height: 102px; border-radius: 8px;
+  background: linear-gradient(165deg, #fffdf6, #f2e4cb);
+  border: 1px solid rgba(96,66,36,.45);
+  box-shadow: 0 5px 12px -6px rgba(52,32,16,.6);
+  display: grid; place-items: center; gap: 2px;
+  color: #2c2118;
+}
+.cards-top.is-red { color: #8d2b26; }
+.cards-top__rank { font-size: 1.3rem; font-weight: 700; line-height: 1; }
+.cards-top__suit { font-size: 1.5rem; line-height: 1; }
+.cards-table__suit { margin: 0; font-size: .74rem; color: #8a6a44; }
+.cards-hand { display: flex; gap: 6px; overflow-x: auto; padding: 8px 2px 12px; }
+.cards-hand .tbl-card { flex: 0 0 auto; }
+.cards-actions { display: grid; gap: 8px; }
+.cards-pick { display: grid; gap: 10px; padding: 14px; margin-top: 12px; }
+.cards-pick__title { margin: 0; font-size: .92rem; }
+.cards-pick__row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.cards-pick__btn {
+  display: grid; gap: 3px; place-items: center;
+  padding: 10px 4px; border-radius: 10px; cursor: pointer;
+  background: linear-gradient(160deg, #fffdf6, #f0e2c9);
+  border: 1px solid rgba(96,66,36,.4);
+  color: #2c2118; font-size: .7rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 3px 8px -5px rgba(52,32,16,.6);
+}
+.cards-pick__btn span:first-child { font-size: 1.3rem; line-height: 1; }
+.cards-pick__btn.is-red { color: #8d2b26; }
+
+/* بیست‌ویک */
+.bj-dealer, .bj-mine { display: grid; gap: 8px; padding: 14px 16px; margin-bottom: 10px; }
+.bj-dealer__label, .bj-mine__label {
+  font-size: .8rem; color: #6d5334; letter-spacing: .02em;
+}
+.bj-mine__label.is-bust { color: #8d2b26; font-weight: 700; }
+.bj-mine__label.is-perfect { color: #3d6b45; font-weight: 700; }
+.bj-dealer__hand, .bj-mine__hand { display: flex; gap: 8px; flex-wrap: wrap; }
+.bj-actions { display: grid; gap: 8px; margin-top: 12px; }
+.bj-outcome { display: grid; gap: 6px; justify-items: center; padding: 18px; text-align: center; }
+.bj-outcome h2 { margin: 0; font-size: 1.15rem; }
+.bj-outcome h2.is-win { color: #3d6b45; }
+.bj-outcome h2.is-lose { color: #8d2b26; }
+
+/* تاس */
+.dice-hero { display: grid; gap: 14px; padding: 18px; margin-bottom: 14px; }
+.dice-hero__row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.dice-hero__text { text-align: center; }
+.dice-tray {
+  display: grid; gap: 10px; padding: 18px 14px; margin-bottom: 10px;
+  justify-items: center;
+}
+.dice-tray__row { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; }
+.dice-tray__hint { margin: 0; font-size: .76rem; color: #7d6142; text-align: center; min-height: 1.1em; }
+.dice-actions { display: grid; gap: 8px; margin: 12px 0; }
+.yahtzee-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+  padding: 4px 2px;
+}
+.yahtzee-cell {
+  display: flex; justify-content: space-between; align-items: center; gap: 6px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer;
+  background: linear-gradient(170deg, #fffdf6, #f4e7d0);
+  border: 1px solid rgba(120,86,48,.3);
+  font-family: inherit; font-size: .76rem; color: #3a2a1b;
+  text-align: start;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.yahtzee-cell:disabled { cursor: default; opacity: .62; }
+.yahtzee-cell.is-preview:not(:disabled) {
+  border-color: rgba(61,107,69,.7);
+  box-shadow: 0 0 0 1px rgba(61,107,69,.35);
+  color: #2b5232; font-weight: 700;
+}
+.yahtzee-cell.is-filled { background: linear-gradient(170deg, #efe0c5, #e2cfa9); opacity: 1; font-weight: 700; }
+.yahtzee-cell__name { flex: 1 1 auto; min-width: 0; }
+.yahtzee-cell__val { font-variant-numeric: tabular-nums; font-weight: 700; }
+.yahtzee-bonus {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-size: .76rem; color: #6d5334; padding: 8px 4px;
+}
+.yahtzee-bonus strong { color: #3d6b45; }
+.farkle-log {
+  display: grid; gap: 3px; padding: 12px 14px; margin-top: 10px;
+  font-size: .74rem; color: #5b4632;
+}
+.farkle-log__row { margin: 0; line-height: 1.6; }
+.farkle-log__row:first-child { color: #3a2a1b; font-weight: 600; }
+
+/* تاس‌های کوچک‌تر روی صفحه‌های باریک */
+@media (max-width: 420px) {
+  .die { width: 40px; height: 40px; padding: 5px; }
+  .tbl-card { width: 52px; height: 74px; }
+  .tbl-card__glyph { font-size: 1.44rem; }
+  .uno-top { width: 64px; height: 92px; font-size: 1.6rem; }
+  .cards-top { width: 60px; height: 86px; }
+  .yahtzee-grid { grid-template-columns: 1fr; }
+  .uno-hero, .cards-hero { flex-direction: column; text-align: center; }
+}
+
+/* ============================================================
+   اسکایجو · بچه گربه‌ها · تاس دروغگو
+   ============================================================ */
+
+/* ---------- اسکایجو ---------- */
+.skyjo-hero { display: flex; gap: 16px; align-items: center; padding: 16px; margin-bottom: 14px; }
+.skyjo-hero__grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+  flex: 0 0 auto; width: 96px;
+}
+.skyjo-mini {
+  aspect-ratio: 3 / 4; border-radius: 4px;
+  display: grid; place-items: center;
+  font-size: .62rem; font-weight: 700; color: #3a2a1b;
+  background: repeating-linear-gradient(45deg, rgba(90,60,30,.12) 0 3px, transparent 3px 6px), linear-gradient(160deg, #6d4a2c, #4a301c);
+  border: 1px solid rgba(40,24,12,.5);
+}
+.skyjo-mini.is-open { background: linear-gradient(165deg, #fffdf6, #f2e4cb); }
+.skyjo-hero__text { flex: 1 1 auto; min-width: 0; }
+.skyjo-hero__kicker { font-size: .72rem; letter-spacing: .08em; color: #8a6a44; margin-bottom: 4px; }
+.skyjo-hero h1 { font-size: 1.18rem; margin: 0 0 6px; }
+.skyjo-hero p { margin: 0; font-size: .84rem; line-height: 1.7; color: #5b4632; }
+
+.skyjo-rival { display: grid; gap: 6px; padding: 10px 12px; margin-bottom: 8px; }
+.skyjo-rival__name { font-size: .74rem; color: #6d5334; }
+.skyjo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 6px 2px; }
+.skyjo-grid--small { gap: 4px; }
+.skyjo-tile {
+  aspect-ratio: 3 / 4; border-radius: 7px;
+  display: grid; place-items: center;
+  font-family: inherit; font-size: 1rem; font-weight: 700; color: #3a2a1b;
+  background: repeating-linear-gradient(45deg, rgba(90,60,30,.12) 0 5px, transparent 5px 10px), linear-gradient(160deg, #6d4a2c, #4a301c);
+  border: 1px solid rgba(40,24,12,.5);
+  box-shadow: 0 3px 7px -4px rgba(52,32,16,.6);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.skyjo-grid--small .skyjo-tile { font-size: .68rem; border-radius: 5px; }
+.skyjo-tile.is-open {
+  background: linear-gradient(165deg, #fffdf6, #f2e4cb);
+  border-color: rgba(96,66,36,.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 3px 7px -4px rgba(52,32,16,.5);
+}
+.skyjo-tile.is-cleared { opacity: .34; border-style: dashed; }
+.skyjo-tile.is-target { cursor: pointer; border-color: rgba(150,112,52,.7); }
+.skyjo-tile.is-target:hover { transform: translateY(-4px); }
+.skyjo-grid--small .skyjo-tile.is-target { cursor: default; }
+
+.skyjo-pile { display: flex; gap: 14px; justify-content: center; align-items: stretch; padding: 14px; }
+.skyjo-draw, .skyjo-discard {
+  display: grid; gap: 3px; place-items: center; justify-items: center;
+  padding: 12px 18px; border-radius: 10px; cursor: pointer;
+  border: 1px solid rgba(96,66,36,.42);
+  font-family: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 10px -6px rgba(52,32,16,.6);
+  transition: transform .14s ease;
+}
+.skyjo-draw { background: linear-gradient(160deg, #6d4a2c, #4a301c); color: #f4e8d2; }
+.skyjo-draw__back { font-size: 1.3rem; }
+.skyjo-draw__count { font-size: .68rem; }
+.skyjo-discard { background: linear-gradient(165deg, #fffdf6, #f2e4cb); color: #3a2a1b; min-width: 84px; }
+.skyjo-discard.is-negative { color: #2b5232; border-color: rgba(61,107,69,.6); }
+.skyjo-discard__val { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.skyjo-discard__lbl { font-size: .64rem; color: #8a6a44; }
+.skyjo-draw:disabled, .skyjo-discard:disabled { opacity: .55; cursor: default; }
+.skyjo-draw:not(:disabled):hover, .skyjo-discard:not(:disabled):hover { transform: translateY(-3px); }
+.skyjo-held {
+  display: flex; gap: 10px; align-items: center; justify-content: center;
+  padding: 10px; margin-bottom: 10px;
+}
+.skyjo-held__card {
+  width: 46px; height: 60px; border-radius: 7px;
+  display: grid; place-items: center;
+  background: linear-gradient(165deg, #fffdf6, #f2e4cb);
+  border: 1px solid rgba(96,66,36,.45);
+  font-weight: 700; font-size: 1.1rem;
+}
+.skyjo-held__lbl { font-size: .74rem; color: #8a6a44; }
+
+/* ---------- بچه گربه‌ها ---------- */
+.kit-hero { display: flex; gap: 16px; align-items: center; padding: 16px; margin-bottom: 14px; }
+.kit-hero__cards { display: flex; gap: 5px; flex: 0 0 auto; }
+.kit-hero__card {
+  width: 42px; height: 58px; border-radius: 6px;
+  display: grid; place-items: center; font-size: 1.15rem;
+  background: linear-gradient(165deg, #fffdf6, #f2e4cb);
+  border: 1px solid rgba(96,66,36,.4);
+  box-shadow: 0 3px 7px -4px rgba(52,32,16,.55);
+}
+.kit-hero__card--boom { background: linear-gradient(160deg, #a8352c, #7e241d); color: #fffdf6; }
+.kit-hero__text { flex: 1 1 auto; min-width: 0; }
+.kit-hero__kicker { font-size: .72rem; letter-spacing: .08em; color: #8a6a44; margin-bottom: 4px; }
+.kit-hero h1 { font-size: 1.12rem; margin: 0 0 6px; line-height: 1.4; }
+.kit-hero p { margin: 0; font-size: .84rem; line-height: 1.7; color: #5b4632; }
+
+.kit-table { display: flex; gap: 14px; align-items: center; padding: 14px; margin-bottom: 12px; }
+.kit-deck {
+  display: grid; gap: 2px; place-items: center;
+  width: 70px; height: 96px; border-radius: 8px; cursor: pointer;
+  background:
+    repeating-linear-gradient(45deg, rgba(244,232,210,.08) 0 5px, transparent 5px 10px),
+    linear-gradient(160deg, #6d4a2c, #4a301c);
+  border: 1px solid rgba(40,24,12,.65);
+  color: #f4e8d2; font-family: inherit;
+  box-shadow: 0 5px 12px -6px rgba(52,32,16,.7);
+  transition: transform .14s ease;
+}
+.kit-deck:not(:disabled):hover { transform: translateY(-4px) rotate(-1deg); }
+.kit-deck:disabled { opacity: .6; cursor: default; }
+.kit-deck__back { font-size: 1.5rem; opacity: .8; }
+.kit-deck__count { font-size: .7rem; opacity: .85; }
+.kit-actions { flex: 1 1 auto; min-width: 0; }
+.kit-actions__hint { margin: 0; font-size: .82rem; line-height: 1.7; color: #5b4632; }
+
+.kit-peek { padding: 12px 14px; margin-bottom: 12px; }
+.kit-peek__title { margin: 0 0 8px; font-size: .84rem; color: #6d5334; }
+.kit-peek__row { display: flex; gap: 8px; }
+.kit-mini {
+  flex: 1 1 0; display: grid; gap: 2px; place-items: center;
+  padding: 8px 4px; border-radius: 7px;
+  background: linear-gradient(165deg, #fffdf6, #f2e4cb);
+  border: 1px solid rgba(96,66,36,.35);
+}
+.kit-mini.is-boom { background: linear-gradient(160deg, #a8352c, #7e241d); border-color: rgba(40,24,12,.5); }
+.kit-mini.is-boom .kit-mini__lbl { color: #f8f0e2; }
+.kit-mini__glyph { font-size: 1.1rem; }
+.kit-mini__lbl { font-size: .6rem; color: #6d5334; }
+
+.kit-hand { display: flex; gap: 7px; overflow-x: auto; padding: 10px 2px 14px; }
+.kit-card {
+  flex: 0 0 auto; width: 70px; min-height: 92px;
+  display: grid; gap: 4px; place-items: center; align-content: center;
+  padding: 8px 5px; border-radius: 8px; cursor: default;
+  background: linear-gradient(165deg, #fffdf6, #f2e4cb);
+  border: 1px solid rgba(96,66,36,.4);
+  font-family: inherit; color: #3a2a1b;
+  box-shadow: 0 3px 8px -5px rgba(52,32,16,.6);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.kit-card.is-playable { cursor: pointer; }
+.kit-card.is-playable:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 16px -8px rgba(52,32,16,.7);
+}
+.kit-card:disabled { opacity: .74; }
+.kit-card__glyph { font-size: 1.3rem; line-height: 1; }
+.kit-card__label { font-size: .62rem; text-align: center; line-height: 1.4; }
+.kit-card.tone-good { border-color: rgba(61,107,69,.55); }
+.kit-card.tone-good .kit-card__glyph { color: #2b5232; }
+.kit-card.tone-bad { border-color: rgba(168,53,44,.5); }
+.kit-card.tone-bad .kit-card__glyph { color: #8d2b26; }
+.kit-card.tone-move .kit-card__glyph { color: #2f5a80; }
+.kit-card.tone-cat .kit-card__glyph { color: #8a6a44; }
+.kit-kinds { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.kit-kinds__row { display: flex; gap: 10px; align-items: flex-start; }
+.kit-kinds__glyph {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 6px;
+  display: grid; place-items: center; font-size: .95rem;
+  background: linear-gradient(165deg, #fffdf6, #f0e2c9);
+  border: 1px solid rgba(96,66,36,.35);
+}
+.kit-kinds__glyph.tone-good { color: #2b5232; }
+.kit-kinds__glyph.tone-bad { color: #8d2b26; }
+.kit-kinds__glyph.tone-move { color: #2f5a80; }
+.kit-kinds__body { display: grid; gap: 1px; font-size: .74rem; line-height: 1.6; color: #5b4632; }
+.kit-kinds__body strong { color: #3a2a1b; font-size: .78rem; }
+.kit-result { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 24px 18px; margin-bottom: 14px; }
+.kit-result__seal {
+  width: 68px; height: 68px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 1.7rem; color: #8a6a44;
+  border: 1.5px dashed rgba(138,106,68,.6);
+}
+.kit-result.is-win .kit-result__seal { color: #3d6b45; border-color: rgba(61,107,69,.7); }
+
+/* ---------- تاس دروغگو ---------- */
+.liar-hero { display: grid; gap: 14px; padding: 18px; margin-bottom: 14px; }
+.liar-hero__dice { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.liar-hero__text { text-align: center; }
+.liar-hero__kicker { font-size: .72rem; letter-spacing: .08em; color: #8a6a44; margin-bottom: 4px; }
+.liar-hero h1 { font-size: 1.18rem; margin: 0 0 6px; }
+.liar-hero p { margin: 0; font-size: .84rem; line-height: 1.7; color: #5b4632; }
+
+.liar-hand { display: grid; gap: 6px; padding: 12px 14px; margin-bottom: 10px; }
+.liar-hand__label { font-size: .72rem; color: #8a6a44; }
+.liar-hand__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.liar-bid { display: grid; gap: 6px; padding: 14px 16px; margin-bottom: 10px; }
+.liar-bid__now { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.liar-bid__by { font-size: .78rem; color: #6d5334; }
+.liar-bid__val { font-size: 1.1rem; color: #3a2a1b; }
+.liar-bid__reveal { margin: 0; font-size: .78rem; line-height: 1.6; }
+.liar-bid__reveal.is-true { color: #2b5232; }
+.liar-bid__reveal.is-false { color: #8d2b26; font-weight: 700; }
+
+.liar-form { display: grid; gap: 14px; padding: 4px 2px; }
+.liar-form__field { display: grid; gap: 6px; }
+.liar-form__label { font-size: .74rem; color: #6d5334; }
+.liar-stepper { display: flex; align-items: center; gap: 6px; }
+.liar-stepper__btn {
+  width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+  background: linear-gradient(165deg, #fffdf6, #f0e2c9);
+  border: 1px solid rgba(96,66,36,.4);
+  font-family: inherit; font-size: 1.05rem; color: #3a2a1b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 6px -4px rgba(52,32,16,.6);
+}
+.liar-stepper__val {
+  min-width: 46px; text-align: center;
+  font-size: 1.15rem; font-weight: 700; color: #3a2a1b;
+}
+.liar-faces { display: flex; gap: 6px; flex-wrap: wrap; }
+.liar-face {
+  padding: 4px; border-radius: 10px; cursor: pointer;
+  background: transparent; border: 1.5px solid transparent;
+  transition: border-color .14s ease, transform .14s ease;
+}
+.liar-face.is-on { border-color: rgba(150,112,52,.7); background: rgba(255,253,246,.5); }
+.liar-face:hover { transform: translateY(-3px); }
+.liar-actions { display: grid; gap: 8px; margin: 12px 0; }
+.liar-log { display: grid; gap: 3px; padding: 12px 14px; }
+.liar-log__row { margin: 0; font-size: .74rem; line-height: 1.6; color: #5b4632; }
+.liar-log__row:first-child { color: #3a2a1b; font-weight: 600; }
+
+@media (max-width: 420px) {
+  .skyjo-hero, .kit-hero { flex-direction: column; text-align: center; }
+  .skyjo-tile { font-size: .84rem; }
+  .kit-card { width: 62px; min-height: 84px; }
+  .kit-deck { width: 60px; height: 84px; }
+}

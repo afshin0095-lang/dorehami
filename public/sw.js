@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v12';
+const CACHE = 'dorehami-shell-v15';
 
 const SHELL = [
   '/',
@@ -32,6 +32,27 @@ const SHELL = [
   '/src/games/quiz-ui.js',
   '/src/games/riddle-ui.js',
   '/src/games/iq-ui.js',
+  '/src/engines/uno.js',
+  '/src/engines/eights.js',
+  '/src/engines/dice5.js',
+  '/src/ui/tablekit.js',
+  '/src/games/uno-ui.js',
+  '/src/games/cards-ui.js',
+  '/src/games/dice-ui.js',
+  '/src/engines/skyjo.js',
+  '/src/engines/kittens.js',
+  '/src/engines/bluff.js',
+  '/src/games/skyjo-ui.js',
+  '/src/games/kittens-ui.js',
+  '/src/games/liar-ui.js',
+  '/assets/art/games/skyjo.jpg',
+  '/assets/art/games/kittens.jpg',
+  '/assets/art/games/liarsdice.jpg',
+  '/assets/art/games/uno.jpg',
+  '/assets/art/games/crazy8.jpg',
+  '/assets/art/games/blackjack.jpg',
+  '/assets/art/games/yahtzee.jpg',
+  '/assets/art/games/farkle.jpg',
   '/src/games/gk-ui.js',
   '/assets/art/games/story.jpg',
   '/assets/art/games/warden.jpg',
@@ -52,6 +73,7 @@ const SHELL = [
   '/assets/art/cats/lvl-quick.jpg',
   '/assets/art/cats/lvl-standard.jpg',
   '/assets/art/cats/lvl-deep.jpg',
+  '/assets/art/arcade/machine.jpg',
   '/assets/art/games/geo-quiz.jpg',
   '/assets/art/games/mafia.jpg',
   '/assets/art/games/hokm.jpg',

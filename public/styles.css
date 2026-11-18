@@ -4709,3 +4709,9 @@ small { font-weight: 600; }
 @media (min-width: 520px) {
   .fd-pair { grid-template-columns: 1fr 1fr; }
 }
+
+/* دکمه با نشان کنار برچسب */
+.btn--with-icon {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+}
+.btn--with-icon svg { flex: 0 0 auto; opacity: .88; }

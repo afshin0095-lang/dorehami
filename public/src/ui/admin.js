@@ -108,7 +108,7 @@ export function AdminScreen({ onBack }) {
           'aria-label': 'تکرار کد', oninput: e => { pin2 = e.target.value; }
         }),
         err,
-        btn('ساخت و ورود', {
+        btn('ساخت و ورود', { ico: 'crown',
           variant: 'btn--primary btn--block',
           onClick: () => {
             try {
@@ -139,7 +139,7 @@ export function AdminScreen({ onBack }) {
           onkeydown: (e) => { if (e.key === 'Enter') submit(); }
         }),
         err,
-        btn('ورود', { variant: 'btn--primary btn--block', onClick: submit })
+        btn('ورود', { variant: 'btn--primary btn--block', onClick: submit, ico: 'lock' })
       ) })
     );
 
@@ -257,7 +257,7 @@ export function AdminScreen({ onBack }) {
         ))
       ) }),
       sheet({ title: 'بررسی سلامت محتوا', iconName: 'check', children: h('div', {},
-        btn('اجرای بررسی', {
+        btn('اجرای بررسی', { ico: 'check',
           variant: 'btn--teal btn--block',
           onClick: () => runContentCheck()
         }),
@@ -330,11 +330,11 @@ export function AdminScreen({ onBack }) {
         toggle('highContrast', 'کنتراست بالا', 'خوانایی در نور کم')
       ) }),
       sheet({ title: 'امنیت پنل', iconName: 'lock', children: h('div', { style: { display: 'grid', gap: '.5rem' } },
-        btn('تغییر کد مدیریت', {
+        btn('تغییر کد مدیریت', { ico: 'save',
           variant: 'btn--block',
           onClick: () => { store.set(ADMIN_KEY, null); store.set(ADMIN_SESSION, false); state.screen = 'setup'; render(); }
         }),
-        btn('قفل کردن پنل', {
+        btn('قفل کردن پنل', { ico: 'lock',
           variant: 'btn--ghost btn--block',
           onClick: () => { store.set(ADMIN_SESSION, false); log('قفل پنل'); state.screen = 'login'; render(); }
         })
@@ -346,11 +346,11 @@ export function AdminScreen({ onBack }) {
   function tabData() {
     return h('div', {},
       sheet({ title: 'پشتیبان‌گیری', iconName: 'save', children: h('div', { style: { display: 'grid', gap: '.5rem' } },
-        btn('دریافت فایل پشتیبان (JSON)', { variant: 'btn--teal btn--block', onClick: exportData }),
-        btn('بازگردانی از فایل', { variant: 'btn--block', onClick: importData })
+        btn('دریافت فایل پشتیبان (JSON)', { variant: 'btn--teal btn--block', onClick: exportData, ico: 'save' }),
+        btn('بازگردانی از فایل', { variant: 'btn--block', onClick: importData, ico: 'refresh' })
       ) }),
       sheet({ title: 'پاک‌سازی', iconName: 'trash', children: h('div', { style: { display: 'grid', gap: '.5rem' } },
-        btn('پاک‌کردن آمار بازی', {
+        btn('پاک‌کردن آمار بازی', { ico: 'trash',
           variant: 'btn--block',
           onClick: () => {
             if (!confirm('همه‌ی آمار و رکوردها پاک شود؟ این کار برگشت‌پذیر نیست.')) return;
@@ -360,7 +360,7 @@ export function AdminScreen({ onBack }) {
             render();
           }
         }),
-        btn('بازنشانی کامل تنظیمات', {
+        btn('بازنشانی کامل تنظیمات', { ico: 'refresh',
           variant: 'btn--block',
           onClick: () => {
             if (!confirm('همه‌ی تنظیمات به حالت اولیه برگردد؟')) return;
@@ -375,7 +375,7 @@ export function AdminScreen({ onBack }) {
       sheet({ title: 'نسخه و کش', iconName: 'refresh', children: h('div', { style: { display: 'grid', gap: '.5rem' } },
         h('p', { style: { fontSize: '.8rem', margin: 0 } },
           'اگر بازی را به‌روز کردی و تغییرها را ندیدی، مرورگر نسخه‌ی قدیمی را از کش سرو می‌کند. این دکمه کش و سرویس‌ورکر را پاک می‌کند — آمار و تنظیمات دست‌نخورده می‌مانند.'),
-        btn('بازنشانی نسخه و کش', {
+        btn('بازنشانی نسخه و کش', { ico: 'refresh',
           variant: 'btn--primary btn--block',
           onClick: () => {
             log('بازنشانی نسخه و کش');
@@ -441,7 +441,7 @@ export function AdminScreen({ onBack }) {
               )))
           : h('p', { style: { fontSize: '.85rem' } }, 'هنوز کاری ثبت نشده.')
       }),
-      list.length ? btn('پاک‌کردن گزارش', {
+      list.length ? btn('پاک‌کردن گزارش', { ico: 'trash',
         variant: 'btn--ghost btn--block',
         onClick: () => { store.set(LOG_KEY, []); render(); }
       }) : null,

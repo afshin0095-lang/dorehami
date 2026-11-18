@@ -53,12 +53,12 @@ export function iconBtn(name, { label, onClick, cls = '' }) {
   }, icon(name));
 }
 
-export function btn(label, { onClick, variant = '', cls = '', disabled = false, sound = 'paper-flip' } = {}) {
+export function btn(label, { onClick, variant = '', cls = '', disabled = false, sound = 'paper-flip', ico = '' } = {}) {
   return h('button', {
-    class: `btn ${variant} ${cls}`.trim(),
+    class: `btn ${variant} ${cls} ${ico ? 'btn--with-icon' : ''}`.trim(),
     disabled,
     onclick: (e) => { if (disabled) return; playSound(sound); onClick?.(e); }
-  }, label);
+  }, ico ? icon(ico, 16) : null, label);
 }
 
 export function sheet({ title, iconName, children, cls = '', tone = '' }) {

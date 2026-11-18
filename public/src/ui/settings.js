@@ -60,7 +60,7 @@ export function openSettings() {
 
     h('div', { style: { marginTop: '1rem', display: 'grid', gap: '.5rem' } },
       btn('پاک‌کردن داده‌های محلی', {
-        variant: 'btn--mustard', cls: 'btn--block',
+        variant: 'btn--mustard', cls: 'btn--block', ico: 'trash',
         onClick: () => {
           if (!confirm('همه‌ی آمار، رکوردها و نشست‌ها پاک شود؟ این کار برگشت‌پذیر نیست.')) return;
           store.clearAll();
@@ -70,7 +70,7 @@ export function openSettings() {
         }
       }),
       btn('پاک‌کردن حافظهٔ موقت و بارگذاری تازه', {
-        variant: 'btn--block',
+        variant: 'btn--block', ico: 'refresh',
         onClick: async () => {
           if (!confirm('نسخهٔ ذخیره‌شدهٔ برنامه پاک شود و تازه بارگذاری شود؟ آمار و رکوردها دست‌نخورده می‌مانند.')) return;
           toast('حافظهٔ موقت پاک شد — در حال بارگذاری تازه', 'ok');
@@ -78,7 +78,7 @@ export function openSettings() {
           await hardReload();
         }
       }),
-      btn('بستن', { variant: 'btn--block', onClick: closeOverlay })
+      btn('بستن', { variant: 'btn--block', onClick: closeOverlay, ico: 'close' })
     ),
     h('p', { style: { marginTop: '.9rem', fontSize: '.76rem', color: 'var(--ink-soft)' } },
       'دورهمی‌یار هیچ داده‌ای به اینترنت نمی‌فرستد. همه‌چیز روی همین گوشی است.'),

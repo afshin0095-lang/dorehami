@@ -1,14 +1,20 @@
 /* ============================================================
-   موتور مار و پله — تخته ۶×۶ (۳۶ خانه)، ۲ تا ۴ بازیکن
+   موتور مار و پله — تختهٔ ۱۰×۱۰ (۱۰۰ خانه)، ۲ تا ۴ بازیکن
    مارها و نردبان‌ها با چیدمان قابل‌تولید؛ هر چیدمان تازه،
    نقشه‌ی تازه‌ای می‌سازد که هیچ مار/نردبانی هم‌پوشانی ندارد.
    ============================================================ */
 
-export const BOARD_SIZE = 36;
+export const BOARD_SIZE = 100;
+/** اضلاع تخته — ۱۰×۱۰ */
+export const BOARD_SIDE = 10;
 
-/** چیدمان پیش‌فرض (برای تست و شروع سریع) */
-export const SNAKES = { 17: 7, 22: 3, 30: 19, 34: 25 };
-export const LADDERS = { 4: 14, 9: 21, 20: 28, 27: 33 };
+/**
+ * چیدمان پیش‌فرض — همان نقشهٔ کلاسیک تختهٔ ۱۰۰ خانه که نسل‌ها با آن
+ * بازی کرده‌اند: نردبان‌ها بازیکن را به ردیف بالاتر می‌برند و مارها
+ * نزدیک پایان کار را سخت می‌کنند.
+ */
+export const SNAKES = { 17: 7, 47: 26, 62: 19, 87: 24, 93: 73, 98: 78 };
+export const LADDERS = { 4: 14, 9: 31, 28: 84, 51: 67, 71: 91 };
 
 /**
  * تولید چیدمان تصادفی و بی‌نقص.
@@ -23,35 +29,33 @@ export function makeLayout(rnd = Math.random) {
   const ladders = {};
 
   const freeStart = () => {
-    for (let i = 0; i < 200; i++) {
-      const n = 2 + Math.floor(rnd() * (BOARD_SIZE - 3)); // ۲ تا ۳۵
+    for (let i = 0; i < 300; i++) {
+      const n = 2 + Math.floor(rnd() * (BOARD_SIZE - 3)); // ۲ تا ۹۹
       if (used.has(n)) continue;
       return n;
     }
     return null;
   };
 
-  // ۴ تا ۵ نردبان
-  const ladderCount = 4 + Math.floor(rnd() * 2);
-  const ladderCandidates = [];
-  for (let i = 0; i < 400 && Object.keys(ladders).length < ladderCount; i++) {
+  // ۵ تا ۷ نردبان — روی تختهٔ ۱۰۰ خانه بیشتر لازم است تا بازی نمیرد
+  const ladderCount = 5 + Math.floor(rnd() * 3);
+  for (let i = 0; i < 800 && Object.keys(ladders).length < ladderCount; i++) {
     const from = freeStart();
     if (from === null) break;
-    const span = 4 + Math.floor(rnd() * 8); // ۴ تا ۱۱ خانه بالا
+    const span = 6 + Math.floor(rnd() * 16);       // ۶ تا ۲۱ خانه بالا
     const to = from + span;
     if (to > BOARD_SIZE || used.has(to)) continue;
     used.add(from); used.add(to);
     ladders[from] = to;
-    ladderCandidates.push([from, to]);
   }
 
-  // ۴ تا ۵ مار — مارها بالاتر از نردبان‌ها شروع می‌شوند تا تخته متعادل بماند
-  const snakeCount = 4 + Math.floor(rnd() * 2);
-  for (let i = 0; i < 500 && Object.keys(snakes).length < snakeCount; i++) {
+  // ۵ تا ۸ مار — مارها بالاتر از ربع اول شروع می‌شوند تا شروع بازی تلخ نشود
+  const snakeCount = 5 + Math.floor(rnd() * 4);
+  for (let i = 0; i < 900 && Object.keys(snakes).length < snakeCount; i++) {
     const from = freeStart();
     if (from === null) break;
-    if (from < 12) continue;                       // مار زودهنگام بازی را می‌کشد
-    const span = 4 + Math.floor(rnd() * 9);        // ۴ تا ۱۲ خانه پایین
+    if (from < 20) continue;                       // مار زودهنگام بازی را می‌کشد
+    const span = 6 + Math.floor(rnd() * 20);       // ۶ تا ۲۵ خانه پایین
     const to = from - span;
     if (to < 1 || used.has(to)) continue;
     used.add(from); used.add(to);
@@ -59,7 +63,7 @@ export function makeLayout(rnd = Math.random) {
   }
 
   // اگر به هر دلیلی چیدمان ناقص شد، به پیش‌فرض برگرد
-  if (Object.keys(snakes).length < 3 || Object.keys(ladders).length < 3) {
+  if (Object.keys(snakes).length < 4 || Object.keys(ladders).length < 4) {
     return { snakes: { ...SNAKES }, ladders: { ...LADDERS }, seed: null };
   }
   return { snakes, ladders, seed: Math.floor(rnd() * 1e9) };
@@ -105,7 +109,12 @@ export function createSnakeGame({ players = ['شما', 'رقیب'], rnd = Math.r
   const L = layout || makeLayout(rnd);
   return {
     players: players.map((name, i) => ({
-      id: i, name, pos: 0, color: ['#a33d2c', '#2f6f68', '#b0801f', '#5b3252'][i % 4]
+      /**
+       * نشانهٔ هر بازیکن رنگ خودش را دارد: جگری، فیروزه‌ای، زعفرانی،
+       * بادمجانی — هر چهار رنگ در پالت قدیمیِ بازی، ولی از هم کاملاً
+       * قابل تشخیص روی تختهٔ کرم‌رنگ.
+       */
+      id: i, name, pos: 0, color: ['#b23a2a', '#1f7d7a', '#d99312', '#6b3a72'][i % 4]
     })),
     turn: 0,
     dice: null,

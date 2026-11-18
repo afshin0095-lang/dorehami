@@ -3,7 +3,7 @@
    ============================================================ */
 
 import { h, mount, playSound, toast, stats, toFa } from '../core.js';
-import { createSnakeGame, rollMove, rollDice, BOARD_SIZE, makeLayout, validateLayout } from '../engines/snake.js';
+import { createSnakeGame, rollMove, rollDice, BOARD_SIZE, BOARD_SIDE, makeLayout, validateLayout } from '../engines/snake.js';
 import { gameHeader, sheet, btn, helpBlock, callout, iconBtn } from '../ui/kit.js';
 
 const HELP = {
@@ -66,7 +66,8 @@ export function mountGame(root, { onExit }) {
    */
   function cellCenter(n) {
     const { col, rowFromTop } = gridPlace(n);
-    return { x: (col + 0.5) * (100 / 6), y: (rowFromTop + 0.5) * (100 / 6) };
+    const step = 100 / BOARD_SIDE;
+    return { x: (col + 0.5) * step, y: (rowFromTop + 0.5) * step };
   }
 
   /**
@@ -75,11 +76,11 @@ export function mountGame(root, { onExit }) {
    */
   function gridPlace(n) {
     const idx = n - 1;
-    const rowFromBottom = Math.floor(idx / 6);
-    const colInRow = idx % 6;
+    const rowFromBottom = Math.floor(idx / BOARD_SIDE);
+    const colInRow = idx % BOARD_SIDE;
     // ردیف زوج از راست به چپ، ردیف فرد از چپ به راست
-    const col = rowFromBottom % 2 === 0 ? 5 - colInRow : colInRow;
-    return { col, rowFromTop: 5 - rowFromBottom };
+    const col = rowFromBottom % 2 === 0 ? (BOARD_SIDE - 1) - colInRow : colInRow;
+    return { col, rowFromTop: (BOARD_SIDE - 1) - rowFromBottom };
   }
 
   /** مار: بدنه‌ی موج‌دار از سر (خانه‌ی بالا) تا دم (خانه‌ی پایین) با سر و دم مشخص */
@@ -91,7 +92,8 @@ export function mountGame(root, { onExit }) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const len = Math.hypot(dx, dy) || 1;
     const nx = -dy / len, ny = dx / len;
-    const amp = Math.min(11, len * 0.22);
+    // نازک‌تر: دامنهٔ موج کم‌تر تا مار فضای تخته را نبلعد
+    const amp = Math.min(6.5, len * 0.16);
     // موج دوگانه (S) برای حس پیچیدن
     const c1 = { x: mx + nx * amp, y: my + ny * amp };
     const c2 = { x: mx - nx * amp * 0.8, y: my - ny * amp * 0.8 };
@@ -108,12 +110,12 @@ export function mountGame(root, { onExit }) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const len = Math.hypot(dx, dy) || 1;
     const nx = -dy / len, ny = dx / len;
-    const half = 3.1; // نیم‌عرض نردبان (درصد)
+    const half = 1.9; // نیم‌عرض نردبان (درصد) — باریک‌تر، جای بیشتر برای تخته
     const a1 = { x: a.x + nx * half, y: a.y + ny * half };
     const a2 = { x: a.x - nx * half, y: a.y - ny * half };
     const b1 = { x: b.x + nx * half, y: b.y + ny * half };
     const b2 = { x: b.x - nx * half, y: b.y - ny * half };
-    const rungs = Math.max(3, Math.round(len / 4));
+    const rungs = Math.max(3, Math.round(len / 2.6));
     const lines = [];
     for (let i = 1; i < rungs; i++) {
       const t = i / rungs;
@@ -153,13 +155,13 @@ export function mountGame(root, { onExit }) {
         el('path', { d: S.path, class: 'snake__body' }),
         el('path', { d: S.path, class: 'snake__scales' }),
         // دم کوچک
-        el('circle', { cx: S.tail.x, cy: S.tail.y, r: 1.15, class: 'snake__tail' }),
+        el('circle', { cx: S.tail.x, cy: S.tail.y, r: .85, class: 'snake__tail' }),
         // سر با چشم‌ها
         el('g', { transform: `translate(${S.head.x} ${S.head.y}) rotate(${S.headAngle})` },
-          el('ellipse', { cx: 0, cy: 0, rx: 4.6, ry: 3.5, class: 'snake__head' }),
-          el('circle', { cx: -1.1, cy: -1.35, r: .78, class: 'snake__eye' }),
-          el('circle', { cx: -1.1, cy:  1.35, r: .78, class: 'snake__eye' }),
-          el('path', { d: 'M -4.2 0 L -6.4 0', class: 'snake__tongue' })
+          el('ellipse', { cx: 0, cy: 0, rx: 3.4, ry: 2.5, class: 'snake__head' }),
+          el('circle', { cx: -0.8, cy: -0.95, r: .55, class: 'snake__eye' }),
+          el('circle', { cx: -0.8, cy:  0.95, r: .55, class: 'snake__eye' }),
+          el('path', { d: 'M -3.1 0 L -4.7 0', class: 'snake__tongue' })
         )
       ))
     );

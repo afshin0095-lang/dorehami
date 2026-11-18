@@ -92,17 +92,18 @@ test('rollMove: مار پایین می‌آورد', () => {
 });
 
 test('rollMove: رد شدن از انتها برمی‌گردد', () => {
-  // تخته‌ی بدون مار/نردبان تا فقط اثر «برگشت» سنجیده شود
-  const layout = { snakes: { 30: 12 }, ladders: { 3: 9 }, seed: 1 };
+  // تخته‌ی بدون مار/نردبان روی خانه‌های مسیر تا فقط اثر «برگشت» سنجیده شود
+  const layout = { snakes: { 50: 40 }, ladders: { 3: 9 }, seed: 1 };
   let g = createSnakeGame({ players: ['a'], layout });
-  g = { ...g, players: [{ ...g.players[0], pos: 34 }] };
-  g = rollMove(g, 5); // 39 → 33
-  assert.equal(g.players[0].pos, 33);
+  g = { ...g, players: [{ ...g.players[0], pos: 97 }] };
+  g = rollMove(g, 5); // 102 → 98 (قرینه‌ی گذشته از ۱۰۰)
+  assert.equal(g.players[0].pos, 98);
+  assert.equal(g.lastEvent, 'bounce');
 });
 
 test('rollMove: رسیدن دقیق به خانه آخر = برد', () => {
   let g = createSnakeGame({ players: ['a', 'b'], layout: { snakes: { 20: 8 }, ladders: { 5: 12 }, seed: 1 } });
-  g = { ...g, players: [{ ...g.players[0], pos: 33 }, g.players[1]] };
+  g = { ...g, players: [{ ...g.players[0], pos: BOARD_SIZE - 3 }, g.players[1]] };
   g = rollMove(g, 3);
   assert.equal(g.players[0].pos, BOARD_SIZE);
   assert.equal(g.winner, 0);
@@ -263,7 +264,7 @@ test('makeLayout: هر بار چیدمان متفاوت است', () => {
   assert.notDeepEqual({ s: a.snakes, l: a.ladders }, { s: b.snakes, l: b.ladders });
 });
 
-test('makeLayout: خانه ۱ و ۳۶ هرگز مار/نردبان ندارند', () => {
+test('makeLayout: خانه ۱ و ۱۰۰ هرگز مار/نردبان ندارند', () => {
   const rnd = mulberry32(3);
   for (let i = 0; i < 60; i++) {
     const L = makeLayout(rnd);
@@ -286,4 +287,61 @@ test('createSnakeGame: چیدمان سفارشی روی بازی می‌نشین
   const g = createSnakeGame({ players: ['a', 'b'], layout });
   assert.deepEqual(g.snakes, layout.snakes);
   assert.deepEqual(g.ladders, layout.ladders);
+});
+
+/* ── تختهٔ ۱۰۰ خانه ─────────────────────────────────────────────── */
+
+test('BOARD_SIZE = ۱۰۰ و اضلاع تخته ۱۰ است', async () => {
+  const { BOARD_SIDE } = await import('../public/src/engines/snake.js');
+  assert.equal(BOARD_SIZE, 100);
+  assert.equal(BOARD_SIDE, 10);
+  assert.equal(BOARD_SIDE * BOARD_SIDE, BOARD_SIZE);
+});
+
+test('چیدمان پیش‌فرض جواب می‌دهد: بازی با تاس تمام می‌شود', () => {
+  // روی تختهٔ ۱۰۰ خانه، اگر مارها/نردبان‌ها بد چیده شوند بازی می‌میرد.
+  // با یک تاس قطعی (همیشه ۵) باید در تعداد نوبت معقولی به پایان برسد.
+  const g0 = createSnakeGame({ players: ['a', 'b'], rnd: mulberry32(9) });
+  let g = g0;
+  let turns = 0;
+  const rnd = mulberry32(11);
+  while (g.winner === null && turns < 800) {
+    g = rollMove(g, rollDice(rnd));
+    turns++;
+  }
+  assert.notEqual(g.winner, null, 'بازی در ۸۰۰ نوبت تمام نشد — چیدمان کند است');
+  assert.ok(turns > 8, 'بازی خیلی زود تمام شد — نردبان‌ها زیادی سخاوتمندانه‌اند');
+});
+
+test('validateLayout: نقشهٔ کلاسیک ۱۰۰ خانه معتبر است', () => {
+  const v = validateLayout({ snakes: SNAKES, ladders: LADDERS });
+  assert.deepEqual(v.errors, []);
+  assert.ok(Object.keys(SNAKES).length >= 5, 'حداقل ۵ مار');
+  assert.ok(Object.keys(LADDERS).length >= 5, 'حداقل ۵ نردبان');
+});
+
+test('makeLayout: روی تختهٔ ۱۰۰ خانه همیشه دست‌کم ۴ مار و ۴ نردبان دارد', () => {
+  const rnd = mulberry32(21);
+  for (let i = 0; i < 40; i++) {
+    const L = makeLayout(rnd);
+    assert.ok(Object.keys(L.snakes).length >= 4, `چیدمان ${i}: مار کم`);
+    assert.ok(Object.keys(L.ladders).length >= 4, `چیدمان ${i}: نردبان کم`);
+    for (const from of Object.keys(L.snakes)) assert.ok(Number(from) <= BOARD_SIZE);
+  }
+});
+
+test('هر بازیکن رنگ مهرهٔ خودش را دارد و رنگ‌ها تکراری نیستند', () => {
+  const g = createSnakeGame({ players: ['یک', 'دو', 'سه', 'چهار'] });
+  const colors = g.players.map(p => p.color);
+  assert.equal(new Set(colors).size, 4, 'رنگ مهره‌ها باید چهارتای متفاوت باشد');
+  for (const c of colors) assert.match(c, /^#[0-9a-f]{6}$/i, `رنگ نامعتبر ${c}`);
+});
+
+test('رسیدن به خانهٔ ۱۰۰ روی تختهٔ تازه = برد', () => {
+  const layout = { snakes: { 20: 8 }, ladders: { 5: 12 }, seed: 1 };
+  const g = createSnakeGame({ players: ['a', 'b'], layout });
+  const near = { ...g, players: [{ ...g.players[0], pos: BOARD_SIZE - 2 }, g.players[1]] };
+  const after = rollMove(near, 2);
+  assert.equal(after.players[0].pos, BOARD_SIZE);
+  assert.equal(after.winner, 0);
 });

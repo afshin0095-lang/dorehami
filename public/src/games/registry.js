@@ -261,6 +261,22 @@ export const GAMES = [
     cats: ['solo', 'mind'], tags: ['منطق', 'معما', 'استدلال'],
     solo: true, badge: 'معمای منطقی', multi: false,
     load: () => import('./logic-ui.js')
+  },
+  {
+    id: 'kot', title: 'پادشاه توکیو', meta: 'تکی · ۱۵–۲۵ دقیقه',
+    playersText: '۱ نفر', timeText: '۱۵–۲۵ دقیقه',
+    art: '/assets/art/games/king-of-tokyo.jpg',
+    cats: ['solo', 'dice'], tags: ['تاس', 'هیولا', 'ستاره', 'توکیو'],
+    solo: true, badge: '۲۰ ستاره', multi: false,
+    load: () => import('./kot-ui.js')
+  },
+  {
+    id: 'worms', title: 'کرم کبابی', meta: 'تکی · ۱۰–۲۰ دقیقه',
+    playersText: '۱ نفر', timeText: '۱۰–۲۰ دقیقه',
+    art: '/assets/art/games/heckmeck.jpg',
+    cats: ['solo', 'dice'], tags: ['تاس', 'ریسک', 'کرم', 'هک‌مک'],
+    solo: true, badge: '۸ تاس و ۱۶ کاشی', multi: false,
+    load: () => import('./worms-ui.js')
   }
 ];
 
@@ -272,9 +288,4 @@ export function visibleGames(hiddenIds = []) {
   return GAMES.filter(g => !hidden.has(g.id));
 }
 
-/* ------------------------------------------------------------------
-   heckmeck (کرم کبابی) — موتور و رابط آماده‌اند (engines/worms.js،
-   games/worms-ui.js) ولی هنوز ثبت نشده، چون تصویر جلدش ساخته نشده است.
-   برای فعال‌سازی: تصویر را در پوشهٔ art/games بساز، این بلوک را به GAMES
-   برگردان، فیلد art را پر کن و همان مسیر را در sw.js precache کن.
-   ------------------------------------------------------------------ */
+/* heckmeck (کرم کبابی) هم‌اکنون ثبت شد — تصویر جلدش ساخته شد. */

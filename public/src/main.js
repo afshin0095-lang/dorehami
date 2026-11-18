@@ -281,3 +281,30 @@ if (RUNNING_BUILD && !IS_FRESH) {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) void check(); });
   window.setInterval(check, 120_000);
 }
+
+/* ============================================================
+   خودآزمای نسخه — از کنسول مرورگر:  dyVersion()
+   می‌گوید کدام نسخه اجرا می‌شود، سرور چه نسخه‌ای دارد، و آیا
+   سرویس‌ورکری مانده که کد کهنه بدهد.
+   ============================================================ */
+globalThis.dyVersion = async function dyVersion() {
+  const server = await askBuild();
+  const running = RUNNING_BUILD;
+  const regs = ('serviceWorker' in navigator)
+    ? await navigator.serviceWorker.getRegistrations().catch(() => []) : [];
+  const keys = globalThis.caches?.keys ? await caches.keys().catch(() => []) : [];
+  const report = {
+    running,
+    server,
+    upToDate: !!server && server === running,
+    swRegistrations: regs.length,
+    caches: keys,
+    url: location.href
+  };
+  // eslint-disable-next-line no-console
+  console.table(report);
+  return report;
+};
+
+/** پاک‌سازی کامل از کنسول:  dyFix() */
+globalThis.dyFix = hardReload;

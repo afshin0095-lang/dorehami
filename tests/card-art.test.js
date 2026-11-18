@@ -68,7 +68,7 @@ test('کارت پوشش کاغذی خودش را هم دارد (سبک چاپ ق
 
 test('نام فایل تصویر با شناسهٔ بازی هم‌خوان است', () => {
   // استثناهای آگاهانه: نام تجاری متفاوت، ولی یکتا
-  const alias = { gk: 'geo-quiz', ring: 'paper-cream', island: 'velvet-board', eights: 'crazy8' };
+  const alias = { gk: 'geo-quiz', ring: 'paper-cream', island: 'velvet-board', eights: 'crazy8', kot: 'king-of-tokyo', worms: 'heckmeck' };
   for (const e of entries) {
     const base = e.art.split('/').pop().replace('.jpg', '');
     const want = alias[e.id] || e.id;

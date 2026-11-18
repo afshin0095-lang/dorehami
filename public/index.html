@@ -21,5 +21,61 @@
 <div id="modal-root"></div>
 <div id="toast" role="status" aria-live="polite" style="position:fixed;bottom:calc(var(--nav-h) + 12px);right:50%;transform:translateX(50%);z-index:120;pointer-events:none"></div>
 <script type="module" src="/src/main.js"></script>
+<script>
+/* ============================================================
+   نگهبان بارگذاری — بیرون از ماژول‌ها
+   اگر main.js به هر دلیلی اجرا نشود (کش کهنه، خطای ماژول،
+   شبکه)، صفحه بی‌صدا سفید می‌ماند و کاربر فکر می‌کند «هیچ
+   تغییری نکرده». این اسکریپت مستقل است و در آن حالت یک راه
+   فرار نشان می‌دهد: پاک‌کردن کش + بارگذاری تازه.
+   ============================================================ */
+(function () {
+  var shown = false;
+  function escapeHatch(reason) {
+    if (shown) return; shown = true;
+    var app = document.getElementById('app');
+    // اگر برنامه واقعاً بالا آمده، کاری نکن
+    if (app && app.children.length > 0) return;
+    var b = document.createElement('div');
+    b.id = 'dy-boot-fail';
+    b.setAttribute('role', 'alert');
+    b.style.cssText = 'position:fixed;inset:0;z-index:9000;display:grid;place-content:center;gap:14px;padding:24px;text-align:center;font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;background:#f4ecd9;color:#2f2116';
+    var h = document.createElement('div');
+    h.style.cssText = 'font-size:1.05rem;font-weight:800';
+    h.textContent = 'برنامه بالا نیامد';
+    var p = document.createElement('div');
+    p.style.cssText = 'font-size:.85rem;line-height:1.8;max-width:32rem;color:#5b4632';
+    p.textContent = (reason ? '' : '') + 'احتمالاً نسخه‌ی قدیمی در کش مرورگر مانده است. با دکمه‌ی زیر پاک می‌شود و برنامه تازه بار می‌شود.';
+    var btn = document.createElement('button');
+    btn.textContent = 'پاک‌کردن کش و بارگذاری تازه';
+    btn.style.cssText = 'font-family:inherit;font-size:.9rem;font-weight:800;padding:.7rem 1.1rem;border-radius:8px;border:none;background:#2f4a5c;color:#f6efdd;cursor:pointer';
+    btn.onclick = function () {
+      try {
+        if (window.caches && caches.keys) caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); });
+      } catch (e) {}
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); });
+        }
+      } catch (e) {}
+      location.replace(location.pathname + '?fresh=' + Date.now());
+    };
+    b.appendChild(h); b.appendChild(p); b.appendChild(btn);
+    document.body.appendChild(b);
+  }
+
+  // اگر تا ۶ ثانیه برنامه چیزی رندر نکرد، راه فرار را نشان بده
+  setTimeout(function () { escapeHatch('timeout'); }, 6000);
+
+  // خطای بارگذاری ماژول هم همین راه را باز می‌کند
+  window.addEventListener('error', function (e) {
+    var t = e && e.target;
+    if (t && t.tagName === 'SCRIPT') setTimeout(function () { escapeHatch('script'); }, 300);
+  }, true);
+  window.addEventListener('unhandledrejection', function () {
+    setTimeout(function () { escapeHatch('rejection'); }, 1200);
+  });
+})();
+</script>
 </body>
 </html>

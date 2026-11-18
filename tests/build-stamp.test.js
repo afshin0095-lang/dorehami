@@ -45,6 +45,22 @@ test('تنظیمات هم راه پاک‌کردن کش را دارد', () => {
   assert.match(settings, /حافظهٔ موقت/, 'دکمهٔ پاک‌کردن حافظهٔ موقت نیست');
 });
 
+test('index.html یک راه فرار مستقل دارد (اگر ماژول‌ها بالا نیایند)', () => {
+  const html = readFileSync(join(ROOT, 'public/index.html'), 'utf8');
+  assert.match(html, /dy-boot-fail/, 'راه فرار بارگذاری نیست');
+  assert.match(html, /\?fresh=/, 'راه فرار باید با پارامتر تازه بارگذاری کند');
+  // باید بیرون از <script type="module"> باشد تا به ماژول‌ها وابسته نباشد
+  const moduleStart = html.indexOf('<script type="module"');
+  const hatch = html.indexOf('dy-boot-fail');
+  assert.ok(hatch > moduleStart, 'راه فرار باید بعد از اسکریپت ماژول و مستقل باشد');
+});
+
+test('کنسول ابزار خودآزمای نسخه دارد', () => {
+  const main = readFileSync(join(ROOT, 'public/src/main.js'), 'utf8');
+  assert.match(main, /globalThis\.dyVersion/, 'dyVersion نیست');
+  assert.match(main, /globalThis\.dyFix/, 'dyFix نیست');
+});
+
 test('بارگذاری ?fresh= سرویس‌ورکر را ثبت نمی‌کند', () => {
   assert.match(main, /IS_FRESH/, 'تشخیص fresh نیست');
   assert.match(main, /'serviceWorker' in navigator && !IS_FRESH/, 'در حالت fresh هم ثبت می‌شود');

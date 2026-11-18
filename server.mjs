@@ -614,9 +614,50 @@ const server = createServer(async (req, res) => {
         .replace('<html lang="fa" dir="rtl">', `<html lang="fa" dir="rtl" data-build="${BUILD_ID}">`)
         .replace('href="/styles.css"', `href="/styles.css?v=${encodeURIComponent(BUILD_ID)}"`)
         // پیش‌راه‌انداز: همیشه تازه، پیش از ماژول‌ها
+        /**
+         * خط ساخت، **در خود HTML** و بیرون از همهٔ ماژول‌ها.
+         * اگر روزی کد قدیمی اجرا شود، این نوار باز هم دیده می‌شود و
+         * می‌گوید دقیقاً چه نسخه‌ای بار شده — بی‌نیاز از کنسول.
+         */
+        .replace('</body>',
+          `<div id="dy-build" style="position:fixed;left:6px;bottom:6px;z-index:9999;`
+          + `font:600 10px/1.6 ui-monospace,monospace;padding:2px 6px;border-radius:4px;`
+          + `background:rgba(20,12,8,.72);color:#f5e7cf;pointer-events:none;direction:ltr">`
+          + `build ${BUILD_ID}</div></body>`)
         .replace('<script type="module" src="/src/main.js"></script>',
-          `<script src="/preboot.js?v=${encodeURIComponent(BUILD_ID)}"></script>\n<script type="module" src="/src/main.js"></script>`);
+          `<script src="/preboot.js?v=${encodeURIComponent(BUILD_ID)}"></script>\n`
+          + `<script type="module" src="/src/main.js?v=${encodeURIComponent(BUILD_ID)}"></script>`);
       data = Buffer.from(html, 'utf8');
+    }
+
+    /**
+     * ★★ ریشهٔ واقعی «هیچ چیز عوض نشد» ★★
+     *
+     * CSS را نسخه‌دار کرده بودیم (`/styles.css?v=…`) ولی **ماژول‌های JS
+     * را نه**. آدرس `src="/src/main.js"` ثابت بود، پس مرورگر نسخهٔ
+     * کش‌شدهٔ همان را می‌داد — و هر بار `screens.js`، `settings.js`،
+     * `kit.js` و `core.js` قدیمی اجرا می‌شدند. دقیقاً همان چیزی که
+     * دیده می‌شد: «بنر و لوگو نیستند، دکمهٔ شروع هست، خط نسخه نیست».
+     *
+     * راه‌حل: در هر فایل JS، هر import نسبی با `?v=<build>` بازنویسی
+     * می‌شود و مرورگر هر بار نسخهٔ تازه را ({@link }) وادار به بارگذاری
+     * می‌کند. اگر فایل تغییر نکرده باشد، ETag پاسخ ۳۰۴ می‌دهد و هزینه
+     * تقریباً صفر است. اگر تغییر کرده باشد، **قطعاً** نسخهٔ تازه می‌آید.
+     *
+     * مهم: همهٔ مسیرهای import نسبی‌اند (`./` یا `../`)، پس یک Regex
+     * ساده کافی است و ساخت پویا لازم نیست.
+     */
+    if (ext === '.js' || ext === '.mjs') {
+      const src = data.toString('utf8');
+      if (/\bimport\s*\(?\s*['"]\.\.?\//.test(src) || /\bfrom\s*['"]\.\.?\//.test(src)) {
+        const stamped = src.replace(
+          /(\bfrom\s*|\bimport\s*\(\s*)(['"])(\.{1,2}\/[^'"]+)(\2)/g,
+          (m, pre, q, spec) => (spec.includes('?')
+            ? m
+            : `${pre}${q}${spec}?v=${BUILD_ID}${q}`)
+        );
+        if (stamped !== src) data = Buffer.from(stamped, 'utf8');
+      }
     }
 
     const isServiceWorker = pathname === '/sw.js';

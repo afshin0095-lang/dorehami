@@ -158,17 +158,7 @@ export function openSettings() {
       'دورهمی‌یار هیچ داده‌ای به اینترنت نمی‌فرستد. همه‌چیز روی همین گوشی است.'),
     h('p', { style: { margin: '.3rem 0 0', fontSize: '.72rem', color: 'var(--ink-faint)' } },
       'اگر تصویری نیامد یا نسخهٔ قدیمی را دیدی، «بازخوانی کامل برنامه» را بزن. نیازی به کنسول یا دست‌کاری آدرس نیست.'),
-    /**
-     * خط نسخه — «کدام نسخه اجرا می‌شود» باید دیده شود، نه حدس زده شود.
-     * اگر چیزی درست کار نمی‌کند، همین یک خط می‌گوید کد کهنه است یا نه.
-     */
-    h('div', { class: 'ver-line' },
-      h('span', { class: 'ver-line__label' }, 'نسخهٔ اجراشده: '),
-      h('code', { class: 'ver-line__code' },
-        (document.documentElement.dataset.build || 'نامعلوم')),
-      h('span', { class: 'ver-line__hint' },
-        ' — اگر با نسخهٔ سرور یکی نیست، «بازخوانی کامل» را بزن.')
-    )
+
   );
 
   overlay(node, { onDismiss: closeOverlay });

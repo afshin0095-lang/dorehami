@@ -173,3 +173,46 @@ test('پیش‌راه‌انداز پیش از ماژول اصلی و با no-st
   assert.equal(r.status, 200);
   assert.match(r.headers.get('cache-control') || '', /no-store/, 'پیش‌راه‌انداز نباید کش شود');
 });
+
+/* ── نسخه‌دار کردن ماژول‌ها: ریشهٔ «هیچ چیز عوض نشد» ───────────────
+   CSS نسخه‌دار بود ولی JS نه. آدرس ثابت src="/src/main.js" باعث می‌شد
+   مرورگر همان ماژول‌های قدیمی کش‌شده را اجرا کند.                                 */
+
+test('نقطهٔ ورود JS با شناسهٔ ساخت نسخه‌دار می‌شود', async () => {
+  const html = await (await get('/')).text();
+  const m = html.match(/src="\/src\/main\.js\?v=([^"]+)"/);
+  assert.ok(m, 'ورودی main.js نسخه‌دار نیست — مرورگر نسخهٔ کهنه را اجرا می‌کند');
+  const build = html.match(/data-build="([^"]+)"/)[1];
+  assert.equal(m[1], build, 'نسخهٔ ورودی JS با شناسهٔ ساخت یکی نیست');
+});
+
+test('import های نسبی داخل ماژول‌ها نسخه‌دار می‌شوند', async () => {
+  const js = await (await get('/src/main.js')).text();
+  const rel = [...js.matchAll(/from\s+'(\.[^']+)'/g)].map(m => m[1]);
+  assert.ok(rel.length > 0, 'main.js هیچ import نسبی ندارد؟');
+  const unstamped = rel.filter(spec => !spec.includes('?v='));
+  assert.deepEqual(unstamped, [], `این importها نسخه‌دار نیستند: ${unstamped.join(', ')}`);
+});
+
+test('import های پویا (load بازی‌ها) هم نسخه‌دار می‌شوند', async () => {
+  const js = await (await get('/src/games/registry.js')).text();
+  const dyn = [...js.matchAll(/import\(\s*'(\.[^']+)'\s*\)/g)].map(m => m[1]);
+  assert.ok(dyn.length > 0, 'registry هیچ import پویایی ندارد');
+  const unstamped = dyn.filter(spec => !spec.includes('?v='));
+  assert.deepEqual(unstamped, [], `import پویای بدون نسخه: ${unstamped.join(', ')}`);
+});
+
+test('خط ساخت در HTML خام هست (بی‌نیاز از JS)', async () => {
+  const html = await (await get('/')).text();
+  const m = html.match(/build ([a-f0-9]{6,})/);
+  assert.ok(m, 'خط ساخت در HTML نیست — اگر JS قدیمی باشد راهی برای تشخیص نمی‌ماند');
+});
+
+test('هر ماژول تغییرکرده، نسخهٔ تازه می‌دهد (نه نسخهٔ کش)', async () => {
+  // دو درخواست با نسخه‌های متفاوت باید محتوای یکسان بدهند (نسخه فقط کش‌شکن است)
+  const a = await (await get('/src/ui/screens.js?v=aaaaaaaaaaaa')).text();
+  const b = await (await get('/src/ui/screens.js?v=bbbbbbbbbbbb')).text();
+  assert.equal(a.length, b.length, 'محتوای ماژول بین دو نسخه فرق دارد');
+  assert.match(a, /hero-challenge/, 'ماژول نسخه‌دار محتوای تازه ندارد');
+  assert.equal(/btn--primary[^)]*شروع/.test(a), false, 'دکمهٔ شروع هنوز در صفحهٔ خانه است');
+});

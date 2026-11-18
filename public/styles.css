@@ -4715,3 +4715,37 @@ small { font-weight: 600; }
   display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
 }
 .btn--with-icon svg { flex: 0 0 auto; opacity: .88; }
+
+/* ============================================================
+   نوار «نسخهٔ تازه آماده است»
+   وقتی مرورگر کد کهنه را اجرا می‌کند، این نوار راه فرار است.
+   ============================================================ */
+.update-bar {
+  position: fixed;
+  inset-inline: 10px;
+  bottom: calc(var(--nav-h, 64px) + 12px);
+  z-index: 140;
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem .6rem .5rem .75rem;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2f4a5c, #223a49);
+  color: #f6efdd;
+  border: 1px solid rgba(198, 162, 88, .45);
+  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .12);
+  font-size: .84rem; font-weight: 700;
+  animation: fade-up .28s ease both;
+}
+.update-bar__text { flex: 1; }
+.update-bar__go {
+  font-family: inherit; font-size: .8rem; font-weight: 800;
+  color: #223a49; background: #e8c882;
+  border: none; border-radius: 6px; padding: .34rem .7rem;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #b08f45;
+}
+.update-bar__go:active { transform: translateY(1px); box-shadow: 0 1px 0 #b08f45; }
+.update-bar__x {
+  font-family: inherit; font-size: 1.1rem; line-height: 1;
+  color: rgba(246, 239, 221, .7); background: none; border: none;
+  cursor: pointer; padding: 0 .2rem;
+}

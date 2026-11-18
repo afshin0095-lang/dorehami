@@ -223,3 +223,61 @@ export async function hardReload() {
 document.addEventListener('dy:hard-reload', () => { void hardReload(); });
 
 
+
+/* ============================================================
+   نگهبان نسخه — «چرا تغییرات را نمی‌بینم؟»
+   مرورگر ممکن است چندی کد قدیمی را از کش بدهد. صفحه هر چند دقیقه
+   /api/build را می‌پرسد؛ اگر با نسخهٔ اجراکننده یکی نبود، نواری
+   نشان می‌دهد که با یک زدن، کش را پاک و کد تازه را بار می‌کند.
+   این نوار راه فرار از «دکمهٔ پاک‌کردن کش در نسخهٔ قدیمی است» را می‌بندد.
+   ============================================================ */
+
+const RUNNING_BUILD = new URL(import.meta.url).searchParams.get('b')
+  || document.documentElement.dataset.build
+  || null;
+
+async function askBuild() {
+  try {
+    const r = await fetch('/api/build', { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.build || null;
+  } catch { return null; }
+}
+
+function showUpdateBar(serverBuild) {
+  if (document.getElementById('dy-update-bar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'dy-update-bar';
+  bar.className = 'update-bar';
+  bar.setAttribute('role', 'status');
+  const text = document.createElement('span');
+  text.className = 'update-bar__text';
+  text.textContent = 'نسخهٔ تازه آماده است';
+  const go = document.createElement('button');
+  go.className = 'update-bar__go';
+  go.type = 'button';
+  go.textContent = 'به‌روزرسانی';
+  go.addEventListener('click', () => { void hardReload(); });
+  const close = document.createElement('button');
+  close.className = 'update-bar__x';
+  close.type = 'button';
+  close.setAttribute('aria-label', 'بستن');
+  close.textContent = '×';
+  close.addEventListener('click', () => bar.remove());
+  bar.append(text, go, close);
+  bar.dataset.build = serverBuild || '';
+  document.body.appendChild(bar);
+  // دکمه همیشه در دسترس باشد، نه فقط وقتی از دست رفته‌ایم
+  go.addEventListener('click', () => { try { sessionStorage.setItem('dy:updated', '1'); } catch {} });
+}
+
+if (RUNNING_BUILD && !IS_FRESH) {
+  const check = async () => {
+    const build = await askBuild();
+    if (build && RUNNING_BUILD && build !== RUNNING_BUILD) showUpdateBar(build);
+  };
+  window.setTimeout(check, 1500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) void check(); });
+  window.setInterval(check, 120_000);
+}

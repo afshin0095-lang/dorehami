@@ -6,7 +6,7 @@
    ============================================================ */
 
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, readdir } from 'node:fs/promises';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { join, extname, normalize, sep, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +15,46 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, 'public');
 const PORT = Number(process.env.PORT || 4173);
 const HOST = process.env.HOST || '0.0.0.0';
+
+/**
+ * شناسهٔ ساخت: هشِ (mtime+اندازهٔ) همهٔ فایل‌های کد و استایل.
+ * هر تغییر واقعی در برنامه، این رشته را عوض می‌کند. کلاینت همین را با
+ * نسخهٔ اجراکنندهٔ خودش مقایسه می‌کند تا بفهمد کدش کهنه است یا نه.
+ */
+async function computeBuildId() {
+  const targets = ['styles.css', 'sw.js', 'index.html'];
+  const walk = async (dir, depth = 0) => {
+    if (depth > 4) return;
+    let entries = [];
+    try { entries = await readdir(join(ROOT, dir), { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const rel = dir ? `${dir}/${e.name}` : e.name;
+      if (e.isDirectory()) await walk(rel, depth + 1);
+      else if (/\.(js|css|html|json|webmanifest)$/.test(e.name)) targets.push(rel);
+    }
+  };
+  await walk('src');
+  const h = createHash('sha256');
+  for (const rel of targets.sort()) {
+    try {
+      const st = await stat(join(ROOT, rel));
+      h.update(rel).update(`${st.size}:${st.mtimeMs}`);
+    } catch { /* فایل نیست، رد شو */ }
+  }
+  return h.digest('hex').slice(0, 12);
+}
+
+let BUILD_ID = 'boot';
+let SW_NAME_OF_DISK = '';
+
+/** بعد از هر تغییر، شناسهٔ ساخت تازه می‌شود (سبک، فقط هش فایل‌ها) */
+async function refreshBuildId() {
+  try {
+    BUILD_ID = await computeBuildId();
+    const sw = await readFile(join(ROOT, 'sw.js'), 'utf8');
+    SW_NAME_OF_DISK = (sw.match(/const CACHE = '([^']+)'/) || [])[1] || '';
+  } catch { /* بی‌اهمیت */ }
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -319,6 +359,10 @@ function handleUpgrade(req, socket, head) {
   socket.on('error', leave);
 }
 
+/* شناسهٔ ساخت: یک بار در بالا آمدن، و هر ۳۰ ثانیه تا تغییر فایل‌ها دیده شود */
+await refreshBuildId();
+setInterval(refreshBuildId, 30_000).unref?.();
+
 /* ------------------------------ سرور HTTP ------------------------------ */
 const server = createServer(async (req, res) => {
   try {
@@ -328,7 +372,17 @@ const server = createServer(async (req, res) => {
     /* ---- API اتاق‌ها ---- */
     if (pathname === '/api/health') {
       const pkg = JSON.parse(await readFile(join(__dirname, 'package.json'), 'utf8'));
-      return json(res, 200, { ok: true, version: pkg.version, rooms: rooms.size });
+      return json(res, 200, { ok: true, version: pkg.version, build: BUILD_ID, rooms: rooms.size });
+    }
+
+    /**
+     * اثر انگشت نسخهٔ سرو‌شده. کلاینت این را با نسخه‌ای که خودش اجرا می‌کند
+     * مقایسه می‌کند؛ اگر یکی نبود، یعنی مرورگر کد قدیمی را کش کرده و
+     * «نسخهٔ تازه آماده است» را نشان می‌دهد. بدون این، کاربر گیر می‌افتد:
+     * دکمهٔ پاک‌کردن کش داخل همان نسخهٔ قدیمی است که دیده نمی‌شود.
+     */
+    if (pathname === '/api/build') {
+      return json(res, 200, { build: BUILD_ID, sw: SW_NAME_OF_DISK });
     }
 
     if (pathname === '/api/room' && req.method === 'POST') {
@@ -392,6 +446,17 @@ const server = createServer(async (req, res) => {
      * cache-first فایل‌های /src/ پنهان می‌مانند — کاربر «هیچ تغییری»
      * نمی‌بیند. کد و استایل هم revalidate می‌شوند تا تغییر فوری دیده شود.
      */
+    /**
+     * شناسهٔ ساخت را داخل خود HTML می‌نویسیم. کلاینت آن را می‌خواند و با
+     * /api/build مقایسه می‌کند؛ ناسازگاری = «کد کهنه در حال اجراست».
+     * (بدون این، هیچ راهی برای تشخیص نسخهٔ کهنه از داخل خودِ برنامه نبود.)
+     */
+    if (isHtml && (pathname === '/' || pathname === '/index.html')) {
+      const html = data.toString('utf8')
+        .replace('<html lang="fa" dir="rtl">', `<html lang="fa" dir="rtl" data-build="${BUILD_ID}">`);
+      data = Buffer.from(html, 'utf8');
+    }
+
     const isServiceWorker = pathname === '/sw.js';
     const isCode = isServiceWorker
       || ext === '.js' || ext === '.mjs' || ext === '.css'

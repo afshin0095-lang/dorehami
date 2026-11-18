@@ -15,6 +15,14 @@ export const CATEGORIES = [
 
 export const GAMES = [
   {
+    id: 'qwixx', title: 'کوییکس', meta: '۲ تا ۵ نفر · ۱۵–۲۰ دقیقه',
+    playersText: '۲–۵ نفر', timeText: '۱۵–۲۰ دقیقه',
+    art: '/assets/art/games/qwixx.jpg',
+    cats: ['group', 'cards'], tags: ['تاس', 'همه با هم', 'امتیاز', 'بدون انتظار'],
+    solo: false, badge: 'همه با هم', multi: false,
+    load: () => import('./qwixx-ui.js')
+  },
+  {
     id: 'skyjo', title: 'اسکایجو', meta: '۲ تا ۴ نفر · ۱۵–۳۰ دقیقه',
     playersText: '۲–۴ نفر', timeText: '۱۵–۳۰ دقیقه',
     art: '/assets/art/games/skyjo.jpg',

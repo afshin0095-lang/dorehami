@@ -4313,3 +4313,115 @@ small { font-size: .8rem; color: var(--ink-soft); }
   .kit-card { width: 62px; min-height: 84px; }
   .kit-deck { width: 60px; height: 84px; }
 }
+
+/* ============================================================
+   کوییکس — چهار ردیف رنگی روی برگهٔ کاغذی
+   ============================================================ */
+.qw-hero { display: grid; gap: 14px; padding: 18px; margin-bottom: 14px; }
+.qw-hero__rows { display: grid; gap: 5px; }
+.qw-hero__text { text-align: center; }
+.qw-hero__kicker { font-size: .72rem; letter-spacing: .08em; color: #8a6a44; margin-bottom: 4px; }
+.qw-hero h1 { font-size: 1.16rem; margin: 0 0 6px; }
+.qw-hero p { margin: 0; font-size: .84rem; line-height: 1.7; color: #5b4632; }
+
+.qw-dice {
+  display: grid; gap: 12px; padding: 14px; margin-bottom: 10px;
+  background: linear-gradient(180deg, rgba(255,252,243,.66), rgba(247,238,220,.56));
+  border: 1px solid rgba(120,86,48,.3);
+  border-radius: 12px;
+}
+.qw-dice__group { display: grid; gap: 6px; }
+.qw-dice__lbl { font-size: .7rem; color: #8a6a44; letter-spacing: .04em; }
+.qw-dice__row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.qw-dice__sum { font-size: .74rem; color: #6d5334; }
+.qw-colour {
+  padding: 3px; border-radius: 11px;
+  border: 1.5px solid transparent;
+}
+.qw-colour--red { border-color: rgba(168,53,44,.55); background: rgba(168,53,44,.08); }
+.qw-colour--yellow { border-color: rgba(195,154,44,.6); background: rgba(195,154,44,.1); }
+.qw-colour--green { border-color: rgba(61,107,69,.55); background: rgba(61,107,69,.08); }
+.qw-colour--blue { border-color: rgba(47,90,128,.55); background: rgba(47,90,128,.08); }
+
+/* برگه: هر ردیف یک نوار رنگی با خانه‌های شماره‌دار */
+.qw-sheet {
+  display: grid; gap: 7px; padding: 14px 12px; margin-top: 12px;
+  background:
+    linear-gradient(180deg, rgba(255,252,243,.7), rgba(245,235,215,.62));
+  border: 1px solid rgba(120,86,48,.34);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 18px -14px rgba(52,32,16,.6);
+}
+.qw-row { display: grid; gap: 4px; }
+.qw-row__label {
+  font-size: .68rem; color: #6d5334;
+  display: flex; align-items: center; gap: 5px;
+}
+.qw-row__label::before {
+  content: ''; width: 9px; height: 9px; border-radius: 50%;
+  background: #8a6a44;
+}
+.qw-row--red .qw-row__label::before { background: #a8352c; }
+.qw-row--yellow .qw-row__label::before { background: #c39a2c; }
+.qw-row--green .qw-row__label::before { background: #3d6b45; }
+.qw-row--blue .qw-row__label::before { background: #2f5a80; }
+
+.qw-row__cells { display: flex; gap: 3px; align-items: stretch; }
+.qw-cell {
+  flex: 1 1 0; min-width: 0;
+  aspect-ratio: 1 / 1.15;
+  display: grid; place-items: center;
+  padding: 0; border-radius: 5px; cursor: default;
+  font-family: inherit; font-size: .64rem; font-weight: 700;
+  background: rgba(255,253,246,.72);
+  border: 1px solid rgba(120,86,48,.3);
+  color: #5b4632;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+.qw-row--mini .qw-cell { font-size: 0; aspect-ratio: auto; height: 13px; border-radius: 3px; }
+.qw-cell.is-marked {
+  background: #3a2a1b; color: #f4e8d2; border-color: rgba(58,42,27,.9);
+  font-size: .8rem;
+}
+.qw-row--red .qw-cell.is-marked { background: #a8352c; border-color: #7e241d; }
+.qw-row--yellow .qw-cell.is-marked { background: #c39a2c; border-color: #99751c; }
+.qw-row--green .qw-cell.is-marked { background: #3d6b45; border-color: #28492e; }
+.qw-row--blue .qw-cell.is-marked { background: #2f5a80; border-color: #1f3f5c; }
+.qw-cell.is-legal {
+  cursor: pointer;
+  border-color: rgba(150,112,52,.8);
+  box-shadow: 0 0 0 1.5px rgba(150,112,52,.35);
+  background: rgba(255,249,232,.95);
+  color: #3a2a1b;
+}
+.qw-cell.is-legal:hover { transform: translateY(-3px); box-shadow: 0 5px 10px -6px rgba(52,32,16,.7); }
+.qw-cell:disabled { opacity: .72; }
+.qw-cell.is-marked:disabled { opacity: 1; }
+.qw-row__lock { font-size: .68rem; align-self: center; padding-inline-start: 2px; }
+.qw-row.is-locked .qw-row__cells { opacity: .78; }
+.qw-row.is-locked .qw-row__label { color: #3d6b45; font-weight: 700; }
+.qw-actions { display: grid; gap: 8px; margin-top: 12px; }
+
+.qw-result { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 24px 18px; margin-bottom: 14px; }
+.qw-result__seal {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 1.55rem; color: #8a6a44;
+  border: 1.5px dashed rgba(138,106,68,.6);
+}
+.qw-result.is-win .qw-result__seal { color: #3d6b45; border-color: rgba(61,107,69,.7); }
+.qw-result h2 { margin: 0; font-size: 1.1rem; }
+.qw-result__scores { display: grid; gap: 5px; width: 100%; }
+.qw-result__score {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 7px 12px; border-radius: 8px;
+  background: rgba(255,253,246,.6);
+  border: 1px solid rgba(120,86,48,.25);
+  font-size: .8rem;
+}
+.qw-result__score.is-mine { border-color: rgba(61,107,69,.5); background: rgba(61,107,69,.07); }
+.qw-result__val { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 420px) {
+  .qw-cell { font-size: .56rem; }
+  .qw-cell.is-marked { font-size: .7rem; }
+}

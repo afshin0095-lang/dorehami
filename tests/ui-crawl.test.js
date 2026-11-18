@@ -86,7 +86,7 @@ const findButton = (root, re) => walk(root).find(n =>
 
 const count = (root, cls) => walk(root).filter(n => (n.className || '').split(/\s+/).includes(cls)).length;
 
-const NEW_GAMES = ['uno', 'eights', 'blackjack', 'yahtzee', 'farkle', 'skyjo', 'kittens', 'liarsdice'];
+const NEW_GAMES = ['uno', 'eights', 'blackjack', 'yahtzee', 'farkle', 'skyjo', 'kittens', 'liarsdice', 'qwixx'];
 
 test('هر بازی تازه: مقدمه رندر می‌شود و «شروع» به میز می‌برد', async () => {
   installDom();
@@ -122,7 +122,8 @@ test('میز هر بازی تازه کنترل‌های واقعی دارد', as
     farkle: /dice-tray/,
     skyjo: /skyjo-grid/,
     kittens: /kit-hand/,
-    liarsdice: /liar-hand/
+    liarsdice: /liar-hand/,
+    qwixx: /qw-sheet/
   };
   for (const [id, re] of Object.entries(expect)) {
     const entry = GAMES.find(g => g.id === id);
@@ -169,6 +170,20 @@ test('اونو: پس از شروع، دست و کارت روی زمین رندر
   findButton(host, /^شروع/).dispatchEvent({ type: 'click' });
   assert.ok(count(host, 'uno-top') >= 1, 'کارت روی زمین نیست');
   assert.ok(count(host, 'tbl-card') >= 7, 'کارت‌های دست رندر نشدند');
+  cleanup();
+});
+
+test('کوییکس: چهار ردیف رنگی با ۱۱ خانه رندر می‌شود', async () => {
+  installDom();
+  const { GAMES } = await import('../public/src/games/registry.js');
+  const entry = GAMES.find(g => g.id === 'qwixx');
+  const mod = await entry.load();
+  const host = new FakeNode('div');
+  const cleanup = mod.mountGame(host, { game: entry, onExit: () => {} });
+  findButton(host, /^شروع/).dispatchEvent({ type: 'click' });
+  assert.equal(count(host, 'qw-row'), 4, 'باید چهار ردیف باشد');
+  assert.ok(count(host, 'qw-cell') >= 44, 'هر ردیف ۱۱ خانه لازم دارد');
+  assert.ok(count(host, 'die') >= 2, 'تاس‌های سفید رندر نشدند');
   cleanup();
 });
 

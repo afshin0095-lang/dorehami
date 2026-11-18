@@ -49,6 +49,7 @@ const allJs = [
   'public/src/games/cards-ui.js', 'public/src/games/dice-ui.js',
   'public/src/engines/skyjo.js', 'public/src/engines/kittens.js', 'public/src/engines/bluff.js',
   'public/src/games/skyjo-ui.js', 'public/src/games/kittens-ui.js', 'public/src/games/liar-ui.js',
+  'public/src/engines/qwixx.js', 'public/src/games/qwixx-ui.js',
   'tests/uno.test.js', 'tests/cards.test.js', 'tests/dice.test.js'
 ];
 

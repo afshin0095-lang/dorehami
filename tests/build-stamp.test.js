@@ -61,6 +61,18 @@ test('کنسول ابزار خودآزمای نسخه دارد', () => {
   assert.match(main, /globalThis\.dyFix/, 'dyFix نیست');
 });
 
+test('پس‌زمینهٔ تازه در CSS هست و allow-list را شل نکرده', () => {
+  const css = readFileSync(join(ROOT, 'public/styles.css'), 'utf8');
+  assert.match(css, /desk-frame\.jpg/, 'قاب گوتیک در CSS نیست');
+  assert.match(css, /paper-tile\.jpg/, 'کاشی کاغذ در CSS نیست');
+  // machine.jpg بازنشسته شد
+  assert.equal(css.includes('arcade/machine.jpg'), false, 'پس‌زمینهٔ قدیمی هنوز در CSS است');
+  // مسیر پیش‌نمایش از سرور می‌آید، نه از فایل عمومی تازه
+  assert.match(server, /pathname === '\/preview'/, 'مسیر پیش‌نمایش نیست');
+  assert.equal(readFileSync(join(ROOT, 'public/index.html'), 'utf8').includes('preview'),
+    false, 'فایل پیش‌نمایش نباید بین فایل‌های عمومی باشد');
+});
+
 test('بارگذاری ?fresh= سرویس‌ورکر را ثبت نمی‌کند', () => {
   assert.match(main, /IS_FRESH/, 'تشخیص fresh نیست');
   assert.match(main, /'serviceWorker' in navigator && !IS_FRESH/, 'در حالت fresh هم ثبت می‌شود');

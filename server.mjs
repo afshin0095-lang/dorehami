@@ -451,6 +451,12 @@ function handleUpgrade(req, socket, head) {
 await refreshBuildId();
 setInterval(refreshBuildId, 30_000).unref?.();
 
+/**
+ * صفحهٔ پیش‌نمایش پس‌زمینه — از سمت سرور سرو می‌شود تا allow-list
+ * فایل‌های HTML عمومی را شل نکند.
+ */
+const PREVIEW_HTML = "<!DOCTYPE html>\n<html lang=\"fa\" dir=\"rtl\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">\n<title>پیش‌نمایش پس‌زمینهٔ تازه</title>\n<link rel=\"stylesheet\" href=\"/styles.css\">\n<style>\n  html, body { margin: 0; min-height: 100%; }\n  body { padding: 0; }\n  .pv-wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 28px 22px 60px; }\n  .pv-title { font-size: 1.35rem; margin: 0 0 4px; color: #2f2116; text-shadow: 0 1px 0 rgba(255,255,255,.6); }\n  .pv-sub { margin: 0 0 20px; font-size: .85rem; color: #5b4632; }\n  .pv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 14px; }\n  .pv-card {\n    position: relative; border-radius: 4px; overflow: hidden; min-height: 132px;\n    display: flex; flex-direction: column; justify-content: flex-end;\n    background-color: #2b1d13;\n    box-shadow: 0 10px 20px -12px rgba(40,24,12,.8);\n  }\n  .pv-card__img { position: absolute; inset: 0; background-size: cover; background-position: center; }\n  .pv-card__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,9,5,0) 40%, rgba(12,8,4,.9) 100%); }\n  .pv-card__body { position: relative; z-index: 2; padding: .6rem .7rem .65rem; }\n  .pv-card__title { font-size: .95rem; font-weight: 800; color: #fffdf5; text-shadow: 0 2px 6px rgba(0,0,0,.9); }\n  .pv-card__meta { font-size: .74rem; font-weight: 700; color: #f3e4c8; text-shadow: 0 1px 4px rgba(0,0,0,.9); }\n  .pv-sheet { margin-top: 22px; padding: 16px; border-radius: 10px;\n    background: linear-gradient(170deg, rgba(255,253,246,.94), rgba(238,226,201,.92));\n    box-shadow: 0 12px 26px -16px rgba(52,32,16,.8); border: 1px solid rgba(120,86,48,.28); }\n  .pv-sheet h2 { margin: 0 0 8px; font-size: 1rem; }\n  .pv-sheet p { margin: 0; font-size: .84rem; line-height: 1.75; color: #5b4632; }\n  .pv-badge { display: inline-block; margin-top: 10px; padding: 3px 9px; border-radius: 999px;\n    font-size: .7rem; font-weight: 800; background: rgba(47,109,120,.14); color: #2f6d78; }\n</style>\n</head>\n<body>\n<div id=\"desk\" aria-hidden=\"true\"></div>\n<div class=\"pv-wrap\">\n  <h1 class=\"pv-title\">پس‌زمینهٔ تازه — کاغذ ساده با حاشیهٔ گوتیک</h1>\n  <p class=\"pv-sub\">همین صفحه با همان styles.css واقعی رندر می‌شود، پس هرچه اینجا می‌بینی دقیقاً همان چیزی است که در بازی می‌بینی.</p>\n\n  <div class=\"pv-grid\">\n    <div class=\"pv-card\"><div class=\"pv-card__img\" style=\"background-image:url('/assets/art/games/king-of-tokyo.jpg')\"></div><div class=\"pv-card__shade\"></div><div class=\"pv-card__body\"><div class=\"pv-card__title\">پادشاه توکیو</div><div class=\"pv-card__meta\">تکی · ۱۵–۲۵ دقیقه</div></div></div>\n    <div class=\"pv-card\"><div class=\"pv-card__img\" style=\"background-image:url('/assets/art/games/heckmeck.jpg')\"></div><div class=\"pv-card__shade\"></div><div class=\"pv-card__body\"><div class=\"pv-card__title\">کرم کبابی</div><div class=\"pv-card__meta\">تکی · ۱۰–۲۰ دقیقه</div></div></div>\n    <div class=\"pv-card\"><div class=\"pv-card__img\" style=\"background-image:url('/assets/art/games/uno.jpg')\"></div><div class=\"pv-card__shade\"></div><div class=\"pv-card__body\"><div class=\"pv-card__title\">اونو</div><div class=\"pv-card__meta\">۲–۶ نفر</div></div></div>\n    <div class=\"pv-card\"><div class=\"pv-card__img\" style=\"background-image:url('/assets/art/games/spot.jpg')\"></div><div class=\"pv-card__shade\"></div><div class=\"pv-card__body\"><div class=\"pv-card__title\">تفاوت را پیدا کن</div><div class=\"pv-card__meta\">تکی · ۵ صحنه</div></div></div>\n  </div>\n\n  <div class=\"pv-sheet\">\n    <h2>حاشیهٔ گوتیک</h2>\n    <p>رز کلیسایی در وسط بالا، طاق‌های تیز در چهار جهت، و بوتهٔ خار که از گوشه‌ها بالا می‌خزد. خطوط به‌صورت حکاکیِ فشرده‌اند و با دو لایهٔ نور/سایه برجسته شده‌اند — نه یک تصویر تخت.</p>\n    <span class=\"pv-badge\">کش v25 · بی‌درز</span>\n  </div>\n</div>\n</body>\n</html>\n";
+
 /* ------------------------------ سرور HTTP ------------------------------ */
 const server = createServer(async (req, res) => {
   try {
@@ -471,6 +477,16 @@ const server = createServer(async (req, res) => {
      */
     if (pathname === '/api/build') {
       return json(res, 200, { build: BUILD_ID, sw: SW_NAME_OF_DISK });
+    }
+
+    /**
+     * پیش‌نمایش پس‌زمینه: چون allow-list صفحات HTML تک‌سطحی را محدود
+     * می‌کند، این صفحه را از سمت سرور می‌سازیم تا بدون افزودن فایل
+     * عمومی تازه (و بدون ضعیف‌کردن allow-list) قابل دیدن باشد.
+     */
+    if (pathname === '/preview') {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+      return res.end(PREVIEW_HTML);
     }
 
     if (pathname === '/api/room' && req.method === 'POST') {

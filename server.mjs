@@ -26,7 +26,12 @@ const HOST = process.env.HOST || '0.0.0.0';
  * نسخهٔ اجراکنندهٔ خودش مقایسه می‌کند تا بفهمد کدش کهنه است یا نه.
  */
 async function computeBuildId() {
-  const targets = ['styles.css', 'sw.js', 'index.html'];
+  /**
+   * شناسهٔ ساخت باید هر تغییری را ببیند — نه فقط عمق ۴ پوشهٔ src.
+   * اگر فایلی در شناسه نباشد، تغییرش «نامرئی» می‌شود و نگهبان نسخه
+   * هم آن را نمی‌بیند (همان چیزی که سبب «تغییرات اعمال نشده» می‌شد).
+   */
+  const targets = ['styles.css', 'sw.js', 'index.html', 'preboot.js'];
   const walk = async (dir, depth = 0) => {
     if (depth > 4) return;
     let entries = [];

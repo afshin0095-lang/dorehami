@@ -196,6 +196,25 @@ export async function hardReload() {
       await Promise.all(keys.map(k => caches.delete(k)));
     }
   } catch { /* بی‌اهمیت */ }
-  location.reload();
+  // با پارامتر تازه، هیچ نسخهٔ کش‌شده‌ای در مسیر نمی‌ماند
+  location.replace(`${location.pathname}?fresh=${Date.now()}`);
 }
 document.addEventListener('dy:hard-reload', () => { void hardReload(); });
+
+/* اگر با ?fresh= بالا آمده‌ایم، سرویس‌ورکر را ثبت نکن و حافظهٔ موقت را پاک کن
+   تا کاربر قطعاً کد تازه را ببیند، بعد پارامتر را از نشانی بردار. */
+if (location.search.includes('fresh=')) {
+  (async () => {
+    try {
+      if (globalThis.caches?.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister().catch(() => null)));
+      }
+    } catch { /* بی‌اهمیت */ }
+    history.replaceState(null, '', location.pathname);
+  })();
+}

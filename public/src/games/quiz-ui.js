@@ -133,31 +133,35 @@ export function mountGame(root, { onExit }) {
       showResult
         ? btn(qz.index + 1 >= qz.questions.length ? 'دیدن نتیجه' : 'سؤال بعد', {
             variant: 'btn--primary btn--block',
-            onClick: () => {
-              state.picked = null;
-              if (qz.index + 1 >= qz.questions.length) { state.screen = 'result'; }
-              playSound('paper-flip');
-              render();
-            }
+            onClick: advance
           })
         : callout(state.mode === 'duel' ? `نوبت ${qz.players[qz.turn].name}` : 'یک گزینه را انتخاب کن', 'users')
     );
   }
 
+  /**
+   * انتخاب گزینه: فقط «قفل» می‌شود و نتیجه را روی همان سؤال نشان می‌دهد.
+   * رفتن به سؤال بعد در advance() انجام می‌شود — اگر اینجا جلو می‌رفتیم،
+   * ایندکس انتخاب‌شده با پاسخ درستِ سؤال بعدی مقایسه می‌شد و پاسخ
+   * درست هم «غلط» نمایش داده می‌شد.
+   */
   function select(i) {
+    if (state.picked !== null) return;
+    state.picked = i;
+    const correct = i === currentQuestion(state.quiz).answerIndex;
+    playSound(correct ? 'win' : 'lose');
+    render();
+  }
+
+  /** ثبت پاسخ در موتور و رفتن به سؤال بعد */
+  function advance() {
     const qz = state.quiz;
-    if (state.mode === 'duel') {
-      const before = qz.players[qz.turn].score;
-      state.quiz = answerDuel(qz, i);
-      const after = state.quiz.players.find(p => p.id === qz.turn).score;
-      state.picked = i;
-      playSound(after > before ? 'win' : 'lose');
-    } else {
-      const correct = i === currentQuestion(qz).answerIndex;
-      state.quiz = answer(qz, i);
-      state.picked = i;
-      playSound(correct ? 'win' : 'lose');
-    }
+    const i = state.picked;
+    if (i === null) return;
+    state.quiz = state.mode === 'duel' ? answerDuel(qz, i) : answer(qz, i);
+    state.picked = null;
+    if (state.quiz.finished || state.quiz.index >= state.quiz.questions.length) state.screen = 'result';
+    playSound('paper-flip');
     render();
   }
 

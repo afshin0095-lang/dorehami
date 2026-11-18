@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v17';
+const CACHE = 'dorehami-shell-v19';
 
 const SHELL = [
   '/',
@@ -49,6 +49,18 @@ const SHELL = [
   '/src/games/qwixx-ui.js',
   '/src/engines/worms.js',
   '/src/games/worms-ui.js',
+  '/src/engines/finddiff.js',
+  '/src/games/finddiff-ui.js',
+  '/assets/art/spot/spot1-a.jpg',
+  '/assets/art/spot/spot1-b.jpg',
+  '/assets/art/spot/spot2-a.jpg',
+  '/assets/art/spot/spot2-b.jpg',
+  '/assets/art/spot/spot3-a.jpg',
+  '/assets/art/spot/spot3-b.jpg',
+  '/assets/art/spot/spot4-a.jpg',
+  '/assets/art/spot/spot4-b.jpg',
+  '/assets/art/spot/spot5-a.jpg',
+  '/assets/art/spot/spot5-b.jpg',
   '/assets/art/games/qwixx.jpg',
   '/assets/art/games/skyjo.jpg',
   '/assets/art/games/kittens.jpg',
@@ -107,8 +119,6 @@ const SHELL = [
   '/src/games/dream-ui.js',
   '/src/engines/duz.js',
   '/src/games/duz-ui.js',
-  '/src/engines/spot.js',
-  '/src/games/spot-ui.js',
   '/src/engines/gloom.js',
   '/src/games/gloom-ui.js',
   '/src/engines/siege.js',
@@ -163,10 +173,6 @@ const SHELL = [
   '/assets/fonts/Vazirmatn-Bold.woff2'
 ];
 
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
-});
-
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
@@ -208,14 +214,34 @@ self.addEventListener('fetch', (event) => {
   }
 
   /**
-   * stale-while-revalidate: نسخهٔ کش‌شده فوراً می‌آید و *همان لحظه*
-   * نسخهٔ تازه در پس‌زمینه گرفته و جایگزین می‌شود. با cache-first خالص،
-   * یک نسخهٔ قدیمی می‌توانست تا ابد بماند و کاربر هیچ تغییری نبیند.
+   * کد برنامه (`/src/`) همیشه network-first است: وقتی کاربر آنلاین است
+   * نسخهٔ تازه می‌آید و کش فقط پشتوانهٔ آفلاین است. با stale-while-revalidate
+   * کاربر تا یک بار دیگر همان نسخهٔ کهنه را می‌دید و به نظر می‌رسید
+   * «هیچ تغییری اعمال نشده».
+   */
+  if (url.pathname.startsWith('/src/') || url.pathname === '/sw.js') {
+    event.respondWith(
+      fetch(req)
+        .then(res => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then(r => r || Response.error()))
+    );
+    return;
+  }
+
+  /**
+   * تصاویر و فونت‌ها: stale-while-revalidate. حجم بالا دارند و
+   * آدم دوست ندارد منتظرشان بماند؛ نسخهٔ تازه در پس‌زمینه می‌نشیند.
    */
   event.respondWith(
     caches.match(req).then(hit => {
       const network = fetch(req).then(res => {
-        if (res.ok && (url.pathname.startsWith('/src/') || url.pathname.startsWith('/assets/'))) {
+        if (res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
         }
@@ -223,11 +249,28 @@ self.addEventListener('fetch', (event) => {
       }).catch(() => null);
 
       if (hit) {
-        // تازه‌سازی در پس‌زمینه؛ پاسخ فوری از کش
         event.waitUntil ? event.waitUntil(network) : void network;
         return hit;
       }
       return network.then(res => res || caches.match('/index.html')).then(r => r || Response.error());
     })
   );
+});
+
+/**
+ * پیام پاک‌سازی از سمت برنامه: همهٔ کش‌ها را می‌ریزد و می‌گوید
+ * صفحه را دوباره بارگذاری کند. برای مواقعی است که کاربر مطمئن نیست
+ * نسخهٔ درست را می‌بیند.
+ */
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') { self.skipWaiting(); return; }
+  if (event.data?.type === 'CLEAR_CACHES') {
+    event.waitUntil(
+      caches.keys()
+        .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+        .then(() => {
+          event.source?.postMessage({ type: 'CACHES_CLEARED' });
+        })
+    );
+  }
 });

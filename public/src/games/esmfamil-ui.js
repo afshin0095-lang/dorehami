@@ -60,8 +60,9 @@ export function mountGame(root, { onExit }) {
         )
       ) }),
       sheet({ title: 'چند دسته؟', iconName: 'spark', children: h('div', {},
-        h('p', { style: { margin: '0 0 .5rem', fontSize: '.88rem' } }, 'دسته‌های کمتر = دور سریع‌تر.'),
-        counter(state.catCount, v => { state.catCount = v; render(); }, 3, 10)
+        h('p', { style: { margin: '0 0 .5rem', fontSize: '.88rem' } },
+          'اسم، فامیل، شهر و رنگ همیشه روی برگه هستند؛ بقیه تصادفی اضافه می‌شوند.'),
+        counter(state.catCount, v => { state.catCount = v; render(); }, 4, 10)
       ) }),
       h('div', { style: { display: 'grid', gap: '.5rem' } },
         btn('شروع دور اول', { variant: 'btn--primary btn--block', onClick: startRound }),

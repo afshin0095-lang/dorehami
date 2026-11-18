@@ -51,6 +51,8 @@ const allJs = [
   'public/src/games/skyjo-ui.js', 'public/src/games/kittens-ui.js', 'public/src/games/liar-ui.js',
   'public/src/engines/qwixx.js', 'public/src/games/qwixx-ui.js',
   'public/src/engines/worms.js', 'public/src/games/worms-ui.js',
+  'public/src/engines/finddiff.js', 'public/src/games/finddiff-ui.js',
+  'tests/finddiff.test.js', 'tests/quiz-ui.test.js',
   'tests/qwixx.test.js', 'tests/worms.test.js',
   'tests/uno.test.js', 'tests/cards.test.js', 'tests/dice.test.js'
 ];

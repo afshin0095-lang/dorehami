@@ -48,7 +48,7 @@ function gameCard(game, i, onOpen) {
     onclick: () => { playSound('card-deal'); onOpen(game.id); }
   },
     h('div', { class: 'game-card__art', style: { backgroundImage: `url(${game.art})` } }),
-    h('div', { class: 'game-card__wash' }),
+    h('div', { class: 'game-card__shade' }),
     game.badge ? h('span', { class: 'game-card__ribbon' }, game.badge) : null,
     h('div', { class: 'game-card__body' },
       h('div', { class: 'game-card__title' }, game.title),

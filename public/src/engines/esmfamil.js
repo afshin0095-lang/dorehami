@@ -70,6 +70,26 @@ export function scoreRound(round, overrides = {}) {
 }
 
 /** دسته‌های تصادفی برای یک دور */
+/**
+ * دسته‌های «اسم، فامیل، شهر، رنگ» همیشه روی برگه هستند — اینها ستون‌های
+ * بازی‌اند. بقیهٔ دسته‌ها تا سقف درخواستی به‌صورت تصادفی اضافه می‌شوند.
+ */
+export const CORE_CATEGORIES = ['name', 'family', 'city', 'color'];
+
 export function pickCategories(all, count, rnd = Math.random) {
-  return shuffle(all, rnd).slice(0, Math.max(1, Math.min(count, all.length)));
+  const limit = Math.max(1, Math.min(count, all.length));
+  const core = CORE_CATEGORIES
+    .map(id => all.find(c => (typeof c === 'string' ? c : c.id) === id))
+    .filter(Boolean);
+  // اگر سقف کمتر از تعداد دسته‌های اصلی باشد، از ترتیب اصلی می‌بریم
+  const base = core.slice(0, limit);
+  const rest = shuffle(all.filter(c => !core.includes(c)), rnd);
+  const picked = [...base, ...rest.slice(0, limit - base.length)];
+  // ترتیب ثابت: همیشه اسم، فامیل، شهر، رنگ در ابتدا — بعد متغیرها
+  const order = (c) => {
+    const id = typeof c === 'string' ? c : c.id;
+    const i = CORE_CATEGORIES.indexOf(id);
+    return i === -1 ? 99 : i;
+  };
+  return picked.sort((a, b) => order(a) - order(b));
 }

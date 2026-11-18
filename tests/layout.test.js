@@ -177,7 +177,7 @@ test('بدون background-size: 100% 100% (کشیدگی ممنوع)', () => {
 
 test('هر صفحه‌ی بازی دکمه‌ی بازگشت دارد', async () => {
   const files = ['mafia', 'hokm', 'esmfamil', 'snake', 'quiz', 'riddle', 'iq', 'codenames',
-    'lowball', 'story', 'warden', 'logic', 'duz', 'spot', 'gloom', 'siege', 'island', 'arkham', 'ring', 'spirit', 'gk'];
+    'lowball', 'story', 'warden', 'logic', 'duz', 'finddiff', 'gloom', 'siege', 'island', 'arkham', 'ring', 'spirit', 'gk'];
   for (const id of files) {
     const src = await readFile(join(ROOT, `public/src/games/${id}-ui.js`), 'utf8');
     assert.match(src, /gameHeader\(/, `${id}: gameHeader ندارد`);

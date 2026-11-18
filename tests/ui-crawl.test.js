@@ -187,6 +187,48 @@ test('کوییکس: چهار ردیف رنگی با ۱۱ خانه رندر می�
   cleanup();
 });
 
+test('تفاوت‌یابی: دو عکس رندر می‌شود و کلیک روی تفاوت ثبت می‌شود', async () => {
+  installDom();
+  const { GAMES } = await import('../public/src/games/registry.js');
+  const entry = GAMES.find(g => g.id === 'spot');
+  assert.ok(entry, 'بازی تفاوت‌یابی در فهرست نیست');
+  const mod = await entry.load();
+  const host = new FakeNode('div');
+  const cleanup = mod.mountGame(host, { game: entry, onExit: () => {} });
+
+  // از مقدمه، «صحنهٔ تصادفی» را بزن
+  const startBtn = findButton(host, /صحنهٔ تصادفی/);
+  assert.ok(startBtn, 'دکمهٔ شروع نیست');
+  startBtn.dispatchEvent({ type: 'click' });
+
+  assert.equal(count(host, 'fd-frame'), 2, 'باید دو قاب عکس باشد');
+  assert.ok(count(host, 'fd-mark') === 0, 'هیچ تفاوتی نباید از اول پیدیده باشد');
+
+  // کلیک روی مرکز یک تفاوت واقعی: ناحیه را از موتور می‌گیریم
+  const { SCENES, FRAME_W, FRAME_H } = await import('../public/src/engines/finddiff.js');
+  const img = walk(host).find(n => (n.className || '').includes('fd-frame__img'));
+  assert.ok(img, 'قاب عکس پیدا نشد');
+
+  // صحنهٔ فعال را از عنوان سرصفحه تشخیص بده
+  const title = walk(host).map(n => n.title || n.textContent || '').join(' ');
+  const scene = SCENES.find(s => title.includes(s.title)) || SCENES[0];
+  const hs = scene.hotspots[0];
+
+  // در DOM جعلی چیدمان واقعی نیست؛ offsetWidth/offsetHeight را خودمان می‌گذاریم
+  img.offsetWidth = FRAME_W;
+  img.offsetHeight = FRAME_H;
+  img.dispatchEvent({
+    type: 'click', currentTarget: img,
+    offsetX: hs.x + hs.w / 2, offsetY: hs.y + hs.h / 2,
+    preventDefault() {}, stopPropagation() {}
+  });
+  // getBoundingClientRect در DOM جعلی نیست ⇒ نگاشت نسبی پیش‌فرض ۰.۵ می‌شود؛
+  // پس فقط مطمئن می‌شویم کلیک بدون خطا پردازش شد و شمارنده‌ای ثبت شد
+  // کلیک دقیقاً روی مرکز تفاوت بود ⇒ باید پیدا شود و نشانه‌اش روی هر دو عکس بیاید
+  assert.equal(count(host, 'fd-mark'), 2, 'تفاوت پیدا نشد یا نشانه‌اش روی هر دو عکس رندر نشد');
+  cleanup();
+});
+
 test('تاس دروغگو: تاس‌های خودم و شرط رندر می‌شوند', async () => {
   installDom();
   const { GAMES } = await import('./../public/src/games/registry.js');

@@ -34,9 +34,9 @@
 
 :root {
   /* ---- جوهر و کاغذ: پالت با کنتراست سنجیده‌شده (WCAG AA) ---- */
-  --ink:        #241d1a;   /* متن اصلی روی کاغذ روشن */
-  --ink-soft:   #5f5247;   /* متن ثانویه — 6.3:1 روی کاغذ */
-  --ink-faint:  #8b7c6c;
+  --ink:        #17100c;   /* متن اصلی روی کاغذ روشن — تیره‌تر برای خوانایی */
+  --ink-soft:   #443628;   /* متن ثانویه — پررنگ‌تر، بالای ۷:۱ */
+  --ink-faint:  #6d5c4a;
   --paper:      #f4ecd9;   /* کاغذ کرم */
   --paper-hi:   #fbf6ea;   /* برجسته */
   --paper-lo:   #e2d4b8;   /* لبه‌ی پایین مقوا */
@@ -164,9 +164,19 @@ body {
 h1, h2, h3 { margin: 0; line-height: 1.35; letter-spacing: -.2px; }
 h1 { font-size: 1.5rem; font-weight: 700; }
 h2 { font-size: 1.15rem; font-weight: 700; }
-p  { margin: 0 0 .6rem; line-height: 1.9; font-size: .95rem; color: var(--ink); }
+p  { margin: 0 0 .6rem; line-height: 1.9; font-size: .95rem; color: var(--ink); font-weight: 500; }
 small { font-size: .8rem; color: var(--ink-soft); }
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* متن روی کاغذ: کمی سنگین‌تر و با سایهٔ ریز، مثل چاپ برجسته */
+.paper p, .paper li, .sheet p, .sheet li, .sheet__title,
+.print-edge p, .print-edge li {
+  text-shadow: 0 1px 0 rgba(255, 252, 244, .55);
+}
+.paper strong, .sheet strong, .print-edge strong { font-weight: 800; color: #0f0a07; }
+.paper h1, .paper h2, .paper h3,
+.sheet h1, .sheet h2, .sheet h3 { font-weight: 800; color: #140d09; }
+small { font-weight: 600; }
 
 /* ============================ کاغذ: پایه ============================ */
 .paper {
@@ -309,44 +319,111 @@ small { font-size: .8rem; color: var(--ink-soft); }
   position: relative;
   border: none; padding: 0; cursor: pointer;
   text-align: right;
-  background-color: var(--paper);
+  /* مقوای تیره زیر عکس: بافت کاغذ کهنه می‌ماند، ولی روشنایی سفید حذف شده */
+  background-color: #2b1d13;
   background-image: url('/assets/art/paper-cream.jpg');
-  background-size: cover; background-blend-mode: multiply;
+  background-size: cover;
+  background-blend-mode: multiply;
   box-shadow: var(--lift-2);
-  border-radius: 2px;
+  border-radius: 3px;
   transform: rotate(var(--tilt, 0deg));
-  transition: transform .26s var(--ease-paper), box-shadow .26s ease;
+  transition: transform .26s var(--ease-paper), box-shadow .26s ease, filter .26s ease;
   overflow: hidden;
   min-height: 132px;
   display: flex; flex-direction: column; justify-content: flex-end;
-  color: var(--ink);
+  color: #fdf6e6;
+  isolation: isolate;
 }
-.game-card:hover  { transform: translateY(-5px) rotate(0deg) scale(1.015); box-shadow: var(--lift-3); z-index: 2; }
-.game-card:active { transform: translateY(0) scale(.985); box-shadow: var(--press); }
-.game-card:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
 
-/* تصویر چاپ‌شده روی کارت با blend تا «چاپ دستی» بشود */
+/* ── لایه‌های حجم: کارت مثل یک قطعهٔ ضخیم مقوایی ─────────────────
+   ۱) لبهٔ روشن بالا  ۲) لبهٔ تیرهٔ راست  ۳) سایهٔ ضخامت پایین  ۴) سایهٔ روی میز */
+.game-card::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 238, 205, .5),
+    inset 1.5px 0 0 rgba(255, 238, 205, .22),
+    inset -1.5px 0 0 rgba(24, 14, 8, .45),
+    inset 0 -2px 0 rgba(24, 14, 8, .55);
+}
+/* لایهٔ «ضخامت» کارت — چند سایهٔ پشت‌سرهم، مثل مقوای چندلایه */
+.game-card::after {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit;
+  transform: translateY(3px);
+  background: #3a2718;
+  box-shadow:
+    0 3px 0 #2e1f13,
+    0 4px 0 #241809,
+    0 6px 0 rgba(20, 12, 6, .9),
+    0 9px 0 rgba(16, 10, 5, .75),
+    0 14px 22px -8px rgba(10, 6, 3, .85),
+    0 22px 34px -14px rgba(8, 5, 2, .7);
+}
+.game-card:hover  {
+  transform: translateY(-7px) rotate(0deg) scale(1.018);
+  box-shadow: var(--lift-3);
+  z-index: 2;
+}
+.game-card:hover::after {
+  transform: translateY(4px);
+  box-shadow:
+    0 4px 0 #2e1f13,
+    0 6px 0 #241809,
+    0 9px 0 rgba(20, 12, 6, .9),
+    0 13px 0 rgba(16, 10, 5, .72),
+    0 20px 28px -10px rgba(10, 6, 3, .85),
+    0 30px 44px -16px rgba(8, 5, 2, .7);
+}
+.game-card:active { transform: translateY(-1px) scale(.994); }
+.game-card:focus-visible { outline: 3px solid var(--mustard); outline-offset: 4px; }
+
+/* تصویر: تمام‌قاب، بدون محو‌شدن در پایین */
 .game-card__art {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
-  opacity: .9;
-  mix-blend-mode: multiply;
-  transition: transform .4s ease;
+  opacity: 1;
+  transition: transform .45s ease, filter .3s ease;
 }
-.game-card:hover .game-card__art { transform: scale(1.06); }
-.game-card__wash {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(244,236,217,0) 30%, rgba(244,236,217,.92) 78%);
+.game-card:hover .game-card__art { transform: scale(1.05); filter: saturate(1.08) brightness(1.04); }
+
+/* نوار پایین فقط برای خوانایی متن — کم‌رنگ و از پایین، نه کل کارت */
+.game-card__shade {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(14,9,5,0) 46%, rgba(14,9,5,.62) 74%, rgba(12,8,4,.88) 100%),
+    radial-gradient(120% 90% at 50% 100%, rgba(10,6,3,.5), transparent 62%);
 }
-.game-card__body { position: relative; padding: .7rem .8rem .75rem; }
-.game-card__title { font-size: .95rem; font-weight: 700; line-height: 1.3; }
-.game-card__meta  { font-size: .74rem; color: var(--ink-soft); margin-top: .15rem; }
+.game-card__body {
+  position: relative; z-index: 3;
+  padding: .62rem .72rem .66rem;
+  background: none;
+}
+/* نوشته‌ها: پررنگ، درشت‌تر، با سایهٔ کاغذی برای خوانایی روی هر تصویری */
+.game-card__title {
+  font-size: 1rem; font-weight: 800; line-height: 1.32;
+  color: #fffdf5;
+  letter-spacing: -.15px;
+  text-shadow:
+    0 1px 2px rgba(8, 5, 2, .95),
+    0 2px 7px rgba(8, 5, 2, .8),
+    0 0 20px rgba(8, 5, 2, .5);
+}
+.game-card__meta {
+  font-size: .76rem; font-weight: 700; margin-top: .18rem;
+  color: #f3e4c8;
+  text-shadow: 0 1px 3px rgba(8, 5, 2, .95), 0 1px 8px rgba(8, 5, 2, .7);
+}
 .game-card__ribbon {
-  position: absolute; top: .5rem; right: .5rem; z-index: 3;
-  font-size: .68rem; font-weight: 700; padding: .12rem .42rem;
+  position: absolute; top: .5rem; right: .5rem; z-index: 5;
+  font-size: .68rem; font-weight: 700; padding: .14rem .44rem;
   background: var(--plum); color: #f7e9d3;
-  box-shadow: 0 2px 4px rgba(0,0,0,.25);
+  box-shadow: 0 2px 0 rgba(20,12,6,.5), 0 4px 8px rgba(0,0,0,.45);
   transform: rotate(3deg);
+  border-radius: 2px;
 }
 
 /* کارت بزرگ (ویترین / انتخاب حالت) */
@@ -4513,4 +4590,122 @@ small { font-size: .8rem; color: var(--ink-soft); }
 @media (max-width: 420px) {
   .hm-hero { flex-direction: column; text-align: center; }
   .hm-tile { font-size: .7rem; padding: 7px 1px; }
+}
+
+/* ============================================================
+   تفاوت را پیدا کن — دو عکس واقعی، نواحی دقیق
+   ============================================================ */
+.fd-hero { display: grid; gap: 14px; padding: 16px; margin-bottom: 14px; }
+.fd-hero__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fd-hero__frame {
+  aspect-ratio: 16 / 9; border-radius: 6px;
+  background-size: cover; background-position: center;
+  border: 1px solid rgba(96,66,36,.45);
+  box-shadow: 0 3px 9px -5px rgba(52,32,16,.7);
+}
+.fd-hero__text { text-align: center; }
+.fd-hero__kicker { font-size: .72rem; letter-spacing: .08em; color: #8a6a44; margin-bottom: 4px; }
+.fd-hero h1 { font-size: 1.16rem; margin: 0 0 6px; }
+.fd-hero p { margin: 0; font-size: .84rem; line-height: 1.7; color: #5b4632; }
+
+/* انتخاب صحنه */
+.fd-scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 2px; }
+.fd-scene {
+  display: grid; gap: 0; padding: 0; cursor: pointer;
+  border-radius: 8px; overflow: hidden;
+  background: linear-gradient(170deg, #fffdf6, #efe2c9);
+  border: 1px solid rgba(120,86,48,.35);
+  font-family: inherit; text-align: right; color: #3a2a1b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 4px 10px -7px rgba(52,32,16,.7);
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.fd-scene:hover { transform: translateY(-4px); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 10px 16px -9px rgba(52,32,16,.8); }
+.fd-scene__art { display: block; aspect-ratio: 16 / 9; background-size: cover; background-position: center; }
+.fd-scene__name { display: block; padding: 6px 8px 0; font-size: .8rem; font-weight: 800; }
+.fd-scene__meta { display: block; padding: 0 8px 8px; font-size: .68rem; color: #6d5334; font-weight: 600; }
+
+/* دو عکس بازی */
+.fd-status {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; margin-bottom: 8px;
+  font-size: .76rem; font-weight: 700; color: #5b4632;
+}
+.fd-status__miss { color: #8d2b26; }
+
+.fd-pair { display: grid; gap: 10px; margin-bottom: 12px; }
+.fd-frame { position: relative; }
+.fd-frame__img {
+  position: relative;
+  aspect-ratio: 1408 / 768;
+  border-radius: 8px;
+  background-size: cover; background-position: center;
+  border: 1px solid rgba(96,66,36,.5);
+  box-shadow: 0 4px 12px -7px rgba(52,32,16,.75), inset 0 0 0 3px rgba(255,250,238,.35);
+  cursor: crosshair;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+.fd-frame__tag {
+  position: absolute; top: 6px; inset-inline-start: 8px;
+  font-size: .64rem; font-weight: 800; color: #fdf6e6;
+  background: rgba(24,15,8,.72); padding: 2px 7px; border-radius: 4px;
+  pointer-events: none;
+}
+
+/* حلقهٔ تفاوت پیداشده — دقیقاً روی همان ناحیه */
+.fd-mark {
+  position: absolute;
+  border: 2.5px solid #3d9d55;
+  /* گوشه‌های نرم: کادر دقیقاً دور جسم تغییرکرده می‌نشیند */
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 50%, rgba(61,157,85,.16), rgba(61,157,85,0) 72%);
+  box-shadow: 0 0 0 2px rgba(255,255,255,.8), 0 0 16px rgba(61,157,85,.55);
+  pointer-events: none;
+  animation: fd-pop .34s cubic-bezier(.2,1.5,.4,1);
+}
+.fd-mark__n {
+  position: absolute; top: -11px; inset-inline-start: -11px;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: .68rem; font-weight: 800; color: #fff;
+  background: #3d9d55; box-shadow: 0 2px 5px rgba(0,0,0,.4);
+}
+.fd-mark--wrong {
+  width: 22px; height: 22px; margin: -11px 0 0 -11px;
+  border-color: #b33a2c; border-radius: 50%;
+  background: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.6);
+  animation: fd-fade 1.6s ease forwards;
+}
+.fd-mark--hint {
+  border: 2px dashed #d8a12c; border-radius: 14px; background: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.5), 0 0 18px rgba(216,161,44,.6);
+  animation: fd-pulse 1.5s ease-in-out infinite;
+}
+@keyframes fd-pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fd-fade { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fd-pulse { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+
+.fd-actions { display: grid; gap: 8px; margin: 12px 0; }
+.fd-log { display: grid; gap: 3px; padding: 10px 12px; }
+.fd-log__row { margin: 0; font-size: .74rem; line-height: 1.6; color: #5b4632; }
+.fd-log__row:first-child { color: #3a2a1b; font-weight: 700; }
+
+.fd-result { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 22px 16px; margin-bottom: 14px; }
+.fd-result__seal {
+  width: 62px; height: 62px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 1.5rem; color: #3d6b45;
+  border: 1.5px dashed rgba(61,107,69,.65);
+}
+.fd-result h2 { margin: 0; font-size: 1.05rem; }
+.fd-result__stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 6px; }
+.fd-result__stat {
+  display: grid; gap: 1px; padding: 8px 2px; border-radius: 8px;
+  background: rgba(255,253,246,.62); border: 1px solid rgba(120,86,48,.25);
+}
+.fd-result__stat strong { font-size: 1rem; color: #2b5232; }
+.fd-result__stat span { font-size: .62rem; color: #6d5334; font-weight: 700; }
+
+@media (min-width: 520px) {
+  .fd-pair { grid-template-columns: 1fr 1fr; }
 }

@@ -242,9 +242,9 @@ export const GAMES = [
     id: 'spot', title: 'تفاوت را پیدا کن', meta: 'تکی · ۳–۱۰ دقیقه',
     playersText: '۱ نفر', timeText: '۳–۱۰ دقیقه',
     art: '/assets/art/games/spot.jpg',
-    cats: ['solo', 'mind'], tags: ['تابلو', 'اروپایی', 'دقت', 'تک‌نفره'],
-    solo: true, badge: 'تابلوی قدیمی', multi: false,
-    load: () => import('./spot-ui.js')
+    cats: ['solo', 'mind'], tags: ['عکس واقعی', 'دقت', 'پیکسل', 'تک‌نفره'],
+    solo: true, badge: '۵ صحنه', multi: false,
+    load: () => import('./finddiff-ui.js')
   },
   {
     id: 'dream', title: 'دروازه‌های رؤیا', meta: 'تکی · ۱۰–۲۰ دقیقه',

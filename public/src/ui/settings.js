@@ -69,10 +69,21 @@ export function openSettings() {
           location.reload();
         }
       }),
+      btn('پاک‌کردن حافظهٔ موقت و بارگذاری تازه', {
+        variant: 'btn--block',
+        onClick: async () => {
+          if (!confirm('نسخهٔ ذخیره‌شدهٔ برنامه پاک شود و تازه بارگذاری شود؟ آمار و رکوردها دست‌نخورده می‌مانند.')) return;
+          toast('حافظهٔ موقت پاک شد — در حال بارگذاری تازه', 'ok');
+          const { hardReload } = await import('../main.js');
+          await hardReload();
+        }
+      }),
       btn('بستن', { variant: 'btn--block', onClick: closeOverlay })
     ),
     h('p', { style: { marginTop: '.9rem', fontSize: '.76rem', color: 'var(--ink-soft)' } },
-      'دورهمی‌یار هیچ داده‌ای به اینترنت نمی‌فرستد. همه‌چیز روی همین گوشی است.')
+      'دورهمی‌یار هیچ داده‌ای به اینترنت نمی‌فرستد. همه‌چیز روی همین گوشی است.'),
+    h('p', { style: { margin: '.3rem 0 0', fontSize: '.72rem', color: 'var(--ink-faint)' } },
+      'اگر بعد از به‌روزرسانی هنوز نسخهٔ قدیمی را می‌بینی، «پاک‌کردن حافظهٔ موقت» را بزن.')
   );
 
   overlay(node, { onDismiss: closeOverlay });

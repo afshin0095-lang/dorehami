@@ -271,3 +271,10 @@ export function visibleGames(hiddenIds = []) {
   const hidden = new Set(hiddenIds);
   return GAMES.filter(g => !hidden.has(g.id));
 }
+
+/* ------------------------------------------------------------------
+   heckmeck (کرم کبابی) — موتور و رابط آماده‌اند (engines/worms.js،
+   games/worms-ui.js) ولی هنوز ثبت نشده، چون تصویر جلدش ساخته نشده است.
+   برای فعال‌سازی: تصویر را در پوشهٔ art/games بساز، این بلوک را به GAMES
+   برگردان، فیلد art را پر کن و همان مسیر را در sw.js precache کن.
+   ------------------------------------------------------------------ */

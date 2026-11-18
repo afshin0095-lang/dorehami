@@ -75,10 +75,19 @@ test('هدرهای امنیتی روی HTML هست', async () => {
   assert.equal(r.headers.get('cache-control'), 'no-cache');
 });
 
-test('تصویرها کش می‌شوند، HTML و کد نه', async () => {
-  // تصویرها محتوای ثابت‌اند و می‌توانند کش شوند
+test('تصویرها کش می‌شوند ولی هر بار بازبینی، HTML و کد هرگز', async () => {
+  /**
+   * تصویرها با no-cache سرو می‌شوند: مرورگر می‌تواند نگهشان دارد، ولی
+   * هر بار با سرور چک می‌کند. قبلاً max-age=300 بود و اگر تصویری عوض
+   * می‌شد (بنر و لوگو) تا پنج دقیقه نسخهٔ قدیمی می‌ماند — همان چیزی که
+   * «تصویر نیست» به نظر می‌رسید.
+   */
   const img = await get('/assets/art/paper-cream.jpg');
-  assert.match(img.headers.get('cache-control') || '', /max-age=\d+/);
+  const icc = img.headers.get('cache-control') || '';
+  assert.match(icc, /no-cache/, `تصویر باید بازبینی شود، ولی: ${icc}`);
+  // ETag یا Last-Modified لازم است تا بازبینی ارزان بماند
+  assert.ok(img.headers.get('etag') || img.headers.get('last-modified'),
+    'تصویر نه ETag دارد نه Last-Modified — بازبینی گران می‌شود');
 
   // کد باید تازه‌سازی شود، وگرنه کاربر نسخه‌ی قدیمی می‌بیند
   const css = await get('/styles.css');
@@ -119,11 +128,15 @@ test('کد و استایل تازه‌سازی اجباری دارند، تصو�
     const cc = r.headers.get('cache-control') || '';
     assert.match(cc, /no-cache|no-store/, `${p} باید no-cache باشد، ولی: ${cc}`);
   }
-  // تصویرها می‌توانند کش شوند
+  /**
+   * تصویرها هم باید دوباره بررسی شوند. قبلاً max-age=300 بود و اگر تصویری
+   * عوض می‌شد (مثل همین بنر و لوگو) تا پنج دقیقه نسخهٔ قدیمی می‌ماند.
+   * no-cache یعنی «کش کن، ولی هر بار چک کن» — سریع و همیشه تازه.
+   */
   const img = await get('/assets/art/paper-cream.jpg');
   assert.equal(img.status, 200);
   const icc = img.headers.get('cache-control') || '';
-  assert.match(icc, /max-age=/, `تصویر باید max-age داشته باشد، ولی: ${icc}`);
+  assert.match(icc, /no-cache/, `تصویر باید revalidate شود، ولی: ${icc}`);
 });
 
 /* ── کش: «تغییرات اعمال نشده» نباید دیگر تکرار شود ─────────────────── */

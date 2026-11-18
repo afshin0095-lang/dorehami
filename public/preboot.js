@@ -78,6 +78,38 @@
     pruneOldShellCaches();
   }
 
+
+  /**
+   * دیده‌بان تصاویر برند — اگر لوگو یا پارچه واقعاً بارگذاری نشد،
+   * به‌جای «هیچ‌چیز دیده نمی‌شود»، یک نشانهٔ متنی و یک پیام در کنسول
+   * می‌گذاریم. سکوت بدترین حالت است: آدم نمی‌داند تصویر شکسته یا
+   * هنوز کش کهنه است.
+   */
+  function watchBrandArt() {
+    var BAD = [
+      '/assets/brand/seal-v28-512.png',
+      '/assets/brand/weave-v28-sm.jpg',
+      '/assets/brand/weave-v28.jpg'
+    ];
+    BAD.forEach(function (src) {
+      var probe = new Image();
+      probe.onerror = function () {
+        try {
+          // eslint-disable-next-line no-console
+          console.warn('[دورهمی‌یار] تصویر بارگذاری نشد: ' + src +
+            ' — احتمالاً کش کهنه است. با ?fresh=1 باز کن.');
+        } catch (e) { /* */ }
+        document.documentElement.setAttribute('data-artfail', '1');
+      };
+      probe.src = src + (src.indexOf('?') === -1 ? '?probe=' + Date.now() : '');
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBrandArt, { once: true });
+  } else {
+    watchBrandArt();
+  }
+
   /**
    * راه فرار همیشگی: اگر کاربر هیچ راه دیگری ندارد، آدرس
    * `?fresh=1` همه‌چیز را از نو می‌آورد. این را در کنسول هم

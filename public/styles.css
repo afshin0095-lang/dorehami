@@ -5024,17 +5024,25 @@ small { font-weight: 600; }
   isolation: isolate;
 }
 /* خودِ پارچه — تمام‌قاب و بدون دفرمگی */
+/**
+ * لایهٔ پارچه. عمداً z-index منفی ندارد.
+ *
+ * قبلاً `z-index: -1` داشت. چنین لایه‌ای به «لایهٔ پشتیِ» نزدیک‌ترین
+ * بافت پشته می‌رود؛ اگر آن والد پس‌زمینهٔ مات داشته باشد، پارچه زیر آن
+ * پنهان می‌شود. با یک لایه‌بندی صریح و مثبت، پارچه همیشه دیده می‌شود.
+ */
 .hero-fabric__cloth {
   position: absolute; inset: 0;
+  z-index: 0;
   /* نسخهٔ سبک برای صفحه‌های کوچک، نسخهٔ کامل برای بزرگ‌ترها */
-  background-image: url('/assets/art/hero-fabric-sm.jpg');
+  background-image: url('/assets/brand/weave-v28-sm.jpg');
+  background-color: #7d1f24;          /* اگر تصویر نیامد، پارچهٔ جگری */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: -1;
 }
 @media (min-width: 720px) {
-  .hero-fabric__cloth { background-image: url('/assets/art/hero-fabric.jpg'); }
+  .hero-fabric__cloth { background-image: url('/assets/brand/weave-v28.jpg'); }
 }
 /**
  * بافت برجسته: نوری که از بالا می‌آید روی برجستگی‌های تار و پود
@@ -5105,7 +5113,7 @@ small { font-weight: 600; }
   border-radius: 6px;
   /* پارچهٔ همان بنر، تا هم‌خانواده به نظر برسد */
   background-color: #7d1f24;
-  background-image: url('/assets/art/hero-fabric.jpg');
+  background-image: url('/assets/brand/weave-v28.jpg');
   background-size: 340% auto;
   background-position: center 68%;
   background-blend-mode: multiply;
@@ -5136,7 +5144,7 @@ small { font-weight: 600; }
    ============================================================ */
 .btn--oxblood {
   background-color: #7d1f24;
-  background-image: url('/assets/art/hero-fabric.jpg');
+  background-image: url('/assets/brand/weave-v28.jpg');
   background-size: 300% auto;
   background-position: center 60%;
   background-blend-mode: multiply;

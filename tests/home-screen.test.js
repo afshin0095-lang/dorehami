@@ -112,7 +112,9 @@ test('لوگو بالای صفحه و بالای بنر است', async () => {
   const nodes = walk(app);
   const logo = nodes.find(n => (n.attrs?.class || '').includes('brand__logo'));
   assert.ok(logo, 'تصویر لوگو در صفحهٔ خانه نیست');
-  assert.match(logo.attrs.src, /logo-\d+\.png$/, `مسیر لوگو درست نیست: ${logo.attrs.src}`);
+  // نام فایل نسخه‌دار است تا هیچ کش کهنه‌ای نتواند نسخهٔ قبلی را بدهد
+  assert.match(logo.attrs.src, /^\/assets\/(brand\/)?(seal|logo)-v?\d*-?\d+\.png$/,
+    `مسیر لوگو درست نیست: ${logo.attrs.src}`);
   assert.equal(logo.attrs.alt, 'دورهمی‌یار', 'متن جانشین لوگو نیست');
   // لوگو باید پیش از بنر در ترتیب DOM بیاید
   const flat = nodes;
@@ -205,6 +207,7 @@ test('بنر پارچه‌ای در CSS نسبت ابعاد را قفل کرده
   const css = CSS();
   const block = css.slice(css.indexOf('.hero-fabric {'), css.indexOf('.hero-challenge {'));
   assert.match(block, /aspect-ratio:\s*1376\s*\/\s*768/, 'نسبت ابعاد بنر قفل نشده');
-  assert.match(block, /hero-fabric\.jpg/, 'تصویر بنر در CSS نیست');
+  // تصویر بنر با نام نسخه‌دار ارجاع می‌شود
+  assert.match(block, /weave-v\d+(-sm)?\.jpg/, 'تصویر بنر در CSS نیست');
   assert.match(block, /hero-fabric__title/, 'عنوان بنر استایل ندارد');
 });

@@ -73,9 +73,14 @@ export function HomeScreen({ navigate, openGame }) {
     h('div', { class: 'brand' },
       h('img', {
         class: 'brand__logo',
-        src: '/assets/logo-512.png',
+        src: '/assets/brand/seal-v28-512.png',
+        // اگر نسخهٔ کوچک در دسترس نبود، نسخهٔ اصلی؛ اگر هیچ‌کدام نبود،
+        // متن جانشین دیده می‌شود — نشان هرگز «بی‌صدا» ناپدید نمی‌شود.
+        srcset: '/assets/brand/seal-v28-512.png 512w, /assets/brand/seal-v28-256.png 256w',
+        sizes: '132px',
         alt: 'دورهمی‌یار',
         width: '132', height: '120',
+        decoding: 'async',
         draggable: 'false'
       })
     ),

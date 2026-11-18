@@ -159,6 +159,18 @@ const SOUND_LIB = {
   'lose': [
     { freq: 700, q: 0.9, gain: 0.09, dur: 0.22, sweep: 220, tone: 220 },
     { freq: 400, q: 0.9, gain: 0.07, dur: 0.30, start: 0.16, sweep: 130, tone: 150 }
+  ],
+  /* کارت روی کارت می‌لغزد — ملایم‌تر و کشیده‌تر از پخش کارت */
+  'card-slide': [
+    { freq: 2100, q: 1.1, gain: 0.085, dur: 0.22, sweep: 900 },
+    { freq: 3600, q: 1.8, gain: 0.04, dur: 0.14, start: 0.05, sweep: 1900 },
+    { freq: 180, q: 1.0, gain: 0.05, dur: 0.16, start: 0.03, tone: 140 }
+  ],
+  /* برگه کاغذ مچاله/پاره می‌شود — برای خطا، نه بوق */
+  'error': [
+    { freq: 1200, q: 0.8, gain: 0.09, dur: 0.13, sweep: 500 },
+    { freq: 800, q: 0.7, gain: 0.07, dur: 0.11, start: 0.07, sweep: 340 },
+    { freq: 2600, q: 1.5, gain: 0.04, dur: 0.06, start: 0.02, sweep: 1300 }
   ]
 };
 

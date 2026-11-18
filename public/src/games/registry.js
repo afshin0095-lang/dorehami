@@ -97,7 +97,7 @@ export const GAMES = [
   {
     id: 'story', title: 'قصه‌چین', meta: '۲ تا ۶ نفر · ۱۰–۱۵ دقیقه',
     playersText: '۲–۶ نفر', timeText: '۱۰–۱۵ دقیقه',
-    art: '/assets/art/paper-cream.jpg',
+    art: '/assets/art/games/story.jpg',
     cats: ['duo', 'words'], tags: ['داستان', 'خلاقیت', 'نوبتی'],
     solo: false, badge: 'خلاقیت', multi: true,
     load: () => import('./story-ui.js')
@@ -105,7 +105,7 @@ export const GAMES = [
   {
     id: 'warden', title: 'پرونده‌ی وِردِن', meta: 'تکی · ۲۵–۴۰ دقیقه',
     playersText: '۱ نفر', timeText: '۲۵–۴۰ دقیقه',
-    art: '/assets/art/noir-leather.jpg',
+    art: '/assets/art/games/warden.jpg',
     cats: ['solo', 'cards', 'mind'], tags: ['داستانی', 'ترسناک', 'کارتی', 'معمایی'],
     solo: true, badge: 'پرونده‌ی محقق', multi: false,
     load: () => import('./warden-ui.js')
@@ -121,7 +121,7 @@ export const GAMES = [
   {
     id: 'spirit', title: 'روح جزیره', meta: 'تکی · ۲۰–۳۰ دقیقه',
     playersText: '۱ نفر', timeText: '۲۰–۳۰ دقیقه',
-    art: '/assets/art/paper-cream.jpg',
+    art: '/assets/art/games/spirit.jpg',
     cats: ['solo', 'cards', 'story'], tags: ['کارت', 'جزیره', 'ترس', 'تک‌نفره'],
     solo: true, badge: 'روح جزیره', multi: false,
     load: () => import('./spirit-ui.js')
@@ -129,7 +129,7 @@ export const GAMES = [
   {
     id: 'arkham', title: 'آرکام: نشانه‌های آشوب', meta: 'تکی · ۲۰–۳۵ دقیقه',
     playersText: '۱ نفر', timeText: '۲۰–۳۵ دقیقه',
-    art: '/assets/art/noir-leather.jpg',
+    art: '/assets/art/games/arkham.jpg',
     cats: ['solo', 'story'], tags: ['کارت', 'تحقیق', 'هول', 'تک‌نفره'],
     solo: true, badge: 'کیسهٔ آشوب', multi: false,
     load: () => import('./arkham-ui.js')
@@ -145,7 +145,7 @@ export const GAMES = [
   {
     id: 'siege', title: 'شب‌های محاصره', meta: 'تکی · ۱۵–۲۵ دقیقه',
     playersText: '۱ نفر', timeText: '۱۵–۲۵ دقیقه',
-    art: '/assets/art/notebook-page.jpg',
+    art: '/assets/art/games/siege.jpg',
     cats: ['solo', 'story'], tags: ['بقا', 'کارت', 'انتخاب', 'تک‌نفره'],
     solo: true, badge: 'بقا', multi: false,
     load: () => import('./siege-ui.js')
@@ -153,7 +153,7 @@ export const GAMES = [
   {
     id: 'gloom', title: 'غارهای گِلومهیون', meta: 'تکی · ۱۵–۳۰ دقیقه',
     playersText: '۱ نفر', timeText: '۱۵–۳۰ دقیقه',
-    art: '/assets/art/noir-leather.jpg',
+    art: '/assets/art/games/gloom.jpg',
     cats: ['solo', 'mind'], tags: ['کارت', 'تاکتیک', 'غار', 'تک‌نفره'],
     solo: true, badge: 'کارت توانایی', multi: false,
     load: () => import('./gloom-ui.js')
@@ -161,7 +161,7 @@ export const GAMES = [
   {
     id: 'duz', title: 'دوز', meta: 'دو نفره · ۵–۱۵ دقیقه',
     playersText: '۲ نفر', timeText: '۵–۱۵ دقیقه',
-    art: '/assets/art/notebook-page.jpg',
+    art: '/assets/art/games/duz.jpg',
     cats: ['duo', 'mind'], tags: ['تخته', 'چینی', 'کهن', 'استراتژی'],
     solo: false, badge: 'تختهٔ کهن', multi: true,
     load: () => import('./duz-ui.js')
@@ -169,7 +169,7 @@ export const GAMES = [
   {
     id: 'spot', title: 'تفاوت را پیدا کن', meta: 'تکی · ۳–۱۰ دقیقه',
     playersText: '۱ نفر', timeText: '۳–۱۰ دقیقه',
-    art: '/assets/art/notebook-page.jpg',
+    art: '/assets/art/games/spot.jpg',
     cats: ['solo', 'mind'], tags: ['تابلو', 'اروپایی', 'دقت', 'تک‌نفره'],
     solo: true, badge: 'تابلوی قدیمی', multi: false,
     load: () => import('./spot-ui.js')
@@ -177,7 +177,7 @@ export const GAMES = [
   {
     id: 'dream', title: 'دروازه‌های رؤیا', meta: 'تکی · ۱۰–۲۰ دقیقه',
     playersText: '۱ نفر', timeText: '۱۰–۲۰ دقیقه',
-    art: '/assets/art/notebook-page.jpg',
+    art: '/assets/art/games/dream.jpg',
     cats: ['solo', 'cards', 'story'], tags: ['کارتی', 'خواب', 'کابوس', 'تک‌نفره'],
     solo: true, badge: 'هزارتوی خواب', multi: false,
     load: () => import('./dream-ui.js')
@@ -185,7 +185,7 @@ export const GAMES = [
   {
     id: 'logic', title: 'مهره‌چین', meta: 'تکی · ۵–۱۵ دقیقه',
     playersText: '۱ نفر', timeText: '۵–۱۵ دقیقه',
-    art: '/assets/art/notebook-page.jpg',
+    art: '/assets/art/games/logic.jpg',
     cats: ['solo', 'mind'], tags: ['منطق', 'معما', 'استدلال'],
     solo: true, badge: 'معمای منطقی', multi: false,
     load: () => import('./logic-ui.js')

@@ -43,7 +43,7 @@ const allJs = [
   'public/src/content/gk-geo.js', 'public/src/content/gk-history.js',
   'public/src/content/gk-science.js', 'public/src/content/gk-culture.js',
   'public/src/content/gk-misc.js', 'public/src/content/gk-tables.js',
-  'public/src/content/gk-gen.js'
+  'public/src/content/gk-gen.js', 'tests/card-art.test.js', 'tests/sound.test.js'
 ];
 
 for (const f of allJs) {

@@ -3,7 +3,7 @@
    استراتژی: cache-first برای فایل‌های پوسته، network-first برای HTML
    ============================================================ */
 
-const CACHE = 'dorehami-shell-v9';
+const CACHE = 'dorehami-shell-v10';
 
 const SHELL = [
   '/',
@@ -33,6 +33,16 @@ const SHELL = [
   '/src/games/riddle-ui.js',
   '/src/games/iq-ui.js',
   '/src/games/gk-ui.js',
+  '/assets/art/games/story.jpg',
+  '/assets/art/games/warden.jpg',
+  '/assets/art/games/arkham.jpg',
+  '/assets/art/games/gloom.jpg',
+  '/assets/art/games/siege.jpg',
+  '/assets/art/games/duz.jpg',
+  '/assets/art/games/spot.jpg',
+  '/assets/art/games/dream.jpg',
+  '/assets/art/games/logic.jpg',
+  '/assets/art/games/spirit.jpg',
   '/assets/art/games/geo-quiz.jpg',
   '/assets/art/games/mafia.jpg',
   '/assets/art/games/hokm.jpg',

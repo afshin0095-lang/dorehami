@@ -207,7 +207,11 @@ test('بنر پارچه‌ای در CSS نسبت ابعاد را قفل کرده
   const css = CSS();
   const block = css.slice(css.indexOf('.hero-fabric {'), css.indexOf('.hero-challenge {'));
   assert.match(block, /aspect-ratio:\s*1376\s*\/\s*768/, 'نسبت ابعاد بنر قفل نشده');
-  // تصویر بنر با نام نسخه‌دار ارجاع می‌شود
-  assert.match(block, /weave-v\d+(-sm)?\.jpg/, 'تصویر بنر در CSS نیست');
+  /**
+   * پارچه حالا در خود CSS جاسازی شده (data URI). این آگاهانه است: تصویری
+   * که درخواست جداگانه ندارد نمی‌تواند شکست بخورد یا کهنه بماند.
+   */
+  assert.match(block, /data:image\/jpeg;base64,/, 'پارچه در CSS جاسازی نشده');
+  assert.ok(block.length > 5000, 'دادهٔ جاسازی‌شده خیلی کوچک است — تصویر خالی');
   assert.match(block, /hero-fabric__title/, 'عنوان بنر استایل ندارد');
 });

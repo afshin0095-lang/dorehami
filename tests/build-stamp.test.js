@@ -40,9 +40,14 @@ test('نوار به‌روزرسانی به hardReload وصل است', () => {
   assert.match(bar, /hardReload\(\)/, 'دکمهٔ نوار hardReload را صدا نمی‌زند');
 });
 
-test('تنظیمات هم راه پاک‌کردن کش را دارد', () => {
-  assert.match(settings, /hardReload/, 'تنظیمات به hardReload وصل نیست');
-  assert.match(settings, /حافظهٔ موقت/, 'دکمهٔ پاک‌کردن حافظهٔ موقت نیست');
+test('تنظیمات دکمهٔ «بازخوانی کامل» دارد و خودش کش را پاک می‌کند', () => {
+  // دیگر به hardReload وابسته نیست: خودش کش‌ها و سرویس‌ورکر را پاک می‌کند
+  assert.match(settings, /بازخوانی کامل/, 'دکمهٔ بازخوانی کامل نیست');
+  assert.match(settings, /caches\.keys/, 'دکمهٔ تنظیمات کش را نمی‌بیند');
+  assert.match(settings, /caches\.delete/, 'دکمهٔ تنظیمات کش را پاک نمی‌کند');
+  assert.match(settings, /getRegistrations/, 'سرویس‌ورکر برداشته نمی‌شود');
+  assert.match(settings, /fresh=/, 'راه فرار ?fresh= در دکمه نیست');
+  assert.match(settings, /REFRESH_ALL/, 'پیام REFRESH_ALL به سرویس‌ورکر فرستاده نمی‌شود');
 });
 
 test('index.html یک راه فرار مستقل دارد (اگر ماژول‌ها بالا نیایند)', () => {

@@ -193,8 +193,20 @@ test('قاب حکاکی‌شده با border-image دور ستون می‌نشی
   // قاب باید به‌صورت border-image باشد…
   assert.match(css, /border-image-source:\s*url\('\/assets\/art\/desk-frame\.jpg'\)/,
     'قاب با border-image دور برنامه نمی‌نشیند');
-  assert.match(css, /border-image-slice:\s*24%\s+15%\s+19%\s+15%\s+fill/,
+  assert.match(css, /border-image-slice:\s*26%\s+15%\s+20%\s+15%/,
     'نسبت برش قاب اندازه‌گیری‌شده نیست');
+  /**
+   * این مهم‌ترین بخش است: `stretch` نوارهای قاب را در ارتفاع چند‌هزار
+   * پیکسلی صفحه می‌کشید و همان چیزی می‌شد که کاربر «دفرمه و زشت»
+   * توصیفش کرد. `round` تکرار می‌کند، نه کشیدن.
+   */
+  assert.match(css, /border-image-repeat:\s*round/,
+    'قاب هنوز با stretch کشیده می‌شود — دفرمه می‌شود');
+  // فقط «اعلانِ» واقعی سنجیده شود، نه توضیحی که در کامنت دربارهٔ همان
+  // اشتباه نوشته شده است
+  const cssNoComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.equal(/border-image-repeat:\s*stretch/.test(cssNoComments), false,
+    'stretch در قاب مانده — نوار قاب در ارتفاع صفحه کشیده می‌شود');
   // …و دیگر با cover روی کل صحنه کشیده نشود (این کار ۷۰٪ نقش را می‌بُرید)
   const deskBlock = css.slice(css.indexOf('#desk {'), css.indexOf('#desk::before'));
   assert.equal(deskBlock.includes("url('/assets/art/desk-frame.jpg')"), false,

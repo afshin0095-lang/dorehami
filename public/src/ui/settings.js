@@ -96,13 +96,44 @@ export function openSettings() {
           location.reload();
         }
       }),
-      btn('پاک‌کردن حافظهٔ موقت و بارگذاری تازه', {
-        variant: 'btn--block', ico: 'refresh',
+      /**
+       * «بازخوانی کامل» — ساده‌ترین راه ممکن برای کاربر، بدون کنسول و
+       * بدون دست‌کاری آدرس. هر سه لایه را پاک می‌کند:
+       *  ۱) کش‌های سرویس‌ورکر (Cache Storage)
+       *  ۲) خود سرویس‌ورکر
+       *  ۳) سپس با ?fresh= بالا می‌آید تا پیش‌راه‌انداز هم دوباره
+       *     همان پاک‌سازی را انجام دهد
+       * در پایان هم پنجره دوباره بارگذاری می‌شود.
+       */
+      btn('بازخوانی کامل برنامه (کش تصاویر و کد)', {
+        variant: 'btn--block btn--oxblood', ico: 'refresh',
         onClick: async () => {
-          if (!confirm('نسخهٔ ذخیره‌شدهٔ برنامه پاک شود و تازه بارگذاری شود؟ آمار و رکوردها دست‌نخورده می‌مانند.')) return;
-          toast('حافظهٔ موقت پاک شد — در حال بارگذاری تازه', 'ok');
-          const { hardReload } = await import('../main.js');
-          await hardReload();
+          if (!confirm('همهٔ فایل‌های ذخیره‌شده پاک و برنامه از نو بارگذاری شود؟ آمار و رکوردهای تو دست‌نخورده می‌مانند.')) return;
+          toast('کش در حال پاک‌شدن…', 'ok');
+          let cleared = false;
+          try {
+            // ۱) از سرویس‌ورکر بخواه همه‌چیز را از نو بگیرد
+            const reg = await navigator.serviceWorker?.getRegistration?.();
+            if (reg?.active) {
+              reg.active.postMessage({ type: 'REFRESH_ALL' });
+              cleared = true;
+            }
+          } catch { /* بی‌اهمیت */ }
+          try {
+            // ۲) خودمان هم مستقیم پاک کنیم (اگر سرویس‌ورکر نبود)
+            if (globalThis.caches?.keys) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+              cleared = true;
+            }
+            if ('serviceWorker' in navigator) {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map(r => r.unregister().catch(() => null)));
+            }
+          } catch { /* بی‌اهمیت */ }
+          // ۳) در هر حالت، با آدرس تازه بالا بیا — این تضمین آخر است
+          location.replace(`${location.pathname}?fresh=${Date.now()}`);
+          void cleared;
         }
       }),
       btn('بستن', { variant: 'btn--block', onClick: closeOverlay, ico: 'close' })
@@ -110,7 +141,7 @@ export function openSettings() {
     h('p', { style: { marginTop: '.9rem', fontSize: '.76rem', color: 'var(--ink-soft)' } },
       'دورهمی‌یار هیچ داده‌ای به اینترنت نمی‌فرستد. همه‌چیز روی همین گوشی است.'),
     h('p', { style: { margin: '.3rem 0 0', fontSize: '.72rem', color: 'var(--ink-faint)' } },
-      'اگر بعد از به‌روزرسانی هنوز نسخهٔ قدیمی را می‌بینی، «پاک‌کردن حافظهٔ موقت» را بزن.')
+      'اگر تصویری نیامد یا نسخهٔ قدیمی را دیدی، «بازخوانی کامل برنامه» را بزن. نیازی به کنسول یا دست‌کاری آدرس نیست.')
   );
 
   overlay(node, { onDismiss: closeOverlay });

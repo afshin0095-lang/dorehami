@@ -147,13 +147,34 @@ window.addEventListener('pagehide', onHide);
 /* ---------------- شروع ---------------- */
 applyPrefs();
 void GAMES;
+const IS_FRESH = location.search.includes('fresh=');
+
+/* اگر با ?fresh= بالا آمده‌ایم: حافظهٔ موقت و سرویس‌ورکر را پاک کن تا کاربر
+   قطعاً کد تازه را ببیند، بعد پارامتر را از نشانی بردار (تا رفرش بعدی عادی باشد). */
+if (IS_FRESH) {
+  (async () => {
+    try {
+      if (globalThis.caches?.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister().catch(() => null)));
+      }
+    } catch { /* بی‌اهمیت */ }
+    history.replaceState(null, '', location.pathname);
+  })();
+}
+
 void getPrefs;
 void playSound;
 void store;
 render();
 
 // سرویس‌ورکر برای اجرای آفلاین (در صورت پشتیبانی)
-if ('serviceWorker' in navigator) {
+// در بارگذاری «تازه» ثبت نمی‌کنیم تا نسخهٔ ذخیره‌شده نتواند کد قدیمی بدهد.
+if ('serviceWorker' in navigator && !IS_FRESH) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then((reg) => {
       // اگر نسخهٔ تازه‌ای پیدا شد، آماده‌اش کن و بی‌درنگ فعال کن
@@ -201,20 +222,4 @@ export async function hardReload() {
 }
 document.addEventListener('dy:hard-reload', () => { void hardReload(); });
 
-/* اگر با ?fresh= بالا آمده‌ایم، سرویس‌ورکر را ثبت نکن و حافظهٔ موقت را پاک کن
-   تا کاربر قطعاً کد تازه را ببیند، بعد پارامتر را از نشانی بردار. */
-if (location.search.includes('fresh=')) {
-  (async () => {
-    try {
-      if (globalThis.caches?.keys) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(k => caches.delete(k)));
-      }
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map(r => r.unregister().catch(() => null)));
-      }
-    } catch { /* بی‌اهمیت */ }
-    history.replaceState(null, '', location.pathname);
-  })();
-}
+

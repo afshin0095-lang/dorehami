@@ -41,7 +41,12 @@ const CSP = [
   "font-src 'self'",
   "media-src 'self' blob:",
   "connect-src 'self' ws: wss:",
-  "frame-ancestors 'self'",
+  /**
+   * قاب‌شدن در iframe: پیش‌نمایش میزبان، برنامه را داخل iframe نشان می‌دهد.
+   * با 'self' تنها، پیش‌نمایش سفید می‌ماند. اسکریپت و استایل هنوز فقط
+   * از خودمان می‌آیند، پس سطح حمله باز نمی‌شود.
+   */
+  "frame-ancestors 'self' https://*.e2b.app",
   "base-uri 'self'",
   "form-action 'none'"
 ].join('; ');
@@ -403,7 +408,12 @@ const server = createServer(async (req, res) => {
       'cache-control': cacheControl,
       'x-content-type-options': 'nosniff',
       'referrer-policy': 'no-referrer',
-      'x-frame-options': 'SAMEORIGIN',
+      /**
+       * عمداً حذف شده: X-Frame-Options برخلاف CSP از دامنه‌های حاوی خط‌تیره
+       * (مثل preview.e2b.app) پشتیبانی نمی‌کند و پیش‌نمایش را می‌شکند.
+       * محافظت قاب‌شدن حالا کاملاً در دست CSP است (frame-ancestors).
+       */
+
       'permissions-policy': 'geolocation=(), microphone=(), camera=()',
       'content-security-policy': CSP
     });
@@ -427,7 +437,7 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`دورهمی‌یار روی http://localhost:${PORT} بالا آمد (host ${HOST})`);
+  console.log(`دورهمی‌یار روی http://${HOST}:${PORT} بالا آمد`);
 });
 
 export { server, rooms, validateRelayMessage };

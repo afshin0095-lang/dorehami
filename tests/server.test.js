@@ -64,9 +64,14 @@ test('تلاش برای پیمایش مسیر (path traversal) رد می‌شو�
 test('هدرهای امنیتی روی HTML هست', async () => {
   const r = await get('/');
   assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
-  assert.equal(r.headers.get('x-frame-options'), 'SAMEORIGIN');
   assert.ok(r.headers.get('content-security-policy')?.includes("default-src 'self'"));
   assert.ok(r.headers.get('content-security-policy')?.includes("frame-ancestors"));
+  /**
+   * X-Frame-Options حذف شده چون پیش‌نمایش (دامنهٔ دارای خط‌تیره) را می‌شکند
+   * و مرورگرها آن را به‌جای CSP ملاک می‌گیرند. محافظت حالا در CSP است،
+   * پس نباید برگردد — وگرنه پیش‌نمایش دوباره سفید می‌شود.
+   */
+  assert.equal(r.headers.get('x-frame-options'), null, 'X-Frame-Options نباید باشد');
   assert.equal(r.headers.get('cache-control'), 'no-cache');
 });
 

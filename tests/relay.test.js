@@ -83,6 +83,16 @@ test('CSP اتصال WebSocket را مجاز می‌کند', async () => {
   assert.ok(/ws:|wss:/.test(csp), csp);
 });
 
+test('CSP قاب‌شدن در پیش‌نمایش را مجاز می‌کند', async () => {
+  const r = await fetch(`${BASE}/`);
+  const csp = r.headers.get('content-security-policy') || '';
+  // پیش‌نمایش، برنامه را در iframe نشان می‌دهد؛ با 'self' تنها صفحه سفید می‌شود
+  assert.ok(/frame-ancestors[^;]*e2b\.app/.test(csp), csp);
+  assert.ok(csp.includes("'self'"), 'خودمان هم باید مجاز بماند');
+  // اسکریپت و استایل نباید باز شوند
+  assert.ok(csp.includes("script-src 'self'"));
+});
+
 test('WebSocket واقعی: دو کلاینت در یک اتاق پیام می‌بینند', async () => {
   const room = await (await fetch(`${BASE}/api/room`, { method: 'POST', body: '{}' })).json();
   const url = `ws://127.0.0.1:${PORT}/api/room/${room.code}?token=${encodeURIComponent(room.token)}&host=${encodeURIComponent(room.hostToken)}`;

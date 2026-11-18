@@ -167,3 +167,16 @@ export const LEVEL_ART = {
   hard: '/assets/art/cats/lvl-deep.jpg'
 };
 export const levelArt = (id) => LEVEL_ART[id] || '';
+
+/**
+ * نوار هنر بازی: تصویر کارت همان بازی را در سرصفحهٔ خودش می‌آورد
+ * تا کارت انتخاب‌شده و داخل بازی یک هویت بصری باشند.
+ */
+export function artBanner(art, label = '') {
+  if (!art) return null;
+  return h('div', { class: 'game-art-banner', 'aria-hidden': 'true' },
+    h('div', { class: 'game-art-banner__img', style: { backgroundImage: `url('${art}')` } }),
+    h('div', { class: 'game-art-banner__wash' }),
+    label ? h('div', { class: 'game-art-banner__label' }, label) : null
+  );
+}

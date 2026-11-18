@@ -137,3 +137,14 @@ test('هر تصویر در پوشهٔ assets یا استفاده می‌شود �
   const orphans = all.filter(p => !haystack.includes(p));
   assert.equal(orphans.length, 0, `تصویر بدون استفاده: ${orphans.join(', ')}`);
 });
+
+test('هر بازی در داخل خودش هم تصویر کارتش را نشان می‌دهد', () => {
+  const main = readFileSync(join(ROOT, 'public/src/main.js'), 'utf8');
+  assert.ok(main.includes('artBanner'), 'نوار هنر بازی به main وصل نشده');
+  assert.ok(/artBanner\(game\.art/.test(main), 'نوار باید تصویر همان بازی را بگیرد');
+  // قاعدهٔ CSS باید تصویر را تمام‌قاب بپوشاند
+  const rule = css.match(/\.game-art-banner__img\s*\{[^}]*\}/);
+  assert.ok(rule, 'قاعدهٔ .game-art-banner__img نیست');
+  assert.ok(/inset:\s*0/.test(rule[0]), 'تصویر نوار کل قاب را نمی‌گیرد');
+  assert.ok(/background-size:\s*cover/.test(rule[0]), 'نوار باید cover باشد');
+});

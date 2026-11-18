@@ -4,7 +4,7 @@
 
 import { h, mount, playSound, store, toast } from './core.js';
 import { HomeScreen, GamesScreen, LibraryScreen, ProfileScreen } from './ui/screens.js';
-import { navbar } from './ui/kit.js';
+import { navbar, artBanner } from './ui/kit.js';
 import { applyPrefs, getPrefs } from './ui/settings.js';
 import { AdminScreen } from './ui/admin.js';
 import { TableScreen } from './net/table-screen.js';
@@ -50,7 +50,13 @@ async function openGame(id) {
   const onGlobalBack = () => { destroyGame(); navigate('games'); };
   document.addEventListener('dy:back', onGlobalBack);
 
-  const inner = mod.mountGame(host, {
+  // نوار هنر بازی: تصویر کارت انتخاب‌شده در بالای خود بازی
+  const banner = artBanner(game.art, game.title);
+  const stage = h('div', {});
+  if (banner) host.append(banner);
+  host.append(stage);
+
+  const inner = mod.mountGame(stage, {
     game,
     onExit: () => { destroyGame(); navigate('home'); }
   });

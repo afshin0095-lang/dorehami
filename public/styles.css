@@ -3682,3 +3682,29 @@ small { font-size: .8rem; color: var(--ink-soft); }
 .level-card.is-on .level-card__name,
 .level-card.is-on .level-card__meta { color: #fff8e7; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
 
+
+/* ============================================================
+   نوار هنر بازی — تصویر کارت بازی در سرصفحهٔ خود بازی
+   ============================================================ */
+.game-art-banner {
+  position: relative; overflow: hidden;
+  height: 86px; border-radius: 3px;
+  margin: 0 0 .7rem;
+  box-shadow: var(--lift-2), inset 0 0 0 1px rgba(139,110,68,.35);
+  background-color: #e8dcc0;
+}
+.game-art-banner__img {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  opacity: .95; mix-blend-mode: multiply;
+}
+.game-art-banner__wash {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(244,236,217,0) 42%, rgba(244,236,217,.9) 100%);
+}
+.game-art-banner__label {
+  position: absolute; inset-inline: .7rem; bottom: .4rem;
+  font-size: .78rem; font-weight: 700; color: #3d2f1e;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+}
+[class*="game-art-banner"] { min-width: 0; overflow-wrap: anywhere; }
